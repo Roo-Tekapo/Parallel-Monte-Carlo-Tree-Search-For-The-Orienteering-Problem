@@ -2,31 +2,35 @@ import math
 import random
 from collections import namedtuple
 
-# Define the problem instance (Tsiligirides Problem 1, budget 0.5)
 Node = namedtuple('Node', ['id', 'x', 'y', 'score'])
-nodes = [
-    Node(0, 0, 0, 0),    # Depot (start/end)
-    Node(1, 1, 3, 10),
-    Node(2, 4, 3, 8),
-    Node(3, 2, 5, 7),
-    Node(4, 6, 1, 6),
-    Node(5, 3, 7, 5),
-    Node(6, 5, 6, 4),
-    Node(7, 8, 2, 3),
-    Node(8, 7, 7, 2),
-    Node(9, 9, 5, 1)
-]
-BUDGET = 0.5 * sum(
-    math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y)
-    for i in range(len(nodes)) for j in range(i+1, len(nodes))
-) / (len(nodes) - 1)  # Example budget calculation
+
+def load_problem(filename):
+    with open(filename, 'r') as f:
+        lines = [line.strip() for line in f if line.strip()]
+    # First line: Tmax P
+    budget, _ = lines[0].split()
+    budget = float(budget)
+    node_lines = lines[1:]
+    nodes = []
+    for idx, line in enumerate(node_lines):
+        x, y, score = line.split()
+        nodes.append(Node(idx, float(x), float(y), int(score)))
+    return nodes, budget
+
+# Load nodes and budget from file
+nodes, BUDGET = load_problem(
+    # r'OP_Benchmark_Set\Tsiligirides_1\tsiligirides_problem_1_budget_85.txt'
+    r'OP_Benchmark_Set\test_OP_budget_30.txt'
+)
+START_NODE = 0
+END_NODE = 1
 
 def distance(a, b):
     return math.hypot(a.x - b.x, a.y - b.y)
 
 class State:
     def __init__(self, path=None, cost=0, score=0):
-        self.path = path or [0]
+        self.path = path or [START_NODE]
         self.cost = cost
         self.score = score
 
@@ -34,25 +38,31 @@ class State:
         return State(self.path[:], self.cost, self.score)
 
     def is_terminal(self):
-        return self.path[-1] == 0 and len(self.path) > 1
+        # Terminal if last node is END_NODE and path has at least two nodes
+        return self.path[-1] == END_NODE and len(self.path) > 1
 
     def available_actions(self):
         visited = set(self.path)
         actions = []
+        # Optional nodes are those not start or end and not visited
         for node in nodes:
-            if node.id not in visited and node.id != 0:
-                next_cost = self.cost + distance(nodes[self.path[-1]], node) + distance(node, nodes[0])
+            if node.id not in visited and node.id != START_NODE and node.id != END_NODE:
+                # Check if we can visit this node and then reach END_NODE within budget
+                next_cost = self.cost + distance(nodes[self.path[-1]], node) + distance(node, nodes[END_NODE])
                 if next_cost <= BUDGET:
                     actions.append(node.id)
-        if self.path[-1] != 0:
-            actions.append(0)  # Option to return to depot
+        # Option to go directly to END_NODE if not already there
+        if self.path[-1] != END_NODE:
+            if self.cost + distance(nodes[self.path[-1]], nodes[END_NODE]) <= BUDGET:
+                actions.append(END_NODE)
+        # Debug print
+        print(f"At path {self.path}, available actions: {actions}")
         return actions
 
     def do_action(self, action):
-        if action == 0:
-            # Return to depot
-            new_cost = self.cost + distance(nodes[self.path[-1]], nodes[0])
-            return State(self.path + [0], new_cost, self.score)
+        if action == END_NODE:
+            new_cost = self.cost + distance(nodes[self.path[-1]], nodes[END_NODE])
+            return State(self.path + [END_NODE], new_cost, self.score)
         else:
             node = nodes[action]
             new_cost = self.cost + distance(nodes[self.path[-1]], node)
@@ -107,7 +117,7 @@ def backup(node, reward):
         node.value += reward
         node = node.parent
 
-def mcts(root_state, iterations=1000):
+def mcts(root_state, iterations):
     root = MCTSNode(root_state)
     for _ in range(iterations):
         node = tree_policy(root)
