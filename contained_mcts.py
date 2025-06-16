@@ -1,7 +1,7 @@
 import math
 import random
 
-# Hardcoded orienteering problem as a matrix
+# Hardcoded orienteering problem tsiligirides_1 data defualt budget was 5
 # Each row: [x, y, score]
 nodes = [
     [10.5, 14.4, 0],   # Start node (id 0)
@@ -37,7 +37,7 @@ nodes = [
     [4.9, 18.9, 10],
     [7.3, 18.8, 10],
 ]
-BUDGET = 30  # Tmax from your file
+BUDGET = 5
 START_NODE = 0
 END_NODE = 1
 
