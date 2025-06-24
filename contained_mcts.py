@@ -37,7 +37,7 @@ nodes = [
     [4.9, 18.9, 10],
     [7.3, 18.8, 10],
 ]
-BUDGET = 5
+BUDGET = 30
 START_NODE = 0
 END_NODE = 1
 
@@ -59,6 +59,7 @@ class State:
     def available_actions(self):
         visited = set(self.path)
         actions = []
+        # print("Current path:", self.path, "with cost:", self.cost, "and score:", self.score)
         for i in range(len(nodes)):
             if i not in visited and i != START_NODE and i != END_NODE:
                 # Check if we can visit this node and then reach END_NODE within budget
@@ -72,13 +73,19 @@ class State:
         return actions
 
     def do_action(self, action):
+        print(f"Performing action: {action} from path {self.path}")
         if action == END_NODE:
             new_cost = self.cost + distance(self.path[-1], END_NODE)
+            print(f"Reached END_NODE with cost: {new_cost}")
             return State(self.path + [END_NODE], new_cost, self.score)
         else:
             new_cost = self.cost + distance(self.path[-1], action)
             new_score = self.score + nodes[action][2]
+            print(f"Visiting node {action} with cost: {new_cost} and score: {new_score}")
             return State(self.path + [action], new_cost, new_score)
+        
+    def __str__(self) -> str:
+        return f"Path {self.path} cost: {self.cost:0.2f}, score: {self.score}"
 
 class MCTSNode:
     def __init__(self, state, parent=None):
@@ -92,27 +99,37 @@ class MCTSNode:
         return set(self.children.keys()) == set(self.state.available_actions())
 
     def best_child(self, c_param=1.4):
-        choices = [
-            (child.value / child.visits + c_param * math.sqrt(2 * math.log(self.visits) / child.visits), child)
-            for child in self.children.values() if child.visits > 0
-        ]
+        choices = []
+        for child in self.children.values():
+            if child.visits == 0:
+                # Prioritize unvisited children
+                uct = float('inf')
+            else:
+                uct = (child.value / child.visits +
+                       c_param * math.sqrt(2 * math.log(self.visits) / child.visits))
+            choices.append((uct, child))
         if not choices:
             return None
         return max(choices, key=lambda x: x[0])[1]
 
 def tree_policy(node):
+    # print("Tree policy called on node with state:", node.state.path, "and score:", node.state.score)
     while not node.state.is_terminal():
         actions = node.state.available_actions()
+        # print("Available actions:", actions)
         if not actions:
             break
         if len(node.children) < len(actions):
+            # print("Expanding node:", node.state.path)
             for action in actions:
                 if action not in node.children:
+                    # print("Expanding with action:", action)
                     new_state = node.state.do_action(action)
                     child = MCTSNode(new_state, node)
                     node.children[action] = child
                     return child
         else:
+            # print("Choosing best child for node:", node.state.path)
             next_node = node.best_child()
             if next_node is None:
                 break
@@ -147,6 +164,8 @@ def mcts(root_state, iterations):
 
 if __name__ == "__main__":
     initial_state = State()
-    path, score = mcts(initial_state, iterations=10000)
-    print("Best path:", path)
+    print(initial_state)
+
+    path, score = mcts(initial_state, iterations=10_000)
+    print("\nBest path:", path)
     print("Score:", score)

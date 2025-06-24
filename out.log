@@ -1,0 +1,1552 @@
+Path [0] cost: 0.00, score: 0
+Performing action: 2 from path [0]
+Visiting node 2 with cost: 7.648529270389178 and score: 10
+Performing action: 7 from path [0, 2]
+Visiting node 7 with cost: 10.75497418379099 and score: 15
+Performing action: 22 from path [0, 2, 7]
+Visiting node 22 with cost: 21.462448208975456 and score: 25
+Performing action: 1 from path [0, 2, 7, 22]
+Reached END_NODE with cost: 29.52470595727401
+Performing action: 3 from path [0]
+Visiting node 3 with cost: 7.877182237323193 and score: 10
+Performing action: 6 from path [0, 3]
+Visiting node 6 with cost: 11.278652507662184 and score: 15
+Performing action: 13 from path [0, 3, 6]
+Visiting node 13 with cost: 13.46268547444634 and score: 20
+Performing action: 12 from path [0, 3, 6, 13]
+Visiting node 12 with cost: 18.387114375344392 and score: 30
+Performing action: 19 from path [0, 3, 6, 13, 12]
+Visiting node 19 with cost: 21.588676494060817 and score: 35
+Performing action: 1 from path [0, 3, 6, 13, 12, 19]
+Reached END_NODE with cost: 25.08867649406082
+Performing action: 4 from path [0]
+Visiting node 4 with cost: 7.874642849044012 and score: 10
+Performing action: 8 from path [0, 4]
+Visiting node 8 with cost: 16.375231063985375 and score: 15
+Performing action: 7 from path [0, 4, 8]
+Visiting node 7 with cost: 20.876342037956135 and score: 20
+Performing action: 1 from path [0, 4, 8, 7]
+Reached END_NODE with cost: 26.03870583761226
+Performing action: 5 from path [0]
+Visiting node 5 with cost: 5.964059020499378 and score: 10
+Performing action: 15 from path [0, 5]
+Visiting node 15 with cost: 11.836877764509786 and score: 25
+Performing action: 19 from path [0, 5, 15]
+Visiting node 19 with cost: 22.738712472484405 and score: 30
+Performing action: 1 from path [0, 5, 15, 19]
+Reached END_NODE with cost: 26.23871247248441
+Performing action: 6 from path [0]
+Visiting node 6 with cost: 4.560701700396553 and score: 5
+Performing action: 28 from path [0, 6]
+Visiting node 28 with cost: 10.574020251745717 and score: 15
+Performing action: 22 from path [0, 6, 28]
+Visiting node 22 with cost: 19.172857382427985 and score: 25
+Performing action: 27 from path [0, 6, 28, 22]
+Visiting node 27 with cost: 23.82151310209577 and score: 35
+Performing action: 1 from path [0, 6, 28, 22, 27]
+Reached END_NODE with cost: 28.204434502257996
+Performing action: 7 from path [0]
+Visiting node 7 with cost: 5.903388857258177 and score: 5
+Performing action: 29 from path [0, 7]
+Visiting node 29 with cost: 16.827216025425933 and score: 15
+Performing action: 27 from path [0, 7, 29]
+Visiting node 27 with cost: 24.11899221507959 and score: 25
+Performing action: 1 from path [0, 7, 29, 27]
+Reached END_NODE with cost: 28.501913615241815
+Performing action: 8 from path [0]
+Visiting node 8 with cost: 6.809552114493287 and score: 5
+Performing action: 11 from path [0, 8]
+Visiting node 11 with cost: 9.695726052425648 and score: 15
+Performing action: 4 from path [0, 8, 11]
+Visiting node 4 with cost: 21.024009240976334 and score: 25
+Performing action: 1 from path [0, 8, 11, 4]
+Reached END_NODE with cost: 28.174533697266234
+Performing action: 9 from path [0]
+Visiting node 9 with cost: 5.700877125495689 and score: 5
+Performing action: 18 from path [0, 9]
+Visiting node 18 with cost: 12.612461603746677 and score: 10
+Performing action: 31 from path [0, 9, 18]
+Visiting node 31 with cost: 20.552864616188806 and score: 20
+Performing action: 26 from path [0, 9, 18, 31]
+Visiting node 26 with cost: 21.974131656543992 and score: 35
+Performing action: 27 from path [0, 9, 18, 31, 26]
+Visiting node 27 with cost: 24.23023449107969 and score: 45
+Performing action: 1 from path [0, 9, 18, 31, 26, 27]
+Reached END_NODE with cost: 28.613155891241913
+Performing action: 10 from path [0]
+Visiting node 10 with cost: 7.641989269817122 and score: 10
+Performing action: 18 from path [0, 10]
+Visiting node 18 with cost: 16.577871990623166 and score: 15
+Performing action: 15 from path [0, 10, 18]
+Visiting node 15 with cost: 21.877871990623166 and score: 30
+Performing action: 1 from path [0, 10, 18, 15]
+Reached END_NODE with cost: 29.280574199951865
+Performing action: 11 from path [0]
+Visiting node 11 with cost: 8.091971329657563 and score: 10
+Performing action: 8 from path [0, 11]
+Visiting node 8 with cost: 10.978145267589925 and score: 15
+Performing action: 7 from path [0, 11, 8]
+Visiting node 7 with cost: 15.479256241560684 and score: 20
+Performing action: 4 from path [0, 11, 8, 7]
+Visiting node 4 with cost: 19.484253120460842 and score: 30
+Performing action: 1 from path [0, 11, 8, 7, 4]
+Reached END_NODE with cost: 26.634777576750743
+Performing action: 12 from path [0]
+Visiting node 12 with cost: 6.307138812488592 and score: 10
+Performing action: 21 from path [0, 12]
+Visiting node 21 with cost: 7.820413407530747 and score: 20
+Performing action: 13 from path [0, 12, 21]
+Visiting node 13 with cost: 13.456014528972895 and score: 25
+Performing action: 26 from path [0, 12, 21, 13]
+Visiting node 26 with cost: 21.096040706938517 and score: 40
+Performing action: 28 from path [0, 12, 21, 13, 26]
+Visiting node 28 with cost: 27.434810303634706 and score: 50
+Performing action: 1 from path [0, 12, 21, 13, 26, 28]
+Reached END_NODE with cost: 29.788530762822667
+Performing action: 13 from path [0]
+Visiting node 13 with cost: 3.9051248379533283 and score: 5
+Performing action: 26 from path [0, 13]
+Visiting node 26 with cost: 11.545151015918952 and score: 20
+Performing action: 21 from path [0, 13, 26]
+Visiting node 21 with cost: 15.067934006680659 and score: 30
+Performing action: 1 from path [0, 13, 26, 21]
+Reached END_NODE with cost: 21.288062622714254
+Performing action: 14 from path [0]
+Visiting node 14 with cost: 9.936800289831734 and score: 10
+Performing action: 28 from path [0, 14]
+Visiting node 28 with cost: 19.84941851106874 and score: 20
+Performing action: 6 from path [0, 14, 28]
+Visiting node 6 with cost: 25.862737062417906 and score: 25
+Performing action: 1 from path [0, 14, 28, 6]
+Reached END_NODE with cost: 29.67062361534986
+Performing action: 15 from path [0]
+Visiting node 15 with cost: 7.752418977325722 and score: 15
+Performing action: 19 from path [0, 15]
+Visiting node 19 with cost: 18.65425368530034 and score: 20
+Performing action: 6 from path [0, 15, 19]
+Visiting node 6 with cost: 24.403166626022266 and score: 25
+Performing action: 1 from path [0, 15, 19, 6]
+Reached END_NODE with cost: 28.21105317895422
+Performing action: 16 from path [0]
+Visiting node 16 with cost: 9.654014708917737 and score: 15
+Performing action: 3 from path [0, 16]
+Visiting node 3 with cost: 22.649783251024047 and score: 25
+Performing action: 6 from path [0, 16, 3]
+Visiting node 6 with cost: 26.051253521363037 and score: 30
+Performing action: 1 from path [0, 16, 3, 6]
+Reached END_NODE with cost: 29.85914007429499
+Performing action: 17 from path [0]
+Visiting node 17 with cost: 5.2839379254491625 and score: 10
+Performing action: 29 from path [0, 17]
+Visiting node 29 with cost: 7.925906888173744 and score: 20
+Performing action: 30 from path [0, 17, 29]
+Visiting node 30 with cost: 15.757254154129964 and score: 30
+Performing action: 27 from path [0, 17, 29, 30]
+Visiting node 27 with cost: 19.742225923164217 and score: 40
+Performing action: 26 from path [0, 17, 29, 30, 27]
+Visiting node 26 with cost: 21.998328757699912 and score: 55
+Performing action: 1 from path [0, 17, 29, 30, 27, 26]
+Reached END_NODE with cost: 28.528259844625715
+Performing action: 18 from path [0]
+Visiting node 18 with cost: 2.5632011235952596 and score: 5
+Performing action: 31 from path [0, 18]
+Visiting node 31 with cost: 10.503604136037387 and score: 15
+Performing action: 26 from path [0, 18, 31]
+Visiting node 26 with cost: 11.924871176392575 and score: 30
+Performing action: 1 from path [0, 18, 31, 26]
+Reached END_NODE with cost: 18.454802263318378
+Performing action: 19 from path [0]
+Visiting node 19 with cost: 3.2756678708318407 and score: 5
+Performing action: 9 from path [0, 19]
+Visiting node 9 with cost: 7.087491581341025 and score: 10
+Performing action: 5 from path [0, 19, 9]
+Visiting node 5 with cost: 13.999076059592012 and score: 20
+Performing action: 3 from path [0, 19, 9, 5]
+Visiting node 3 with cost: 17.70042716425636 and score: 30
+Performing action: 28 from path [0, 19, 9, 5, 3]
+Visiting node 28 with cost: 27.105213179897547 and score: 40
+Performing action: 1 from path [0, 19, 9, 5, 3, 28]
+Reached END_NODE with cost: 29.458933639085508
+Performing action: 20 from path [0]
+Visiting node 20 with cost: 4.3185645763378355 and score: 5
+Performing action: 31 from path [0, 20]
+Visiting node 31 with cost: 7.120349721562215 and score: 15
+Performing action: 24 from path [0, 20, 31]
+Visiting node 24 with cost: 15.219732414088847 and score: 30
+Performing action: 12 from path [0, 20, 31, 24]
+Visiting node 12 with cost: 22.241128286705628 and score: 40
+Performing action: 19 from path [0, 20, 31, 24, 12]
+Visiting node 19 with cost: 25.442690405422052 and score: 45
+Performing action: 1 from path [0, 20, 31, 24, 12, 19]
+Reached END_NODE with cost: 28.942690405422056
+Performing action: 21 from path [0]
+Visiting node 21 with cost: 6.020797289396149 and score: 10
+Performing action: 5 from path [0, 21]
+Visiting node 5 with cost: 16.029793243037055 and score: 20
+Performing action: 28 from path [0, 21, 5]
+Visiting node 28 with cost: 23.030507492311912 and score: 30
+Performing action: 1 from path [0, 21, 5, 28]
+Reached END_NODE with cost: 25.384227951499874
+Performing action: 22 from path [0]
+Visiting node 22 with cost: 7.705841939723396 and score: 10
+Performing action: 27 from path [0, 22]
+Visiting node 27 with cost: 12.354497659391182 and score: 20
+Performing action: 17 from path [0, 22, 27]
+Visiting node 17 with cost: 20.294900671833307 and score: 30
+Performing action: 1 from path [0, 22, 27, 17]
+Reached END_NODE with cost: 25.715232764980367
+Performing action: 23 from path [0]
+Visiting node 23 with cost: 9.433981132056605 and score: 10
+Performing action: 17 from path [0, 23]
+Visiting node 17 with cost: 23.54922112293172 and score: 20
+Performing action: 18 from path [0, 23, 17]
+Visiting node 18 with cost: 27.683226444650597 and score: 25
+Performing action: 1 from path [0, 23, 17, 18]
+Reached END_NODE with cost: 29.792728755623497
+Performing action: 24 from path [0]
+Visiting node 24 with cost: 12.006664815842905 and score: 15
+Performing action: 20 from path [0, 24]
+Visiting node 20 with cost: 19.706664815842906 and score: 20
+Performing action: 19 from path [0, 24, 20]
+Visiting node 19 with cost: 21.262299734453308 and score: 25
+Performing action: 28 from path [0, 24, 20, 19]
+Visiting node 28 with cost: 25.87640853247704 and score: 35
+Performing action: 1 from path [0, 24, 20, 19, 28]
+Reached END_NODE with cost: 28.230128991665
+Performing action: 25 from path [0]
+Visiting node 25 with cost: 10.088111815399351 and score: 15
+Performing action: 31 from path [0, 25]
+Visiting node 31 with cost: 15.289073264977688 and score: 25
+Performing action: 27 from path [0, 25, 31]
+Visiting node 27 with cost: 17.069522646454175 and score: 35
+Performing action: 22 from path [0, 25, 31, 27]
+Visiting node 22 with cost: 21.71817836612196 and score: 45
+Performing action: 20 from path [0, 25, 31, 27, 22]
+Visiting node 20 with cost: 25.119648636460955 and score: 50
+Performing action: 1 from path [0, 25, 31, 27, 22, 20]
+Reached END_NODE with cost: 29.84934207261514
+Performing action: 26 from path [0]
+Visiting node 26 with cost: 5.9615434243155505 and score: 15
+Performing action: 11 from path [0, 26]
+Visiting node 11 with cost: 13.494139258422145 and score: 25
+Performing action: 28 from path [0, 26, 11]
+Visiting node 28 with cost: 23.253237577426823 and score: 35
+Performing action: 1 from path [0, 26, 11, 28]
+Reached END_NODE with cost: 25.606958036614785
+Performing action: 27 from path [0]
+Visiting node 27 with cost: 3.7589892258425 and score: 10
+Performing action: 15 from path [0, 27]
+Visiting node 15 with cost: 15.08550678420968 and score: 25
+Performing action: 6 from path [0, 27, 15]
+Visiting node 6 with cost: 22.46791831432638 and score: 30
+Performing action: 18 from path [0, 27, 15, 6]
+Visiting node 18 with cost: 26.16791831432638 and score: 35
+Performing action: 1 from path [0, 27, 15, 6, 18]
+Reached END_NODE with cost: 28.27742062529928
+Performing action: 28 from path [0]
+Visiting node 28 with cost: 1.7888543819998317 and score: 10
+Performing action: 20 from path [0, 28]
+Visiting node 20 with cost: 7.028129140971725 and score: 15
+Performing action: 13 from path [0, 28, 20]
+Visiting node 13 with cost: 12.431831575414243 and score: 20
+Performing action: 27 from path [0, 28, 20, 13]
+Visiting node 27 with cost: 18.524450060105373 and score: 30
+Performing action: 1 from path [0, 28, 20, 13, 27]
+Reached END_NODE with cost: 22.907371460267598
+Performing action: 29 from path [0]
+Visiting node 29 with cost: 5.907622195096773 and score: 10
+Performing action: 4 from path [0, 29]
+Visiting node 4 with cost: 16.955246374077518 and score: 20
+Performing action: 5 from path [0, 29, 4]
+Visiting node 5 with cost: 18.980092047209176 and score: 30
+Performing action: 28 from path [0, 29, 4, 5]
+Visiting node 28 with cost: 25.980806296484033 and score: 40
+Performing action: 1 from path [0, 29, 4, 5, 28]
+Reached END_NODE with cost: 28.334526755671995
+Performing action: 30 from path [0]
+Visiting node 30 with cost: 7.184010022264722 and score: 10
+Performing action: 4 from path [0, 30]
+Visiting node 4 with cost: 22.241234202039692 and score: 20
+Performing action: 1 from path [0, 30, 4]
+Reached END_NODE with cost: 29.391758658329593
+Performing action: 31 from path [0]
+Visiting node 31 with cost: 5.440588203494178 and score: 10
+Performing action: 27 from path [0, 31]
+Visiting node 27 with cost: 7.221037584970664 and score: 20
+Performing action: 11 from path [0, 31, 27]
+Visiting node 11 with cost: 14.79797628077651 and score: 30
+Performing action: 7 from path [0, 31, 27, 11]
+Visiting node 7 with cost: 22.122592311668505 and score: 35
+Performing action: 13 from path [0, 31, 27, 11, 7]
+Visiting node 13 with cost: 24.951019436414697 and score: 40
+Performing action: 1 from path [0, 31, 27, 11, 7, 13]
+Reached END_NODE with cost: 28.27517346413363
+Performing action: 1 from path [0]
+Reached END_NODE with cost: 0.7615773105863906
+Performing action: 2 from path [0, 17]
+Visiting node 2 with cost: 17.083090437388314 and score: 20
+Performing action: 13 from path [0, 17, 2]
+Visiting node 13 with cost: 20.831423400186576 and score: 25
+Performing action: 7 from path [0, 17, 2, 13]
+Visiting node 7 with cost: 23.659850524932768 and score: 30
+Performing action: 1 from path [0, 17, 2, 13, 7]
+Reached END_NODE with cost: 28.82221432458889
+Performing action: 2 from path [0, 12]
+Visiting node 2 with cost: 12.685226300129383 and score: 20
+Performing action: 11 from path [0, 12, 2]
+Visiting node 11 with cost: 17.917816480909835 and score: 30
+Performing action: 21 from path [0, 12, 2, 11]
+Visiting node 21 with cost: 21.929050704936152 and score: 40
+Performing action: 1 from path [0, 12, 2, 11, 21]
+Reached END_NODE with cost: 28.149179320969747
+Performing action: 6 from path [0, 25]
+Visiting node 6 with cost: 23.236876015886025 and score: 20
+Performing action: 18 from path [0, 25, 6]
+Visiting node 18 with cost: 26.936876015886025 and score: 25
+Performing action: 1 from path [0, 25, 6, 18]
+Reached END_NODE with cost: 29.046378326858925
+Performing action: 2 from path [0, 9]
+Visiting node 2 with cost: 9.306428400959678 and score: 15
+Performing action: 18 from path [0, 9, 2]
+Visiting node 18 with cost: 16.972587804468063 and score: 20
+Performing action: 15 from path [0, 9, 2, 18]
+Visiting node 15 with cost: 22.272587804468063 and score: 35
+Performing action: 1 from path [0, 9, 2, 18, 15]
+Reached END_NODE with cost: 29.67529001379676
+Performing action: 2 from path [0, 20]
+Visiting node 2 with cost: 12.70009188345794 and score: 15
+Performing action: 7 from path [0, 20, 2]
+Visiting node 7 with cost: 15.806536796859753 and score: 20
+Performing action: 8 from path [0, 20, 2, 7]
+Visiting node 8 with cost: 20.307647770830513 and score: 25
+Performing action: 13 from path [0, 20, 2, 7, 8]
+Visiting node 13 with cost: 23.572613314293413 and score: 30
+Performing action: 6 from path [0, 20, 2, 7, 8, 13]
+Visiting node 6 with cost: 25.756646281077572 and score: 35
+Performing action: 1 from path [0, 20, 2, 7, 8, 13, 6]
+Reached END_NODE with cost: 29.564532834009526
+Performing action: 3 from path [0, 12]
+Visiting node 3 with cost: 14.807138812488592 and score: 20
+Performing action: 28 from path [0, 12, 3]
+Visiting node 28 with cost: 24.211924828129778 and score: 30
+Performing action: 1 from path [0, 12, 3, 28]
+Reached END_NODE with cost: 26.56564528731774
+Performing action: 3 from path [0, 17]
+Visiting node 3 with cost: 16.257086972099355 and score: 20
+Performing action: 6 from path [0, 17, 3]
+Visiting node 6 with cost: 19.658557242438345 and score: 25
+Performing action: 7 from path [0, 17, 3, 6]
+Visiting node 7 with cost: 21.062124127200164 and score: 30
+Performing action: 5 from path [0, 17, 3, 6, 7]
+Visiting node 5 with cost: 23.531941934245857 and score: 40
+Performing action: 18 from path [0, 17, 3, 6, 7, 5]
+Visiting node 18 with cost: 27.65504755986352 and score: 45
+Performing action: 1 from path [0, 17, 3, 6, 7, 5, 18]
+Reached END_NODE with cost: 29.76454987083642
+Performing action: 4 from path [0, 17]
+Visiting node 4 with cost: 13.898460547161871 and score: 20
+Performing action: 3 from path [0, 17, 4]
+Visiting node 3 with cost: 18.284802987054135 and score: 30
+Performing action: 6 from path [0, 17, 4, 3]
+Visiting node 6 with cost: 21.686273257393125 and score: 35
+Performing action: 7 from path [0, 17, 4, 3, 6]
+Visiting node 7 with cost: 23.089840142154944 and score: 40
+Performing action: 13 from path [0, 17, 4, 3, 6, 7]
+Visiting node 13 with cost: 25.918267266901136 and score: 45
+Performing action: 1 from path [0, 17, 4, 3, 6, 7, 13]
+Reached END_NODE with cost: 29.24242129462007
+Performing action: 5 from path [0, 17]
+Visiting node 5 with cost: 12.87933126615246 and score: 20
+Performing action: 10 from path [0, 17, 5]
+Visiting node 10 with cost: 21.507772608596646 and score: 30
+Performing action: 13 from path [0, 17, 5, 10]
+Visiting node 13 with cost: 26.169317416919313 and score: 35
+Performing action: 1 from path [0, 17, 5, 10, 13]
+Reached END_NODE with cost: 29.493471444638246
+Performing action: 2 from path [0, 19]
+Visiting node 2 with cost: 10.284947434381865 and score: 15
+Performing action: 31 from path [0, 19, 2]
+Visiting node 31 with cost: 21.370974675914333 and score: 25
+Performing action: 26 from path [0, 19, 2, 31]
+Visiting node 26 with cost: 22.79224171626952 and score: 40
+Performing action: 1 from path [0, 19, 2, 31, 26]
+Reached END_NODE with cost: 29.322172803195322
+Performing action: 2 from path [0, 29]
+Visiting node 2 with cost: 19.204238305972503 and score: 20
+Performing action: 8 from path [0, 29, 2]
+Visiting node 8 with cost: 21.68818677564735 and score: 25
+Performing action: 1 from path [0, 29, 2, 8]
+Reached END_NODE with cost: 28.07019272989089
+Performing action: 2 from path [0, 31]
+Visiting node 2 with cost: 16.52661544502665 and score: 20
+Performing action: 1 from path [0, 31, 2]
+Reached END_NODE with cost: 23.56081760305424
+Performing action: 6 from path [0, 17]
+Visiting node 6 with cost: 13.06596850878665 and score: 15
+Performing action: 2 from path [0, 17, 6]
+Visiting node 2 with cost: 17.176929467005543 and score: 25
+Performing action: 8 from path [0, 17, 6, 2]
+Visiting node 8 with cost: 19.66087793668039 and score: 30
+Performing action: 10 from path [0, 17, 6, 2, 8]
+Visiting node 10 with cost: 21.485706695769856 and score: 40
+Performing action: 13 from path [0, 17, 6, 2, 8, 10]
+Visiting node 13 with cost: 26.147251504092523 and score: 45
+Performing action: 1 from path [0, 17, 6, 2, 8, 10, 13]
+Reached END_NODE with cost: 29.471405531811456
+Performing action: 7 from path [0, 17]
+Visiting node 7 with cost: 14.383937925449162 and score: 15
+Performing action: 19 from path [0, 17, 7]
+Visiting node 19 with cost: 21.05476995751233 and score: 20
+Performing action: 13 from path [0, 17, 7, 19]
+Visiting node 13 with cost: 24.914821770636088 and score: 25
+Performing action: 1 from path [0, 17, 7, 19, 13]
+Reached END_NODE with cost: 28.23897579835502
+Performing action: 3 from path [0, 9]
+Visiting node 3 with cost: 11.362149067382951 and score: 15
+Performing action: 21 from path [0, 9, 3]
+Visiting node 21 with cost: 20.982959844027505 and score: 25
+Performing action: 1 from path [0, 9, 3, 21]
+Reached END_NODE with cost: 27.2030884600611
+Performing action: 3 from path [0, 19]
+Visiting node 3 with cost: 11.576270258610696 and score: 15
+Performing action: 18 from path [0, 19, 3]
+Visiting node 18 with cost: 18.59766613122748 and score: 20
+Performing action: 5 from path [0, 19, 3, 18]
+Visiting node 5 with cost: 22.720771756845142 and score: 30
+Performing action: 6 from path [0, 19, 3, 18, 5]
+Visiting node 6 with cost: 24.976874591380838 and score: 35
+Performing action: 1 from path [0, 19, 3, 18, 5, 6]
+Reached END_NODE with cost: 28.784761144312792
+Performing action: 3 from path [0, 20]
+Visiting node 3 with cost: 14.136914743244699 and score: 15
+Performing action: 9 from path [0, 20, 3]
+Visiting node 9 with cost: 19.798186685131963 and score: 20
+Performing action: 28 from path [0, 20, 3, 9]
+Visiting node 28 with cost: 27.261429947950077 and score: 30
+Performing action: 1 from path [0, 20, 3, 9, 28]
+Reached END_NODE with cost: 29.61515040713804
+Performing action: 4 from path [0, 12]
+Visiting node 4 with cost: 17.60005694731982 and score: 20
+Performing action: 7 from path [0, 12, 4]
+Visiting node 7 with cost: 21.60505382621998 and score: 25
+Performing action: 6 from path [0, 12, 4, 7]
+Visiting node 6 with cost: 23.0086207109818 and score: 30
+Performing action: 18 from path [0, 12, 4, 7, 6]
+Visiting node 18 with cost: 26.708620710981798 and score: 35
+Performing action: 1 from path [0, 12, 4, 7, 6, 18]
+Reached END_NODE with cost: 28.818123021954698
+Performing action: 8 from path [0, 17]
+Visiting node 8 with cost: 16.956555455377913 and score: 15
+Performing action: 18 from path [0, 17, 8]
+Visiting node 18 with cost: 24.61423134300857 and score: 20
+Performing action: 1 from path [0, 17, 8, 18]
+Reached END_NODE with cost: 26.72373365398147
+Performing action: 5 from path [0, 12]
+Visiting node 5 with cost: 15.66929668340703 and score: 20
+Performing action: 3 from path [0, 12, 5]
+Visiting node 3 with cost: 19.37064778807138 and score: 30
+Performing action: 6 from path [0, 12, 5, 3]
+Visiting node 6 with cost: 22.77211805841037 and score: 35
+Performing action: 7 from path [0, 12, 5, 3, 6]
+Visiting node 7 with cost: 24.17568494317219 and score: 40
+Performing action: 1 from path [0, 12, 5, 3, 6, 7]
+Reached END_NODE with cost: 29.338048742828313
+Performing action: 6 from path [0, 12]
+Visiting node 6 with cost: 13.413474014264542 and score: 15
+Performing action: 10 from path [0, 12, 6]
+Visiting node 10 with cost: 19.925002252704427 and score: 25
+Performing action: 8 from path [0, 12, 6, 10]
+Visiting node 8 with cost: 21.749831011793894 and score: 30
+Performing action: 1 from path [0, 12, 6, 10, 8]
+Reached END_NODE with cost: 28.131836966037433
+Performing action: 4 from path [0, 19]
+Visiting node 4 with cost: 13.123510274119987 and score: 15
+Performing action: 28 from path [0, 19, 4]
+Visiting node 28 with cost: 21.855634872406476 and score: 25
+Performing action: 1 from path [0, 19, 4, 28]
+Reached END_NODE with cost: 24.209355331594438
+Performing action: 7 from path [0, 25]
+Visiting node 7 with cost: 24.005726553564795 and score: 20
+Performing action: 1 from path [0, 25, 7]
+Reached END_NODE with cost: 29.16809035322092
+Performing action: 7 from path [0, 12]
+Visiting node 7 with cost: 13.780424569101946 and score: 15
+Performing action: 5 from path [0, 12, 7]
+Visiting node 5 with cost: 16.25024237614764 and score: 25
+Performing action: 18 from path [0, 12, 7, 5]
+Visiting node 18 with cost: 20.3733480017653 and score: 30
+Performing action: 17 from path [0, 12, 7, 5, 18]
+Visiting node 17 with cost: 24.50735332348418 and score: 40
+Performing action: 1 from path [0, 12, 7, 5, 18, 17]
+Reached END_NODE with cost: 29.92768541663124
+Performing action: 8 from path [0, 12]
+Visiting node 8 with cost: 10.247950911536199 and score: 15
+Performing action: 2 from path [0, 12, 8]
+Visiting node 2 with cost: 12.731899381211043 and score: 25
+Performing action: 7 from path [0, 12, 8, 2]
+Visiting node 7 with cost: 15.838344294612856 and score: 30
+Performing action: 3 from path [0, 12, 8, 2, 7]
+Visiting node 3 with cost: 17.838344294612856 and score: 40
+Performing action: 5 from path [0, 12, 8, 2, 7, 3]
+Visiting node 5 with cost: 21.539695399277207 and score: 50
+Performing action: 1 from path [0, 12, 8, 2, 7, 3, 5]
+Reached END_NODE with cost: 26.759848653732483
+Performing action: 9 from path [0, 12]
+Visiting node 9 with cost: 9.149672893198973 and score: 15
+Performing action: 23 from path [0, 12, 9]
+Visiting node 23 with cost: 17.080624916758318 and score: 25
+Performing action: 26 from path [0, 12, 9, 23]
+Visiting node 26 with cost: 21.259141399913556 and score: 40
+Performing action: 31 from path [0, 12, 9, 23, 26]
+Visiting node 31 with cost: 22.680408440268742 and score: 50
+Performing action: 27 from path [0, 12, 9, 23, 26, 31]
+Visiting node 27 with cost: 24.46085782174523 and score: 60
+Performing action: 1 from path [0, 12, 9, 23, 26, 31, 27]
+Reached END_NODE with cost: 28.843779221907454
+Performing action: 10 from path [0, 12]
+Visiting node 10 with cost: 9.249926606401026 and score: 20
+Performing action: 27 from path [0, 12, 10]
+Visiting node 27 with cost: 16.88995278436665 and score: 30
+Performing action: 30 from path [0, 12, 10, 27]
+Visiting node 30 with cost: 20.874924553400902 and score: 40
+Performing action: 28 from path [0, 12, 10, 27, 30]
+Visiting node 28 with cost: 27.514954673814515 and score: 50
+Performing action: 1 from path [0, 12, 10, 27, 30, 28]
+Reached END_NODE with cost: 29.868675133002476
+Performing action: 11 from path [0, 12]
+Visiting node 11 with cost: 8.856648569284985 and score: 20
+Performing action: 7 from path [0, 12, 11]
+Visiting node 7 with cost: 16.18126460017698 and score: 25
+Performing action: 13 from path [0, 12, 11, 7]
+Visiting node 13 with cost: 19.009691724923172 and score: 30
+Performing action: 27 from path [0, 12, 11, 7, 13]
+Visiting node 27 with cost: 25.102310209614302 and score: 40
+Performing action: 1 from path [0, 12, 11, 7, 13, 27]
+Reached END_NODE with cost: 29.485231609776527
+Performing action: 13 from path [0, 12]
+Visiting node 13 with cost: 11.231567713386646 and score: 15
+Performing action: 30 from path [0, 12, 13]
+Visiting node 30 with cost: 21.29735133911594 and score: 25
+Performing action: 31 from path [0, 12, 13, 30]
+Visiting node 31 with cost: 23.699433769008802 and score: 35
+Performing action: 1 from path [0, 12, 13, 30, 31]
+Reached END_NODE with cost: 29.80680636284979
+Performing action: 15 from path [0, 12]
+Visiting node 15 with cost: 19.82749383741305 and score: 25
+Performing action: 18 from path [0, 12, 15]
+Visiting node 18 with cost: 25.127493837413052 and score: 30
+Performing action: 1 from path [0, 12, 15, 18]
+Reached END_NODE with cost: 27.236996148385952
+Performing action: 17 from path [0, 12]
+Visiting node 17 with cost: 17.890747921915583 and score: 20
+Performing action: 13 from path [0, 12, 17]
+Visiting node 13 with cost: 26.329349701831497 and score: 25
+Performing action: 1 from path [0, 12, 17, 13]
+Reached END_NODE with cost: 29.65350372955043
+Performing action: 18 from path [0, 12]
+Visiting node 18 with cost: 14.604728824052193 and score: 15
+Performing action: 28 from path [0, 12, 18]
+Visiting node 28 with cost: 17.572893239983358 and score: 25
+Performing action: 31 from path [0, 12, 18, 28]
+Visiting node 31 with cost: 23.013481443477538 and score: 35
+Performing action: 1 from path [0, 12, 18, 28, 31]
+Reached END_NODE with cost: 29.120854037318527
+Performing action: 19 from path [0, 12]
+Visiting node 19 with cost: 9.508700931205016 and score: 15
+Performing action: 22 from path [0, 12, 19]
+Visiting node 22 with cost: 14.118473159851462 and score: 25
+Performing action: 21 from path [0, 12, 19, 22]
+Visiting node 21 with cost: 16.461548062623457 and score: 35
+Performing action: 27 from path [0, 12, 19, 22, 21]
+Visiting node 27 with cost: 20.4314347108793 and score: 45
+Performing action: 28 from path [0, 12, 19, 22, 21, 27]
+Visiting node 28 with cost: 24.53630986123406 and score: 55
+Performing action: 1 from path [0, 12, 19, 22, 21, 27, 28]
+Reached END_NODE with cost: 26.89003032042202
+Performing action: 20 from path [0, 12]
+Visiting node 20 with cost: 9.708609082827582 and score: 15
+Performing action: 21 from path [0, 12, 20]
+Visiting node 21 with cost: 11.971350782624535 and score: 25
+Performing action: 29 from path [0, 12, 20, 21]
+Visiting node 29 with cost: 23.009919530428753 and score: 35
+Performing action: 28 from path [0, 12, 20, 21, 29]
+Visiting node 28 with cost: 27.149967839325644 and score: 45
+Performing action: 1 from path [0, 12, 20, 21, 29, 28]
+Reached END_NODE with cost: 29.503688298513605
+Performing action: 21 from path [0, 12]
+Visiting node 21 with cost: 7.820413407530747 and score: 20
+Performing action: 31 from path [0, 12, 21]
+Visiting node 31 with cost: 12.46906912719853 and score: 30
+Performing action: 17 from path [0, 12, 21, 31]
+Visiting node 17 with cost: 21.489046954222275 and score: 40
+Performing action: 18 from path [0, 12, 21, 31, 17]
+Visiting node 18 with cost: 25.623052275941152 and score: 45
+Performing action: 1 from path [0, 12, 21, 31, 17, 18]
+Reached END_NODE with cost: 27.732554586914052
+Performing action: 22 from path [0, 12]
+Visiting node 22 with cost: 9.912690087952582 and score: 20
+Performing action: 3 from path [0, 12, 22]
+Visiting node 3 with cost: 21.873041253365745 and score: 30
+Performing action: 13 from path [0, 12, 22, 3]
+Visiting node 13 with cost: 26.345177208365325 and score: 35
+Performing action: 1 from path [0, 12, 22, 3, 13]
+Reached END_NODE with cost: 29.669331236084258
+Performing action: 23 from path [0, 12]
+Visiting node 23 with cost: 11.400271443787329 and score: 20
+Performing action: 9 from path [0, 12, 23]
+Visiting node 9 with cost: 19.33122346734667 and score: 25
+Performing action: 2 from path [0, 12, 23, 9]
+Visiting node 2 with cost: 22.93677474281066 and score: 35
+Performing action: 1 from path [0, 12, 23, 9, 2]
+Reached END_NODE with cost: 29.97097690083825
+Performing action: 24 from path [0, 12]
+Visiting node 24 with cost: 13.328534685105373 and score: 25
+Performing action: 13 from path [0, 12, 24]
+Visiting node 13 with cost: 25.19655895201686 and score: 30
+Performing action: 1 from path [0, 12, 24, 13]
+Reached END_NODE with cost: 28.520712979735794
+Performing action: 25 from path [0, 12]
+Visiting node 25 with cost: 13.29641631449121 and score: 25
+Performing action: 22 from path [0, 12, 25]
+Visiting node 22 with cost: 16.680201177628934 and score: 35
+Performing action: 31 from path [0, 12, 25, 22]
+Visiting node 31 with cost: 21.073377704926692 and score: 45
+Performing action: 26 from path [0, 12, 25, 22, 31]
+Visiting node 26 with cost: 22.494644745281878 and score: 60
+Performing action: 27 from path [0, 12, 25, 22, 31, 26]
+Visiting node 27 with cost: 24.750747579817574 and score: 70
+Performing action: 1 from path [0, 12, 25, 22, 31, 26, 27]
+Reached END_NODE with cost: 29.1336689799798
+Performing action: 26 from path [0, 12]
+Visiting node 26 with cost: 11.311137213767314 and score: 25
+Performing action: 2 from path [0, 12, 26]
+Visiting node 2 with cost: 21.896032111686708 and score: 35
+Performing action: 6 from path [0, 12, 26, 2]
+Visiting node 6 with cost: 26.0069930699056 and score: 40
+Performing action: 1 from path [0, 12, 26, 2, 6]
+Reached END_NODE with cost: 29.814879622837555
+Performing action: 27 from path [0, 12]
+Visiting node 27 with cost: 11.407138812488594 and score: 20
+Performing action: 3 from path [0, 12, 27]
+Visiting node 3 with cost: 21.96744183844386 and score: 30
+Performing action: 7 from path [0, 12, 27, 3]
+Visiting node 7 with cost: 23.96744183844386 and score: 35
+Performing action: 1 from path [0, 12, 27, 3, 7]
+Reached END_NODE with cost: 29.129805638099985
+Performing action: 28 from path [0, 12]
+Visiting node 28 with cost: 14.10072591984808 and score: 20
+Performing action: 13 from path [0, 12, 28]
+Visiting node 13 with cost: 19.761997861735345 and score: 25
+Performing action: 1 from path [0, 12, 28, 13]
+Reached END_NODE with cost: 23.08615188945428
+Performing action: 29 from path [0, 12]
+Visiting node 29 with cost: 18.086782270590373 and score: 20
+Performing action: 1 from path [0, 12, 29]
+Reached END_NODE with cost: 24.439734340297807
+Performing action: 30 from path [0, 12]
+Visiting node 30 with cost: 14.693437161581592 and score: 20
+Performing action: 19 from path [0, 12, 30]
+Visiting node 19 with cost: 21.126165976011748 and score: 25
+Performing action: 20 from path [0, 12, 30, 19]
+Visiting node 20 with cost: 22.68180089462215 and score: 30
+Performing action: 27 from path [0, 12, 30, 19, 20]
+Visiting node 27 with cost: 24.402265948030674 and score: 40
+Performing action: 1 from path [0, 12, 30, 19, 20, 27]
+Reached END_NODE with cost: 28.7851873481929
+Performing action: 31 from path [0, 12]
+Visiting node 31 with cost: 12.348661799285878 and score: 20
+Performing action: 5 from path [0, 12, 31]
+Visiting node 5 with cost: 23.593660687680668 and score: 30
+Performing action: 18 from path [0, 12, 31, 5]
+Visiting node 18 with cost: 27.71676631329833 and score: 35
+Performing action: 1 from path [0, 12, 31, 5, 18]
+Reached END_NODE with cost: 29.82626862427123
+Performing action: 1 from path [0, 12]
+Reached END_NODE with cost: 12.631694132825352
+Performing action: 2 from path [0, 3]
+Visiting node 2 with cost: 10.494432702983673 and score: 20
+Performing action: 6 from path [0, 3, 2]
+Visiting node 6 with cost: 14.605393661202566 and score: 25
+Performing action: 8 from path [0, 3, 2, 6]
+Visiting node 8 with cost: 19.443781822563743 and score: 30
+Performing action: 18 from path [0, 3, 2, 6, 8]
+Visiting node 18 with cost: 27.101457710194403 and score: 35
+Performing action: 1 from path [0, 3, 2, 6, 8, 18]
+Reached END_NODE with cost: 29.210960021167303
+Performing action: 2 from path [0, 6]
+Visiting node 2 with cost: 8.671662658615446 and score: 15
+Performing action: 26 from path [0, 6, 2]
+Visiting node 26 with cost: 19.25655755653484 and score: 30
+Performing action: 1 from path [0, 6, 2, 26]
+Reached END_NODE with cost: 25.786488643460643
+Performing action: 6 from path [0, 24]
+Visiting node 6 with cost: 26.052304708706455 and score: 20
+Performing action: 1 from path [0, 24, 6]
+Reached END_NODE with cost: 29.86019126163841
+Performing action: 2 from path [0, 26]
+Visiting node 2 with cost: 16.546438322234945 and score: 25
+Performing action: 20 from path [0, 26, 2]
+Visiting node 20 with cost: 24.92796562935505 and score: 30
+Performing action: 1 from path [0, 26, 2, 20]
+Reached END_NODE with cost: 29.657659065509236
+Performing action: 2 from path [0, 27]
+Visiting node 2 with cost: 13.231581268150666 and score: 20
+Performing action: 5 from path [0, 27, 2]
+Visiting node 5 with cost: 18.77865256749413 and score: 30
+Performing action: 13 from path [0, 27, 2, 5]
+Visiting node 13 with cost: 23.21712077172856 and score: 35
+Performing action: 1 from path [0, 27, 2, 5, 13]
+Reached END_NODE with cost: 26.541274799447493
+Performing action: 4 from path [0, 20]
+Visiting node 4 with cost: 15.690459757001435 and score: 15
+Performing action: 3 from path [0, 20, 4]
+Visiting node 3 with cost: 20.076802196893695 and score: 25
+Performing action: 6 from path [0, 20, 4, 3]
+Visiting node 6 with cost: 23.478272467232685 and score: 30
+Performing action: 1 from path [0, 20, 4, 3, 6]
+Reached END_NODE with cost: 27.28615902016464
+Performing action: 9 from path [0, 12, 25]
+Visiting node 9 with cost: 23.041671570255424 and score: 30
+Performing action: 13 from path [0, 12, 25, 9]
+Visiting node 13 with cost: 25.734253973822675 and score: 35
+Performing action: 1 from path [0, 12, 25, 9, 13]
+Reached END_NODE with cost: 29.058408001541608
+Performing action: 9 from path [0, 17]
+Visiting node 9 with cost: 16.055195976391957 and score: 15
+Performing action: 10 from path [0, 17, 9]
+Visiting node 10 with cost: 18.08004164952362 and score: 25
+Performing action: 2 from path [0, 17, 9, 10]
+Visiting node 2 with cost: 22.2393685181407 and score: 35
+Performing action: 1 from path [0, 17, 9, 10, 2]
+Reached END_NODE with cost: 29.27357067616829
+Performing action: 2 from path [0, 12, 9]
+Visiting node 2 with cost: 12.755224168662963 and score: 25
+Performing action: 7 from path [0, 12, 9, 2]
+Visiting node 7 with cost: 15.861669082064775 and score: 30
+Performing action: 3 from path [0, 12, 9, 2, 7]
+Visiting node 3 with cost: 17.861669082064775 and score: 40
+Performing action: 18 from path [0, 12, 9, 2, 7, 3]
+Visiting node 18 with cost: 24.883064954681558 and score: 45
+Performing action: 1 from path [0, 12, 9, 2, 7, 3, 18]
+Reached END_NODE with cost: 26.992567265654458
+Performing action: 2 from path [0, 12, 19]
+Visiting node 2 with cost: 16.51798049475504 and score: 25
+Performing action: 8 from path [0, 12, 19, 2]
+Visiting node 8 with cost: 19.001928964429887 and score: 30
+Performing action: 10 from path [0, 12, 19, 2, 8]
+Visiting node 10 with cost: 20.826757723519354 and score: 40
+Performing action: 13 from path [0, 12, 19, 2, 8, 10]
+Visiting node 13 with cost: 25.48830253184202 and score: 45
+Performing action: 1 from path [0, 12, 19, 2, 8, 10, 13]
+Reached END_NODE with cost: 28.812456559560953
+Performing action: 3 from path [0, 12, 9]
+Visiting node 3 with cost: 14.810944835086236 and score: 25
+Performing action: 7 from path [0, 12, 9, 3]
+Visiting node 7 with cost: 16.810944835086236 and score: 30
+Performing action: 6 from path [0, 12, 9, 3, 7]
+Visiting node 6 with cost: 18.214511719848055 and score: 35
+Performing action: 1 from path [0, 12, 9, 3, 7, 6]
+Reached END_NODE with cost: 22.02239827278001
+Performing action: 13 from path [0, 12, 25]
+Visiting node 13 with cost: 24.40046962848426 and score: 30
+Performing action: 1 from path [0, 12, 25, 13]
+Reached END_NODE with cost: 27.724623656203192
+Performing action: 2 from path [0, 12, 8]
+Visiting node 2 with cost: 12.731899381211043 and score: 25
+Performing action: 1 from path [0, 12, 8, 2]
+Reached END_NODE with cost: 19.766101539238633
+Performing action: 10 from path [0, 17]
+Visiting node 10 with cost: 18.062044201419795 and score: 20
+Performing action: 20 from path [0, 17, 10]
+Visiting node 20 with cost: 24.129168726266805 and score: 25
+Performing action: 19 from path [0, 17, 10, 20]
+Visiting node 19 with cost: 25.684803644877206 and score: 30
+Performing action: 1 from path [0, 17, 10, 20, 19]
+Reached END_NODE with cost: 29.184803644877206
+Performing action: 2 from path [0, 12, 10]
+Visiting node 2 with cost: 13.40925347501811 and score: 30
+Performing action: 3 from path [0, 12, 10, 2]
+Visiting node 3 with cost: 16.02650394067859 and score: 40
+Performing action: 9 from path [0, 12, 10, 2, 3]
+Visiting node 9 with cost: 21.687775882565855 and score: 45
+Performing action: 8 from path [0, 12, 10, 2, 3, 9]
+Visiting node 8 with cost: 23.091342767327674 and score: 50
+Performing action: 1 from path [0, 12, 10, 2, 3, 9, 8]
+Reached END_NODE with cost: 29.473348721571213
+Performing action: 3 from path [0, 12, 10]
+Visiting node 3 with cost: 15.923006854682175 and score: 30
+Performing action: 8 from path [0, 12, 10, 3]
+Visiting node 8 with cost: 20.8076767514101 and score: 35
+Performing action: 13 from path [0, 12, 10, 3, 8]
+Visiting node 13 with cost: 24.072642294873 and score: 40
+Performing action: 1 from path [0, 12, 10, 3, 8, 13]
+Reached END_NODE with cost: 27.396796322591932
+Performing action: 3 from path [0, 12, 19]
+Visiting node 3 with cost: 17.809303318983872 and score: 25
+Performing action: 8 from path [0, 12, 19, 3]
+Visiting node 8 with cost: 22.6939732157118 and score: 30
+Performing action: 9 from path [0, 12, 19, 3, 8]
+Visiting node 9 with cost: 24.09754010047362 and score: 35
+Performing action: 1 from path [0, 12, 19, 3, 8, 9]
+Reached END_NODE with cost: 29.47155163749138
+Performing action: 4 from path [0, 12, 9]
+Visiting node 4 with cost: 17.87950679768994 and score: 25
+Performing action: 1 from path [0, 12, 9, 4]
+Reached END_NODE with cost: 25.030031253979843
+Performing action: 4 from path [0, 12, 10]
+Visiting node 4 with cost: 19.557690670445176 and score: 30
+Performing action: 5 from path [0, 12, 10, 4]
+Visiting node 5 with cost: 21.582536343576834 and score: 40
+Performing action: 18 from path [0, 12, 10, 4, 5]
+Visiting node 18 with cost: 25.705641969194495 and score: 45
+Performing action: 1 from path [0, 12, 10, 4, 5, 18]
+Reached END_NODE with cost: 27.815144280167395
+Performing action: 2 from path [0, 12, 20]
+Visiting node 2 with cost: 18.090136389947688 and score: 25
+Performing action: 3 from path [0, 12, 20, 2]
+Visiting node 3 with cost: 20.707386855608167 and score: 35
+Performing action: 7 from path [0, 12, 20, 2, 3]
+Visiting node 7 with cost: 22.707386855608167 and score: 40
+Performing action: 13 from path [0, 12, 20, 2, 3, 7]
+Visiting node 13 with cost: 25.53581398035436 and score: 45
+Performing action: 1 from path [0, 12, 20, 2, 3, 7, 13]
+Reached END_NODE with cost: 28.85996800807329
+Performing action: 2 from path [0, 12, 21]
+Visiting node 2 with cost: 15.504813188905999 and score: 30
+Performing action: 3 from path [0, 12, 21, 2]
+Visiting node 3 with cost: 18.122063654566478 and score: 40
+Performing action: 6 from path [0, 12, 21, 2, 3]
+Visiting node 6 with cost: 21.52353392490547 and score: 45
+Performing action: 5 from path [0, 12, 21, 2, 3, 6]
+Visiting node 5 with cost: 23.779636759441164 and score: 55
+Performing action: 1 from path [0, 12, 21, 2, 3, 6, 5]
+Reached END_NODE with cost: 28.99979001389644
+Performing action: 3 from path [0, 12, 21]
+Visiting node 3 with cost: 17.441224184175304 and score: 30
+Performing action: 13 from path [0, 12, 21, 3]
+Visiting node 13 with cost: 21.913360139174884 and score: 35
+Performing action: 19 from path [0, 12, 21, 3, 13]
+Visiting node 19 with cost: 25.77341195229864 and score: 40
+Performing action: 1 from path [0, 12, 21, 3, 13, 19]
+Reached END_NODE with cost: 29.273411952298645
+Performing action: 4 from path [0, 12, 21]
+Visiting node 4 with cost: 19.82207995847275 and score: 30
+Performing action: 5 from path [0, 12, 21, 4]
+Visiting node 5 with cost: 21.846925631604407 and score: 40
+Performing action: 6 from path [0, 12, 21, 4, 5]
+Visiting node 6 with cost: 24.103028466140103 and score: 45
+Performing action: 13 from path [0, 12, 21, 4, 5, 6]
+Visiting node 13 with cost: 26.28706143292426 and score: 50
+Performing action: 1 from path [0, 12, 21, 4, 5, 6, 13]
+Reached END_NODE with cost: 29.611215460643194
+Performing action: 5 from path [0, 12, 21]
+Visiting node 5 with cost: 17.829409361171656 and score: 30
+Performing action: 3 from path [0, 12, 21, 5]
+Visiting node 3 with cost: 21.530760465836007 and score: 40
+Performing action: 7 from path [0, 12, 21, 5, 3]
+Visiting node 7 with cost: 23.530760465836007 and score: 45
+Performing action: 1 from path [0, 12, 21, 5, 3, 7]
+Reached END_NODE with cost: 28.69312426549213
+Performing action: 6 from path [0, 12, 21]
+Visiting node 6 with cost: 15.608224396505765 and score: 25
+Performing action: 19 from path [0, 12, 21, 6]
+Visiting node 19 with cost: 21.35713733722769 and score: 30
+Performing action: 20 from path [0, 12, 21, 6, 19]
+Visiting node 20 with cost: 22.912772255838092 and score: 35
+Performing action: 27 from path [0, 12, 21, 6, 19, 20]
+Visiting node 27 with cost: 24.633237309246617 and score: 45
+Performing action: 1 from path [0, 12, 21, 6, 19, 20, 27]
+Reached END_NODE with cost: 29.016158709408842
+Performing action: 7 from path [0, 12, 21]
+Visiting node 7 with cost: 16.196570044079518 and score: 25
+Performing action: 19 from path [0, 12, 21, 7]
+Visiting node 19 with cost: 22.867402076142685 and score: 30
+Performing action: 28 from path [0, 12, 21, 7, 19]
+Visiting node 28 with cost: 27.481510874166418 and score: 40
+Performing action: 1 from path [0, 12, 21, 7, 19, 28]
+Reached END_NODE with cost: 29.83523133335438
+Performing action: 5 from path [0, 12, 10]
+Visiting node 5 with cost: 17.87836794884521 and score: 30
+Performing action: 28 from path [0, 12, 10, 5]
+Visiting node 28 with cost: 24.879082198120066 and score: 40
+Performing action: 1 from path [0, 12, 10, 5, 28]
+Reached END_NODE with cost: 27.232802657308028
+Performing action: 3 from path [0, 12, 20]
+Visiting node 3 with cost: 19.526959249734446 and score: 25
+Performing action: 18 from path [0, 12, 20, 3]
+Visiting node 18 with cost: 26.54835512235123 and score: 30
+Performing action: 1 from path [0, 12, 20, 3, 18]
+Reached END_NODE with cost: 28.65785743332413
+Performing action: 4 from path [0, 12, 19]
+Visiting node 4 with cost: 19.35654333449316 and score: 25
+Performing action: 6 from path [0, 12, 19, 4]
+Visiting node 6 with cost: 23.571991116164757 and score: 30
+Performing action: 13 from path [0, 12, 19, 4, 6]
+Visiting node 13 with cost: 25.75602408294891 and score: 35
+Performing action: 1 from path [0, 12, 19, 4, 6, 13]
+Reached END_NODE with cost: 29.080178110667845
+Performing action: 18 from path [0, 12, 25]
+Visiting node 18 with cost: 25.94552695516473 and score: 30
+Performing action: 1 from path [0, 12, 25, 18]
+Reached END_NODE with cost: 28.05502926613763
+Performing action: 8 from path [0, 12, 21]
+Visiting node 8 with cost: 13.143946069213213 and score: 25
+Performing action: 1 from path [0, 12, 21, 8]
+Reached END_NODE with cost: 19.525952023456753
+Performing action: 6 from path [0, 12, 10]
+Visiting node 6 with cost: 15.76145484484091 and score: 25
+Performing action: 17 from path [0, 12, 10, 6]
+Visiting node 17 with cost: 23.5434854281784 and score: 35
+Performing action: 18 from path [0, 12, 10, 6, 17]
+Visiting node 18 with cost: 27.677490749897277 and score: 40
+Performing action: 1 from path [0, 12, 10, 6, 17, 18]
+Reached END_NODE with cost: 29.786993060870177
+Performing action: 7 from path [0, 12, 10]
+Visiting node 7 with cost: 15.553100410128796 and score: 25
+Performing action: 20 from path [0, 12, 10, 7]
+Visiting node 20 with cost: 23.77502232656658 and score: 30
+Performing action: 19 from path [0, 12, 10, 7, 20]
+Visiting node 19 with cost: 25.330657245176983 and score: 35
+Performing action: 1 from path [0, 12, 10, 7, 20, 19]
+Reached END_NODE with cost: 28.830657245176987
+Performing action: 9 from path [0, 12, 21]
+Visiting node 9 with cost: 11.900854560151382 and score: 25
+Performing action: 20 from path [0, 12, 21, 9]
+Visiting node 20 with cost: 16.865731195073945 and score: 30
+Performing action: 6 from path [0, 12, 21, 9, 20]
+Visiting node 6 with cost: 24.165731195073946 and score: 35
+Performing action: 18 from path [0, 12, 21, 9, 20, 6]
+Visiting node 18 with cost: 27.865731195073945 and score: 40
+Performing action: 1 from path [0, 12, 21, 9, 20, 6, 18]
+Reached END_NODE with cost: 29.975233506046845
+Performing action: 5 from path [0, 12, 19]
+Visiting node 5 with cost: 17.331743817448196 and score: 25
+Performing action: 2 from path [0, 12, 19, 5]
+Visiting node 2 with cost: 22.87881511679166 and score: 35
+Performing action: 13 from path [0, 12, 19, 5, 2]
+Visiting node 13 with cost: 26.627148079589922 and score: 40
+Performing action: 1 from path [0, 12, 19, 5, 2, 13]
+Reached END_NODE with cost: 29.951302107308855
+Performing action: 8 from path [0, 12, 10]
+Visiting node 8 with cost: 11.074755365490493 and score: 25
+Performing action: 21 from path [0, 12, 10, 8]
+Visiting node 21 with cost: 16.39828802717296 and score: 35
+Performing action: 1 from path [0, 12, 10, 8, 21]
+Reached END_NODE with cost: 22.618416643206555
+Performing action: 10 from path [0, 12, 21]
+Visiting node 10 with cost: 12.275747289519842 and score: 30
+Performing action: 22 from path [0, 12, 21, 10]
+Visiting node 22 with cost: 18.68355502696016 and score: 40
+Performing action: 13 from path [0, 12, 21, 10, 22]
+Visiting node 13 with cost: 26.62395803940229 and score: 45
+Performing action: 1 from path [0, 12, 21, 10, 22, 13]
+Reached END_NODE with cost: 29.948112067121222
+Performing action: 11 from path [0, 12, 21]
+Visiting node 11 with cost: 11.831647631557063 and score: 30
+Performing action: 20 from path [0, 12, 21, 11]
+Visiting node 20 with cost: 17.74519140834607 and score: 35
+Performing action: 27 from path [0, 12, 21, 11, 20]
+Visiting node 27 with cost: 19.465656461754595 and score: 45
+Performing action: 13 from path [0, 12, 21, 11, 20, 27]
+Visiting node 13 with cost: 25.55827494644572 and score: 50
+Performing action: 1 from path [0, 12, 21, 11, 20, 27, 13]
+Reached END_NODE with cost: 28.882428974164654
+Performing action: 13 from path [0, 12, 21]
+Visiting node 13 with cost: 13.456014528972895 and score: 25
+Performing action: 27 from path [0, 12, 21, 13]
+Visiting node 27 with cost: 19.548633013664023 and score: 35
+Performing action: 26 from path [0, 12, 21, 13, 27]
+Visiting node 26 with cost: 21.80473584819972 and score: 50
+Performing action: 1 from path [0, 12, 21, 13, 27, 26]
+Reached END_NODE with cost: 28.334666935125522
+Performing action: 15 from path [0, 12, 21]
+Visiting node 15 with cost: 21.42372182864655 and score: 35
+Performing action: 18 from path [0, 12, 21, 15]
+Visiting node 18 with cost: 26.72372182864655 and score: 40
+Performing action: 1 from path [0, 12, 21, 15, 18]
+Reached END_NODE with cost: 28.83322413961945
+Performing action: 17 from path [0, 12, 21]
+Visiting node 17 with cost: 18.98688106744899 and score: 30
+Performing action: 29 from path [0, 12, 21, 17]
+Visiting node 29 with cost: 21.628850030173574 and score: 40
+Performing action: 28 from path [0, 12, 21, 17, 29]
+Visiting node 28 with cost: 25.768898339070464 and score: 50
+Performing action: 1 from path [0, 12, 21, 17, 29, 28]
+Reached END_NODE with cost: 28.122618798258426
+Performing action: 18 from path [0, 12, 21]
+Visiting node 18 with cost: 16.125833324669195 and score: 25
+Performing action: 1 from path [0, 12, 21, 18]
+Reached END_NODE with cost: 18.235335635642095
+Performing action: 19 from path [0, 12, 21]
+Visiting node 19 with cost: 10.566319451079943 and score: 25
+Performing action: 30 from path [0, 12, 21, 19]
+Visiting node 30 with cost: 16.999048265510098 and score: 35
+Performing action: 28 from path [0, 12, 21, 19, 30]
+Visiting node 28 with cost: 23.63907838592371 and score: 45
+Performing action: 1 from path [0, 12, 21, 19, 30, 28]
+Reached END_NODE with cost: 25.992798845111672
+Performing action: 20 from path [0, 12, 21]
+Visiting node 20 with cost: 10.0831551073277 and score: 25
+Performing action: 23 from path [0, 12, 21, 20]
+Visiting node 23 with cost: 15.198817332299168 and score: 35
+Performing action: 1 from path [0, 12, 21, 20, 23]
+Reached END_NODE with cost: 25.014111520452673
+Performing action: 3 from path [0, 12, 2]
+Visiting node 3 with cost: 15.302476765789862 and score: 30
+Performing action: 8 from path [0, 12, 2, 3]
+Visiting node 8 with cost: 20.18714666251779 and score: 35
+Performing action: 19 from path [0, 12, 2, 3, 8]
+Visiting node 19 with cost: 25.390991395020862 and score: 40
+Performing action: 1 from path [0, 12, 2, 3, 8, 19]
+Reached END_NODE with cost: 28.890991395020862
+Performing action: 2 from path [0, 12, 5]
+Visiting node 2 with cost: 21.216367982750494 and score: 30
+Performing action: 6 from path [0, 12, 5, 2]
+Visiting node 6 with cost: 25.327328940969387 and score: 35
+Performing action: 1 from path [0, 12, 5, 2, 6]
+Reached END_NODE with cost: 29.13521549390134
+Performing action: 2 from path [0, 12, 7]
+Visiting node 2 with cost: 16.88686948250376 and score: 25
+Performing action: 9 from path [0, 12, 7, 2]
+Visiting node 9 with cost: 20.492420757967746 and score: 30
+Performing action: 18 from path [0, 12, 7, 2, 9]
+Visiting node 18 with cost: 27.404005236218733 and score: 35
+Performing action: 1 from path [0, 12, 7, 2, 9, 18]
+Reached END_NODE with cost: 29.513507547191633
+Performing action: 2 from path [0, 12, 11]
+Visiting node 2 with cost: 14.089238750065437 and score: 30
+Performing action: 3 from path [0, 12, 11, 2]
+Visiting node 3 with cost: 16.706489215725917 and score: 40
+Performing action: 8 from path [0, 12, 11, 2, 3]
+Visiting node 8 with cost: 21.591159112453845 and score: 45
+Performing action: 13 from path [0, 12, 11, 2, 3, 8]
+Visiting node 13 with cost: 24.856124655916744 and score: 50
+Performing action: 1 from path [0, 12, 11, 2, 3, 8, 13]
+Reached END_NODE with cost: 28.180278683635677
+Performing action: 3 from path [0, 12, 11]
+Visiting node 3 with cost: 16.605842075708736 and score: 30
+Performing action: 6 from path [0, 12, 11, 3]
+Visiting node 6 with cost: 20.007312346047726 and score: 35
+Performing action: 18 from path [0, 12, 11, 3, 6]
+Visiting node 18 with cost: 23.707312346047726 and score: 40
+Performing action: 1 from path [0, 12, 11, 3, 6, 18]
+Reached END_NODE with cost: 25.816814657020625
+Performing action: 4 from path [0, 12, 11]
+Visiting node 4 with cost: 20.18493175783567 and score: 30
+Performing action: 1 from path [0, 12, 11, 4]
+Reached END_NODE with cost: 27.33545621412557
+Performing action: 2 from path [0, 12, 26]
+Visiting node 2 with cost: 21.896032111686708 and score: 35
+Performing action: 13 from path [0, 12, 26, 2]
+Visiting node 13 with cost: 25.64436507448497 and score: 40
+Performing action: 1 from path [0, 12, 26, 2, 13]
+Reached END_NODE with cost: 28.968519102203903
+Performing action: 13 from path [0, 12, 30]
+Visiting node 13 with cost: 24.759220787310888 and score: 25
+Performing action: 1 from path [0, 12, 30, 13]
+Reached END_NODE with cost: 28.08337481502982
+Performing action: 6 from path [0, 12, 19]
+Visiting node 6 with cost: 15.257613871926942 and score: 20
+Performing action: 3 from path [0, 12, 19, 6]
+Visiting node 3 with cost: 18.659084142265932 and score: 30
+Performing action: 18 from path [0, 12, 19, 6, 3]
+Visiting node 18 with cost: 25.680480014882715 and score: 35
+Performing action: 1 from path [0, 12, 19, 6, 3, 18]
+Reached END_NODE with cost: 27.789982325855615
+Performing action: 22 from path [0, 12, 21]
+Visiting node 22 with cost: 10.163488310302744 and score: 30
+Performing action: 28 from path [0, 12, 21, 22]
+Visiting node 28 with cost: 18.76232544098501 and score: 40
+Performing action: 27 from path [0, 12, 21, 22, 28]
+Visiting node 27 with cost: 22.867200591339767 and score: 50
+Performing action: 1 from path [0, 12, 21, 22, 28, 27]
+Reached END_NODE with cost: 27.25012199150199
+Performing action: 23 from path [0, 12, 21]
+Visiting node 23 with cost: 11.851542281680022 and score: 30
+Performing action: 18 from path [0, 12, 21, 23]
+Visiting node 18 with cost: 23.773371000463058 and score: 35
+Performing action: 1 from path [0, 12, 21, 23, 18]
+Reached END_NODE with cost: 25.882873311435958
+Performing action: 24 from path [0, 12, 21]
+Visiting node 24 with cost: 14.12675941770177 and score: 35
+Performing action: 19 from path [0, 12, 21, 24]
+Visiting node 19 with cost: 22.99524294083017 and score: 40
+Performing action: 28 from path [0, 12, 21, 24, 19]
+Visiting node 28 with cost: 27.609351738853903 and score: 50
+Performing action: 1 from path [0, 12, 21, 24, 19, 28]
+Reached END_NODE with cost: 29.963072198041864
+Performing action: 25 from path [0, 12, 21]
+Visiting node 25 with cost: 13.49315524900388 and score: 35
+Performing action: 19 from path [0, 12, 21, 25]
+Visiting node 19 with cost: 20.936272875375238 and score: 40
+Performing action: 20 from path [0, 12, 21, 25, 19]
+Visiting node 20 with cost: 22.49190779398564 and score: 45
+Performing action: 27 from path [0, 12, 21, 25, 19, 20]
+Visiting node 27 with cost: 24.212372847394164 and score: 55
+Performing action: 1 from path [0, 12, 21, 25, 19, 20, 27]
+Reached END_NODE with cost: 28.59529424755639
+Performing action: 26 from path [0, 12, 21]
+Visiting node 26 with cost: 11.343196398292456 and score: 35
+Performing action: 13 from path [0, 12, 21, 26]
+Visiting node 13 with cost: 18.98322257625808 and score: 40
+Performing action: 20 from path [0, 12, 21, 26, 13]
+Visiting node 20 with cost: 24.386925010700597 and score: 45
+Performing action: 1 from path [0, 12, 21, 26, 13, 20]
+Reached END_NODE with cost: 29.116618446854783
+Performing action: 27 from path [0, 12, 21]
+Visiting node 27 with cost: 11.79030005578659 and score: 30
+Performing action: 10 from path [0, 12, 21, 27]
+Visiting node 10 with cost: 19.430326233752215 and score: 40
+Performing action: 8 from path [0, 12, 21, 27, 10]
+Visiting node 8 with cost: 21.255154992841682 and score: 45
+Performing action: 1 from path [0, 12, 21, 27, 10, 8]
+Reached END_NODE with cost: 27.63716094708522
+Performing action: 28 from path [0, 12, 21]
+Visiting node 28 with cost: 15.081955943383582 and score: 30
+Performing action: 17 from path [0, 12, 21, 28]
+Visiting node 17 with cost: 19.01133248426128 and score: 40
+Performing action: 29 from path [0, 12, 21, 28, 17]
+Visiting node 29 with cost: 21.653301446985864 and score: 50
+Performing action: 18 from path [0, 12, 21, 28, 17, 29]
+Visiting node 18 with cost: 27.52271368331754 and score: 55
+Performing action: 1 from path [0, 12, 21, 28, 17, 29, 18]
+Reached END_NODE with cost: 29.63221599429044
+Performing action: 29 from path [0, 12, 21]
+Visiting node 29 with cost: 18.858982155334967 and score: 30
+Performing action: 17 from path [0, 12, 21, 29]
+Visiting node 17 with cost: 21.500951118059547 and score: 40
+Performing action: 1 from path [0, 12, 21, 29, 17]
+Reached END_NODE with cost: 26.921283211206607
+Performing action: 30 from path [0, 12, 21]
+Visiting node 30 with cost: 14.763035390614657 and score: 30
+Performing action: 31 from path [0, 12, 21, 30]
+Visiting node 31 with cost: 17.16511782050752 and score: 40
+Performing action: 26 from path [0, 12, 21, 30, 31]
+Visiting node 26 with cost: 18.586384860862704 and score: 55
+Performing action: 28 from path [0, 12, 21, 30, 31, 26]
+Visiting node 28 with cost: 24.925154457558897 and score: 65
+Performing action: 1 from path [0, 12, 21, 30, 31, 26, 28]
+Reached END_NODE with cost: 27.278874916746858
+Performing action: 31 from path [0, 12, 21]
+Visiting node 31 with cost: 12.46906912719853 and score: 30
+Performing action: 28 from path [0, 12, 21, 31]
+Visiting node 28 with cost: 17.90965733069271 and score: 40
+Performing action: 1 from path [0, 12, 21, 31, 28]
+Reached END_NODE with cost: 20.26337778988067
+Performing action: 1 from path [0, 12, 21]
+Reached END_NODE with cost: 14.040542023564342
+Performing action: 13 from path [0, 12, 21, 30]
+Visiting node 13 with cost: 24.828819016343953 and score: 35
+Performing action: 1 from path [0, 12, 21, 30, 13]
+Reached END_NODE with cost: 28.152973044062886
+Performing action: 3 from path [0, 12, 21, 2]
+Visiting node 3 with cost: 18.122063654566478 and score: 40
+Performing action: 1 from path [0, 12, 21, 2, 3]
+Reached END_NODE with cost: 25.26699192572498
+Performing action: 9 from path [0, 12, 21, 25]
+Visiting node 9 with cost: 23.238410504768094 and score: 40
+Performing action: 1 from path [0, 12, 21, 25, 9]
+Reached END_NODE with cost: 28.612422041785855
+Performing action: 5 from path [0, 12, 21, 28]
+Visiting node 5 with cost: 22.082670192658437 and score: 40
+Performing action: 18 from path [0, 12, 21, 28, 5]
+Visiting node 18 with cost: 26.2057758182761 and score: 45
+Performing action: 1 from path [0, 12, 21, 28, 5, 18]
+Reached END_NODE with cost: 28.315278129249
+Performing action: 5 from path [0, 12, 21, 4]
+Visiting node 5 with cost: 21.846925631604407 and score: 40
+Performing action: 6 from path [0, 12, 21, 4, 5]
+Visiting node 6 with cost: 24.103028466140103 and score: 45
+Performing action: 13 from path [0, 12, 21, 4, 5, 6]
+Visiting node 13 with cost: 26.28706143292426 and score: 50
+Performing action: 1 from path [0, 12, 21, 4, 5, 6, 13]
+Reached END_NODE with cost: 29.611215460643194
+Performing action: 2 from path [0, 12, 21, 11]
+Visiting node 2 with cost: 17.064237812337517 and score: 40
+Performing action: 3 from path [0, 12, 21, 11, 2]
+Visiting node 3 with cost: 19.681488277997996 and score: 50
+Performing action: 13 from path [0, 12, 21, 11, 2, 3]
+Visiting node 13 with cost: 24.153624232997576 and score: 55
+Performing action: 1 from path [0, 12, 21, 11, 2, 3, 13]
+Reached END_NODE with cost: 27.47777826071651
+Performing action: 3 from path [0, 12, 21, 11]
+Visiting node 3 with cost: 19.580841137980812 and score: 40
+Performing action: 7 from path [0, 12, 21, 11, 3]
+Visiting node 7 with cost: 21.580841137980812 and score: 45
+Performing action: 6 from path [0, 12, 21, 11, 3, 7]
+Visiting node 6 with cost: 22.98440802274263 and score: 50
+Performing action: 18 from path [0, 12, 21, 11, 3, 7, 6]
+Visiting node 18 with cost: 26.68440802274263 and score: 55
+Performing action: 1 from path [0, 12, 21, 11, 3, 7, 6, 18]
+Reached END_NODE with cost: 28.79391033371553
+Performing action: 5 from path [0, 12, 21, 11]
+Visiting node 5 with cost: 21.436333987706337 and score: 40
+Performing action: 1 from path [0, 12, 21, 11, 5]
+Reached END_NODE with cost: 26.656487242161614
+Performing action: 2 from path [0, 12, 21, 13]
+Visiting node 2 with cost: 17.20434749177116 and score: 35
+Performing action: 8 from path [0, 12, 21, 13, 2]
+Visiting node 8 with cost: 19.688295961446006 and score: 40
+Performing action: 1 from path [0, 12, 21, 13, 2, 8]
+Reached END_NODE with cost: 26.070301915689548
+Performing action: 18 from path [0, 12, 21, 17]
+Visiting node 18 with cost: 23.120886389167868 and score: 35
+Performing action: 1 from path [0, 12, 21, 17, 18]
+Reached END_NODE with cost: 25.230388700140768
+Performing action: 2 from path [0, 12, 21, 22]
+Visiting node 2 with cost: 20.127423275967665 and score: 40
+Performing action: 13 from path [0, 12, 21, 22, 2]
+Visiting node 13 with cost: 23.875756238765927 and score: 45
+Performing action: 1 from path [0, 12, 21, 22, 2, 13]
+Reached END_NODE with cost: 27.19991026648486
+Performing action: 9 from path [0, 12, 21, 24]
+Visiting node 9 with cost: 23.937977486830597 and score: 40
+Performing action: 1 from path [0, 12, 21, 24, 9]
+Reached END_NODE with cost: 29.31198902384836
+Performing action: 6 from path [0, 12, 21, 4]
+Visiting node 6 with cost: 24.037527740144345 and score: 35
+Performing action: 18 from path [0, 12, 21, 4, 6]
+Visiting node 18 with cost: 27.737527740144344 and score: 40
+Performing action: 1 from path [0, 12, 21, 4, 6, 18]
+Reached END_NODE with cost: 29.847030051117244
+Performing action: 6 from path [0, 12, 21, 28]
+Visiting node 6 with cost: 21.095274494732745 and score: 35
+Performing action: 1 from path [0, 12, 21, 28, 6]
+Reached END_NODE with cost: 24.9031610476647
+Performing action: 17 from path [0, 12, 21, 30]
+Visiting node 17 with cost: 24.34478888358242 and score: 40
+Performing action: 1 from path [0, 12, 21, 30, 17]
+Reached END_NODE with cost: 29.76512097672948
+Performing action: 6 from path [0, 12, 21, 11]
+Visiting node 6 with cost: 19.274765257928422 and score: 35
+Performing action: 3 from path [0, 12, 21, 11, 6]
+Visiting node 3 with cost: 22.676235528267412 and score: 45
+Performing action: 1 from path [0, 12, 21, 11, 6, 3]
+Reached END_NODE with cost: 29.821163799425914
+Performing action: 7 from path [0, 12, 21, 11]
+Visiting node 7 with cost: 19.156263662449057 and score: 35
+Performing action: 28 from path [0, 12, 21, 11, 7]
+Visiting node 28 with cost: 26.562342246963265 and score: 45
+Performing action: 1 from path [0, 12, 21, 11, 7, 28]
+Reached END_NODE with cost: 28.916062706151227
+Performing action: 4 from path [0, 12, 21, 2]
+Visiting node 4 with cost: 22.273121692513087 and score: 40
+Performing action: 1 from path [0, 12, 21, 2, 4]
+Reached END_NODE with cost: 29.423646148802987
+Performing action: 3 from path [0, 12, 21, 22]
+Visiting node 3 with cost: 22.123839475715908 and score: 40
+Performing action: 13 from path [0, 12, 21, 22, 3]
+Visiting node 13 with cost: 26.595975430715487 and score: 45
+Performing action: 1 from path [0, 12, 21, 22, 3, 13]
+Reached END_NODE with cost: 29.92012945843442
+Performing action: 13 from path [0, 12, 21, 25]
+Visiting node 13 with cost: 24.597208562996926 and score: 40
+Performing action: 1 from path [0, 12, 21, 25, 13]
+Reached END_NODE with cost: 27.92136259071586
+Performing action: 8 from path [0, 12, 21, 11]
+Visiting node 8 with cost: 14.717821569489425 and score: 35
+Performing action: 13 from path [0, 12, 21, 11, 8]
+Visiting node 13 with cost: 17.982787112952327 and score: 40
+Performing action: 5 from path [0, 12, 21, 11, 8, 13]
+Visiting node 5 with cost: 22.421255317186755 and score: 50
+Performing action: 18 from path [0, 12, 21, 11, 8, 13, 5]
+Visiting node 18 with cost: 26.544360942804417 and score: 55
+Performing action: 1 from path [0, 12, 21, 11, 8, 13, 5, 18]
+Reached END_NODE with cost: 28.653863253777317
+Performing action: 9 from path [0, 12, 21, 11]
+Visiting node 9 with cost: 14.620912767753335 and score: 35
+Performing action: 3 from path [0, 12, 21, 11, 9]
+Visiting node 3 with cost: 20.2821847096406 and score: 45
+Performing action: 18 from path [0, 12, 21, 11, 9, 3]
+Visiting node 18 with cost: 27.303580582257382 and score: 50
+Performing action: 1 from path [0, 12, 21, 11, 9, 3, 18]
+Reached END_NODE with cost: 29.413082893230282
+Performing action: 10 from path [0, 12, 21, 11]
+Visiting node 10 with cost: 12.908680592983965 and score: 40
+Performing action: 9 from path [0, 12, 21, 11, 10]
+Visiting node 9 with cost: 14.933526266115626 and score: 45
+Performing action: 8 from path [0, 12, 21, 11, 10, 9]
+Visiting node 8 with cost: 16.337093150877443 and score: 50
+Performing action: 1 from path [0, 12, 21, 11, 10, 9, 8]
+Reached END_NODE with cost: 22.719099105120982
+Performing action: 13 from path [0, 12, 21, 11]
+Visiting node 13 with cost: 17.313435661023362 and score: 35
+Performing action: 2 from path [0, 12, 21, 11, 13]
+Visiting node 2 with cost: 21.061768623821624 and score: 45
+Performing action: 7 from path [0, 12, 21, 11, 13, 2]
+Visiting node 7 with cost: 24.168213537223437 and score: 50
+Performing action: 1 from path [0, 12, 21, 11, 13, 2, 7]
+Reached END_NODE with cost: 29.33057733687956
+Performing action: 18 from path [0, 12, 21, 11]
+Visiting node 18 with cost: 21.44673993480616 and score: 35
+Performing action: 6 from path [0, 12, 21, 11, 18]
+Visiting node 6 with cost: 25.14673993480616 and score: 40
+Performing action: 1 from path [0, 12, 21, 11, 18, 6]
+Reached END_NODE with cost: 28.954626487738114
+Performing action: 19 from path [0, 12, 21, 11]
+Visiting node 19 with cost: 17.239974544753046 and score: 35
+Performing action: 6 from path [0, 12, 21, 11, 19]
+Visiting node 6 with cost: 22.988887485474972 and score: 40
+Performing action: 1 from path [0, 12, 21, 11, 19, 6]
+Reached END_NODE with cost: 26.796774038406927
+Performing action: 20 from path [0, 12, 21, 11]
+Visiting node 20 with cost: 17.74519140834607 and score: 35
+Performing action: 31 from path [0, 12, 21, 11, 20]
+Visiting node 31 with cost: 20.54697655357045 and score: 45
+Performing action: 28 from path [0, 12, 21, 11, 20, 31]
+Visiting node 28 with cost: 25.98756475706463 and score: 55
+Performing action: 1 from path [0, 12, 21, 11, 20, 31, 28]
+Reached END_NODE with cost: 28.34128521625259
+Performing action: 22 from path [0, 12, 21, 11]
+Visiting node 22 with cost: 17.53252475705275 and score: 40
+Performing action: 26 from path [0, 12, 21, 11, 22]
+Visiting node 26 with cost: 20.505738506516455 and score: 55
+Performing action: 27 from path [0, 12, 21, 11, 22, 26]
+Visiting node 27 with cost: 22.76184134105215 and score: 65
+Performing action: 19 from path [0, 12, 21, 11, 22, 26, 27]
+Visiting node 19 with cost: 25.26384054169151 and score: 70
+Performing action: 1 from path [0, 12, 21, 11, 22, 26, 27, 19]
+Reached END_NODE with cost: 28.763840541691515
+Performing action: 23 from path [0, 12, 21, 11]
+Visiting node 23 with cost: 18.631647631557062 and score: 40
+Performing action: 26 from path [0, 12, 21, 11, 23]
+Visiting node 26 with cost: 22.8101641147123 and score: 55
+Performing action: 27 from path [0, 12, 21, 11, 23, 26]
+Visiting node 27 with cost: 25.066266949247996 and score: 65
+Performing action: 1 from path [0, 12, 21, 11, 23, 26, 27]
+Reached END_NODE with cost: 29.44918834941022
+Performing action: 26 from path [0, 12, 21, 11]
+Visiting node 26 with cost: 19.364243465663655 and score: 45
+Performing action: 28 from path [0, 12, 21, 11, 26]
+Visiting node 28 with cost: 25.703013062359844 and score: 55
+Performing action: 1 from path [0, 12, 21, 11, 26, 28]
+Reached END_NODE with cost: 28.056733521547805
+Performing action: 27 from path [0, 12, 21, 11]
+Visiting node 27 with cost: 19.40858632736291 and score: 40
+Performing action: 20 from path [0, 12, 21, 11, 27]
+Visiting node 20 with cost: 21.129051380771436 and score: 45
+Performing action: 13 from path [0, 12, 21, 11, 27, 20]
+Visiting node 13 with cost: 26.532753815213955 and score: 50
+Performing action: 1 from path [0, 12, 21, 11, 27, 20, 13]
+Reached END_NODE with cost: 29.856907842932888
+Performing action: 28 from path [0, 12, 21, 11]
+Visiting node 28 with cost: 21.590745950561743 and score: 40
+Performing action: 1 from path [0, 12, 21, 11, 28]
+Reached END_NODE with cost: 23.944466409749705
+Performing action: 31 from path [0, 12, 21, 11]
+Visiting node 31 with cost: 20.42234026952287 and score: 40
+Performing action: 20 from path [0, 12, 21, 11, 31]
+Visiting node 20 with cost: 23.22412541474725 and score: 45
+Performing action: 27 from path [0, 12, 21, 11, 31, 20]
+Visiting node 27 with cost: 24.944590468155774 and score: 55
+Performing action: 1 from path [0, 12, 21, 11, 31, 20, 27]
+Reached END_NODE with cost: 29.327511868318
+Performing action: 1 from path [0, 12, 21, 11]
+Reached END_NODE with cost: 19.73734178197801
+Performing action: 9 from path [0, 12, 21, 11, 22]
+Visiting node 9 with cost: 23.910612244693542 and score: 45
+Performing action: 13 from path [0, 12, 21, 11, 22, 9]
+Visiting node 13 with cost: 26.603194648260793 and score: 50
+Performing action: 1 from path [0, 12, 21, 11, 22, 9, 13]
+Reached END_NODE with cost: 29.927348675979726
+Performing action: 19 from path [0, 12, 21, 11, 23]
+Visiting node 19 with cost: 25.010519005083886 and score: 45
+Performing action: 1 from path [0, 12, 21, 11, 23, 19]
+Reached END_NODE with cost: 28.510519005083886
+Performing action: 13 from path [0, 12, 21, 11, 22]
+Visiting node 13 with cost: 25.47292776949488 and score: 45
+Performing action: 1 from path [0, 12, 21, 11, 22, 13]
+Reached END_NODE with cost: 28.797081797213814
+Performing action: 3 from path [0, 12, 21, 11, 2]
+Visiting node 3 with cost: 19.681488277997996 and score: 50
+Performing action: 7 from path [0, 12, 21, 11, 2, 3]
+Visiting node 7 with cost: 21.681488277997996 and score: 55
+Performing action: 6 from path [0, 12, 21, 11, 2, 3, 7]
+Visiting node 6 with cost: 23.085055162759815 and score: 60
+Performing action: 18 from path [0, 12, 21, 11, 2, 3, 7, 6]
+Visiting node 18 with cost: 26.785055162759814 and score: 65
+Performing action: 1 from path [0, 12, 21, 11, 2, 3, 7, 6, 18]
+Reached END_NODE with cost: 28.894557473732714
+Performing action: 5 from path [0, 12, 21, 11, 2]
+Visiting node 5 with cost: 22.61130911168098 and score: 50
+Performing action: 18 from path [0, 12, 21, 11, 2, 5]
+Visiting node 18 with cost: 26.734414737298643 and score: 55
+Performing action: 1 from path [0, 12, 21, 11, 2, 5, 18]
+Reached END_NODE with cost: 28.843917048271543
+Performing action: 6 from path [0, 12, 21, 11, 2]
+Visiting node 6 with cost: 21.17519877055641 and score: 45
+Performing action: 18 from path [0, 12, 21, 11, 2, 6]
+Visiting node 18 with cost: 24.87519877055641 and score: 50
+Performing action: 1 from path [0, 12, 21, 11, 2, 6, 18]
+Reached END_NODE with cost: 26.98470108152931
+Performing action: 2 from path [0, 12, 21, 11, 3]
+Visiting node 2 with cost: 22.19809160364129 and score: 50
+Performing action: 1 from path [0, 12, 21, 11, 3, 2]
+Reached END_NODE with cost: 29.23229376166888
+Performing action: 2 from path [0, 12, 21, 11, 8]
+Visiting node 2 with cost: 17.20177003916427 and score: 45
+Performing action: 18 from path [0, 12, 21, 11, 8, 2]
+Visiting node 18 with cost: 24.867929442672654 and score: 50
+Performing action: 1 from path [0, 12, 21, 11, 8, 2, 18]
+Reached END_NODE with cost: 26.977431753645554
+Performing action: 6 from path [0, 12, 21, 11, 20]
+Visiting node 6 with cost: 25.04519140834607 and score: 40
+Performing action: 1 from path [0, 12, 21, 11, 20, 6]
+Reached END_NODE with cost: 28.853077961278025
+Performing action: 18 from path [0, 12, 21, 11, 26]
+Visiting node 18 with cost: 27.88774040060767 and score: 50
+Performing action: 1 from path [0, 12, 21, 11, 26, 18]
+Reached END_NODE with cost: 29.99724271158057
+Performing action: 19 from path [0, 12, 21, 11, 31]
+Visiting node 19 with cost: 24.502781422143503 and score: 45
+Performing action: 1 from path [0, 12, 21, 11, 31, 19]
+Reached END_NODE with cost: 28.002781422143507
+Performing action: 7 from path [0, 12, 21, 11, 2]
+Visiting node 7 with cost: 20.17068272573933 and score: 45
+Performing action: 28 from path [0, 12, 21, 11, 2, 7]
+Visiting node 28 with cost: 27.576761310253538 and score: 55
+Performing action: 1 from path [0, 12, 21, 11, 2, 7, 28]
+Reached END_NODE with cost: 29.9304817694415
+Performing action: 8 from path [0, 12, 21, 11, 2]
+Visiting node 8 with cost: 19.548186282012363 and score: 45
+Performing action: 6 from path [0, 12, 21, 11, 2, 8]
+Visiting node 6 with cost: 24.38657444337354 and score: 50
+Performing action: 1 from path [0, 12, 21, 11, 2, 8, 6]
+Reached END_NODE with cost: 28.194460996305494
+Performing action: 20 from path [0, 12, 21, 11, 23]
+Visiting node 20 with cost: 23.747309856528528 and score: 45
+Performing action: 19 from path [0, 12, 21, 11, 23, 20]
+Visiting node 19 with cost: 25.30294477513893 and score: 50
+Performing action: 1 from path [0, 12, 21, 11, 23, 20, 19]
+Reached END_NODE with cost: 28.802944775138933
+Performing action: 18 from path [0, 12, 21, 11, 22]
+Visiting node 18 with cost: 27.703562068949708 and score: 45
+Performing action: 1 from path [0, 12, 21, 11, 22, 18]
+Reached END_NODE with cost: 29.813064379922608
+Performing action: 9 from path [0, 12, 21, 11, 2]
+Visiting node 9 with cost: 20.669789087801504 and score: 45
+Performing action: 18 from path [0, 12, 21, 11, 2, 9]
+Visiting node 18 with cost: 27.58137356605249 and score: 50
+Performing action: 1 from path [0, 12, 21, 11, 2, 9, 18]
+Reached END_NODE with cost: 29.69087587702539
+Performing action: 10 from path [0, 12, 21, 11, 2]
+Visiting node 10 with cost: 21.223564680954603 and score: 50
+Performing action: 9 from path [0, 12, 21, 11, 2, 10]
+Visiting node 9 with cost: 23.248410354086264 and score: 55
+Performing action: 13 from path [0, 12, 21, 11, 2, 10, 9]
+Visiting node 13 with cost: 25.940992757653515 and score: 60
+Performing action: 1 from path [0, 12, 21, 11, 2, 10, 9, 13]
+Reached END_NODE with cost: 29.265146785372448
+Performing action: 13 from path [0, 12, 21, 11, 2]
+Visiting node 13 with cost: 20.81257077513578 and score: 45
+Performing action: 6 from path [0, 12, 21, 11, 2, 13]
+Visiting node 6 with cost: 22.996603741919934 and score: 50
+Performing action: 7 from path [0, 12, 21, 11, 2, 13, 6]
+Visiting node 7 with cost: 24.400170626681753 and score: 55
+Performing action: 1 from path [0, 12, 21, 11, 2, 13, 6, 7]
+Reached END_NODE with cost: 29.562534426337876
+Performing action: 18 from path [0, 12, 21, 11, 2]
+Visiting node 18 with cost: 24.730397215845898 and score: 45
+Performing action: 1 from path [0, 12, 21, 11, 2, 18]
+Reached END_NODE with cost: 26.839899526818797
+Performing action: 22 from path [0, 12, 21, 11, 23]
+Visiting node 22 with cost: 20.403652146223997 and score: 50
+Performing action: 26 from path [0, 12, 21, 11, 23, 22]
+Visiting node 26 with cost: 23.3768658956877 and score: 65
+Performing action: 1 from path [0, 12, 21, 11, 23, 22, 26]
+Reached END_NODE with cost: 29.906796982613503
+Performing action: 26 from path [0, 12, 21, 11, 23]
+Visiting node 26 with cost: 22.8101641147123 and score: 55
+Performing action: 1 from path [0, 12, 21, 11, 23, 26]
+Reached END_NODE with cost: 29.340095201638103
+Performing action: 27 from path [0, 12, 21, 11, 23]
+Visiting node 27 with cost: 24.8130714157673 and score: 50
+Performing action: 1 from path [0, 12, 21, 11, 23, 27]
+Reached END_NODE with cost: 29.195992815929525
+Performing action: 1 from path [0, 12, 21, 11, 23]
+Reached END_NODE with cost: 28.446941819710567
+Performing action: 5 from path [0, 12, 21, 11, 3]
+Visiting node 5 with cost: 23.282192242645163 and score: 50
+Performing action: 18 from path [0, 12, 21, 11, 3, 5]
+Visiting node 18 with cost: 27.405297868262824 and score: 55
+Performing action: 1 from path [0, 12, 21, 11, 3, 5, 18]
+Reached END_NODE with cost: 29.514800179235724
+Performing action: 6 from path [0, 12, 21, 11, 3]
+Visiting node 6 with cost: 22.982311408319802 and score: 45
+Performing action: 1 from path [0, 12, 21, 11, 3, 6]
+Reached END_NODE with cost: 26.790197961251756
+Performing action: 3 from path [0, 12, 21, 11, 8]
+Visiting node 3 with cost: 19.60249146621735 and score: 45
+Performing action: 1 from path [0, 12, 21, 11, 8, 3]
+Reached END_NODE with cost: 26.747419737375854
+Performing action: 19 from path [0, 12, 21, 11, 26]
+Visiting node 19 with cost: 23.144455099950815 and score: 50
+Performing action: 20 from path [0, 12, 21, 11, 26, 19]
+Visiting node 20 with cost: 24.700090018561216 and score: 55
+Performing action: 1 from path [0, 12, 21, 11, 26, 19, 20]
+Reached END_NODE with cost: 29.429783454715402
+Performing action: 20 from path [0, 12, 21, 11, 26]
+Visiting node 20 with cost: 21.611463971088078 and score: 50
+Performing action: 19 from path [0, 12, 21, 11, 26, 20]
+Visiting node 19 with cost: 23.16709888969848 and score: 55
+Performing action: 1 from path [0, 12, 21, 11, 26, 20, 19]
+Reached END_NODE with cost: 26.66709888969848
+Performing action: 27 from path [0, 12, 21, 11, 26]
+Visiting node 27 with cost: 21.62034630019935 and score: 55
+Performing action: 19 from path [0, 12, 21, 11, 26, 27]
+Visiting node 19 with cost: 24.122345500838712 and score: 60
+Performing action: 1 from path [0, 12, 21, 11, 26, 27, 19]
+Reached END_NODE with cost: 27.622345500838712
+Performing action: 28 from path [0, 12, 21, 11, 26]
+Visiting node 28 with cost: 25.703013062359844 and score: 55
+Performing action: 1 from path [0, 12, 21, 11, 26, 28]
+Reached END_NODE with cost: 28.056733521547805
+Performing action: 31 from path [0, 12, 21, 11, 26]
+Visiting node 31 with cost: 20.78551050601884 and score: 55
+Performing action: 20 from path [0, 12, 21, 11, 26, 31]
+Visiting node 20 with cost: 23.58729565124322 and score: 60
+Performing action: 1 from path [0, 12, 21, 11, 26, 31, 20]
+Reached END_NODE with cost: 28.316989087397406
+Performing action: 1 from path [0, 12, 21, 11, 26]
+Reached END_NODE with cost: 25.894174552589458
+Performing action: 19 from path [0, 12, 21, 11, 26, 27]
+Visiting node 19 with cost: 24.122345500838712 and score: 60
+Performing action: 1 from path [0, 12, 21, 11, 26, 27, 19]
+Reached END_NODE with cost: 27.622345500838712
+Performing action: 19 from path [0, 12, 21, 11, 26, 31]
+Visiting node 19 with cost: 24.865951658639474 and score: 60
+Performing action: 1 from path [0, 12, 21, 11, 26, 31, 19]
+Reached END_NODE with cost: 28.365951658639474
+Performing action: 20 from path [0, 12, 21, 11, 26, 27]
+Visiting node 20 with cost: 23.340811353607876 and score: 60
+Performing action: 19 from path [0, 12, 21, 11, 26, 27, 20]
+Visiting node 19 with cost: 24.896446272218277 and score: 65
+Performing action: 1 from path [0, 12, 21, 11, 26, 27, 20, 19]
+Reached END_NODE with cost: 28.396446272218277
+Performing action: 28 from path [0, 12, 21, 11, 26, 27]
+Visiting node 28 with cost: 25.72522145055411 and score: 65
+Performing action: 1 from path [0, 12, 21, 11, 26, 27, 28]
+Reached END_NODE with cost: 28.07894190974207
+Performing action: 31 from path [0, 12, 21, 11, 26, 27]
+Visiting node 31 with cost: 23.400795681675838 and score: 65
+Performing action: 1 from path [0, 12, 21, 11, 26, 27, 31]
+Reached END_NODE with cost: 29.508168275516827
+Performing action: 1 from path [0, 12, 21, 11, 26, 27]
+Reached END_NODE with cost: 26.003267700361576
+Performing action: 19 from path [0, 12, 21, 11, 26, 27, 20]
+Visiting node 19 with cost: 24.896446272218277 and score: 65
+Performing action: 1 from path [0, 12, 21, 11, 26, 27, 20, 19]
+Reached END_NODE with cost: 28.396446272218277
+Performing action: 1 from path [0, 12, 21, 11, 26, 27, 28]
+Reached END_NODE with cost: 28.07894190974207
+Performing action: 1 from path [0, 12, 21, 11, 26, 27, 31]
+Reached END_NODE with cost: 29.508168275516827
+Performing action: 1 from path [0, 12, 21, 11, 26, 27, 20]
+Reached END_NODE with cost: 28.07050478976206
+Performing action: 1 from path [0, 12, 21, 11, 26, 27, 20, 19]
+Reached END_NODE with cost: 28.396446272218277
+Performing action: 1 from path [0, 12, 21, 11, 26, 27, 19]
+Reached END_NODE with cost: 27.622345500838712
+
+Best path: [0, 12]
+Score: 10
