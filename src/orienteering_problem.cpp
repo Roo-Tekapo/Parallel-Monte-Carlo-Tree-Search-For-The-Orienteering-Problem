@@ -15,3 +15,9 @@ double Graph::getDistance(int id1, int id2) const {
 const std::vector<Node>& Graph::getNodes() const {
     return nodes;
 }
+
+
+// getDistance between two nodes
+// define the state - copy - is_terminal - get_score - get_path
+// available actions - do_available_actions
+

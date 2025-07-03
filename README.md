@@ -51,7 +51,27 @@ orienteeringProblem
 
 Classes
 singleThreadMCTS
-    
+    state
+
+	selection
+
+	expansion
+
+	simulation
+
+	backpropergation
+
 
 orienteeringProblem
+	load_problem from benchmark set
 
+	distance
+
+	copy state ?
+	is_terminal
+
+	find_posible_action
+	
+
+
+tests

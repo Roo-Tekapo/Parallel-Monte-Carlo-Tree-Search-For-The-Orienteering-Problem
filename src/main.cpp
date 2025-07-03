@@ -1,6 +1,6 @@
 //to have a override run() function
 
-#include "include/mcts_single_thread.hpp"
+#include "mcts_single_thread.hpp"
 #include "orienteering_problem.hpp"
 #include <iostream>
 
@@ -20,3 +20,8 @@ int main() {
     std::cout << std::endl;
     return 0;
 }
+
+
+// TODO: have main retrieve the OP from the benchmark set
+// Create the graph from the Orienteering Problem (OP) data
+// Print the best path found by MCTS
