@@ -20,6 +20,10 @@ const std::vector<Node>& Graph::getNodes() const {
     return nodes;
 }
 
+State State::copy() const {
+    return State{path, cost, score};
+}
+
 Graph Graph::load_problem(const std::string& filename, double& Tmax, int& P) {
     std::ifstream infile(filename);
     if (!infile) throw std::runtime_error("Cannot open file: " + filename);

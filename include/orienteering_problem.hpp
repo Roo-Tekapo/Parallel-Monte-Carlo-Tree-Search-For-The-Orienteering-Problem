@@ -11,6 +11,14 @@ struct Node {
     int score;
 };
 
+struct State {
+    std::vector<int> path;   // sequence of node ids visited
+    double cost;             // total cost (distance)
+    int score;               // total score
+
+    State copy() const;
+};
+
 class Graph {
 public:
     explicit Graph(const std::vector<Node>& nodes);
