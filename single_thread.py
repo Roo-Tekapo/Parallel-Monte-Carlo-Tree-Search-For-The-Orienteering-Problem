@@ -19,8 +19,9 @@ def load_problem(filename):
 
 # Load nodes and budget from file
 nodes, BUDGET = load_problem(
-    r'OP_Benchmark_Set\Tsiligirides_1\tsiligirides_problem_1_budget_85.txt'
+    # r'OP_Benchmark_Set\Tsiligirides_1\tsiligirides_problem_1_budget_85.txt'
     # r'OP_Benchmark_Set\test_OP_budget_30.txt'
+    r"OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_10.txt"
 )
 START_NODE = 0
 END_NODE = 1
