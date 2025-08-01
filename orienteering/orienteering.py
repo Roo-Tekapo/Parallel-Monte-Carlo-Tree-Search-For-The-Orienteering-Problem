@@ -16,6 +16,10 @@ class OrienteeringProblem:
         self.budget = budget
         self.start_id = START_NODE
         self.end_id = END_NODE
+    
+    @property
+    def num_nodes(self):
+        return len(self.nodes)
 
     # TODO: change method for new OrienteeringProblem class
     @staticmethod
@@ -36,13 +40,13 @@ class OrienteeringProblem:
         return math.hypot(self.nodes[a].x - self.nodes[b].x, self.nodes[a].y - self.nodes[b].y)
 
 
-# TODO: test
-# Load nodes and budget from file - could change so a run method in mcts selects the file
-nodes, BUDGET = OrienteeringProblem.load_problem(
-    # r'OP_Benchmark_Set\Tsiligirides_1\tsiligirides_problem_1_budget_85.txt'
-    # r'OP_Benchmark_Set\test_OP_budget_30.txt'
-    r"OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_10.txt"
-)
+# # TODO: test
+# # Load nodes and budget from file - could change so a run method in mcts selects the file
+# nodes, BUDGET = OrienteeringProblem.load_problem(
+#     # r'OP_Benchmark_Set\Tsiligirides_1\tsiligirides_problem_1_budget_85.txt'
+#     # r'OP_Benchmark_Set\test_OP_budget_30.txt'
+#     r"OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_10.txt"
+# )
 
 
 class OrienteeringState:
@@ -67,7 +71,8 @@ class OrienteeringState:
                     return False
         return True
 
-    def get_children(self):
+    # TODO: should be called something like get_available_actions
+    def get_available_actions(self):
         children = []
         for i in range(self.problem.num_nodes):
             if i not in self.visited:
@@ -80,13 +85,38 @@ class OrienteeringState:
                         self.problem, new_path, new_cost, new_reward))
         return children
 
-    def get_score(self):
+    def get_reward(self):
         return self.reward_so_far
+    
+    def get_cost(self):
+        return self.cost_so_far
+    
+    def get_path(self):
+        return self.path
 
     def __str__(self):
         return f"Path: {self.path}, Reward: {self.reward_so_far}, Cost: {self.cost_so_far:.2f}, Terminal: {self.is_terminal()}"
 
 
+if __name__ == "__main__":
+    nodes, budget = OrienteeringProblem.load_problem(
+        'OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_10.txt'
+    )
+    problem = OrienteeringProblem(nodes, budget)
+    # print(f"Loaded problem with {len(nodes)} nodes and budget {budget}")
+    # for node in problem.nodes:
+    #     print(f"Node {node.id}: ({node.x}, {node.y}), Score: {node.score}")
+
+    state = OrienteeringState(problem)
+    # print("path:", state.get_path())
+    # print("cost:", state.get_cost())
+    # print("reward:", state.get_reward())
+    # print("Initial state:", state)
+    # print("Is terminal:", state.is_terminal())
+    print("Available actions:")
+    actions = state.get_available_actions()
+    for action in actions:
+        print(action)
 
 
 # class OrienteeringProblem:
