@@ -142,6 +142,15 @@ if __name__ == "__main__":
     for action in actions:
         print(action)
 
+    # TODO: error in apply_action
+    if actions:
+        print("\nApplying first action:")
+        new_state = state.apply_action(actions[0])
+        print("New state after applying action:")
+        print(new_state)
+    else:
+        print("No available actions from the initial state.")
+
 
 # class OrienteeringProblem:
 #     def __init__(self, path=None, cost=0, score=0):
