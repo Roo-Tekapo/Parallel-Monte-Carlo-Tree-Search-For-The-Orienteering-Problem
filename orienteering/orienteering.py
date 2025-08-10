@@ -70,8 +70,15 @@ class OrienteeringState:
                 if self.cost_so_far + cost_to_next <= self.problem.budget:
                     return False
         return True
+    
+    def copy(self):
+        return OrienteeringState(
+            self.problem,
+            path=self.path[:],
+            cost_so_far=self.cost_so_far,
+            reward_so_far=self.reward_so_far
+        )
 
-    # TODO: should be called something like get_available_actions
     def get_available_actions(self):
         children = []
         for i in range(self.problem.num_nodes):
@@ -84,6 +91,23 @@ class OrienteeringState:
                     children.append(OrienteeringState(
                         self.problem, new_path, new_cost, new_reward))
         return children
+    
+    def apply_action(self, action):
+        if action not in self.get_available_actions():
+            raise ValueError(f"Action {action} is not available from state {self}")
+        return OrienteeringState(
+            self.problem,
+            path=self.path + [action],
+            cost_so_far=self.cost_so_far + self.problem.get_distance(self.path[-1], action),
+            reward_so_far=self.reward_so_far + self.problem.nodes[action].score
+        )
+    
+    def best_child(self):
+        # Returns the child with the highest score (reward)
+        children = self.get_available_actions()
+        if not children:
+            return None
+        return max(children, key=lambda child: child.reward_so_far)
 
     def get_reward(self):
         return self.reward_so_far
