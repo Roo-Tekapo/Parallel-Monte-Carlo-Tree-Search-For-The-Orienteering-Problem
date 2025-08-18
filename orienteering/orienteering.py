@@ -78,7 +78,16 @@ class OrienteeringState:
             cost_so_far=self.cost_so_far,
             reward_so_far=self.reward_so_far
         )
+    
+    def update_reward(self, reward):
+        self.reward_so_far += reward
+    
+    def increment_visits(self):
+        self.visited.add(self.path[-1])
 
+    # should this be changed to return a list of OrienteeringState objects?
+    # or should it return a list of available actions (node indices)?
+    # This method generates all possible next states from the current state
     def get_available_actions(self):
         children = []
         for i in range(self.problem.num_nodes):
@@ -92,15 +101,16 @@ class OrienteeringState:
                         self.problem, new_path, new_cost, new_reward))
         return children
     
-    def apply_action(self, action):
-        if action not in self.get_available_actions():
-            raise ValueError(f"Action {action} is not available from state {self}")
-        return OrienteeringState(
-            self.problem,
-            path=self.path + [action],
-            cost_so_far=self.cost_so_far + self.problem.get_distance(self.path[-1], action),
-            reward_so_far=self.reward_so_far + self.problem.nodes[action].score
-        )
+    # looks like i dont need this method, as I can just use get_available_actions to get the next states
+    # def apply_action(self, action):
+    #     if action not in self.get_available_actions():
+    #         raise ValueError(f"Action {action} is not available from state {self}")
+    #     return OrienteeringState(
+    #         self.problem,
+    #         path=self.path + [action],
+    #         cost_so_far=self.cost_so_far + self.problem.get_distance(self.path[-1], action),
+    #         reward_so_far=self.reward_so_far + self.problem.nodes[action].score
+    #     )
     
     def best_child(self):
         # Returns the child with the highest score (reward)
