@@ -28,9 +28,9 @@ class TestSingleThreadMCTS(unittest.TestCase):
         # Should not raise
         self.mcts._expand(self.mcts.root)
 
-    # def test_simulate(self):
-    #     reward = self.mcts._simulate(self.mcts.root)
-    #     self.assertIsInstance(reward, (int, float))
+    def test_simulate(self):
+        reward = self.mcts._simulate(self.mcts.root)
+        self.assertIsInstance(reward, (int, float))
 
     # def test_backpropagate(self):
     #     path = [self.mcts.root, self.mcts.root.copy()]

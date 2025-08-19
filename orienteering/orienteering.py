@@ -65,14 +65,17 @@ class OrienteeringState:
         else:
             self.reward_so_far = reward_so_far
 
+    # def is_terminal(self):
+    #     # Can't add any more nodes without exceeding budget
+    #     for i in range(self.problem.num_nodes):
+    #         if i not in self.visited:
+    #             cost_to_next = self.problem.get_distance(self.path[-1], i)
+    #             if self.cost_so_far + cost_to_next <= self.problem.budget:
+    #                 return False
+    #     return True
     def is_terminal(self):
-        # Can't add any more nodes without exceeding budget
-        for i in range(self.problem.num_nodes):
-            if i not in self.visited:
-                cost_to_next = self.problem.get_distance(self.path[-1], i)
-                if self.cost_so_far + cost_to_next <= self.problem.budget:
-                    return False
-        return True
+        # Only terminal if the last node in the path is the END_NODE
+        return self.path[-1] == END_NODE
     
     def copy(self):
         return OrienteeringState(
@@ -140,12 +143,16 @@ if __name__ == "__main__":
         'OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_10.txt'
     )
     problem = OrienteeringProblem(nodes, budget)
-
+    
     state = OrienteeringState(problem)
-    print("Available actions:")
-    actions = state.get_available_actions()
-    for action in actions:
-        print(action)
+    terminalNodes = [node for node in nodes if node.id == END_NODE]
+    print("Initial state:", state)
+    print("Terminal nodes:", terminalNodes)
+    
+    # print("Available actions:")
+    # actions = state.get_available_actions()
+    # for action in actions:
+    #     print(action)
 
 
 

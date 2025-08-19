@@ -33,16 +33,23 @@ class single_thread_mcts:
         children = node.get_available_actions()
         self.children[node] = children
 
+    # def _simulate(self, node):
+    #     current = OrienteeringState.copy(node)
+    #     while not OrienteeringState.is_terminal(current):
+    #         actions = OrienteeringState.get_available_actions(current)
+    #         if not actions:
+    #             break
+    #         action = random.choice(actions)
+    #         current = OrienteeringState.apply_action(current, action)
+    #     return OrienteeringState.get_reward(current)
     def _simulate(self, node):
-        current = OrienteeringState.copy(node)
-        while not OrienteeringState.is_terminal(current):
-            actions = OrienteeringState.get_available_actions(current)
+        current = node.copy()
+        while not current.is_terminal():
+            actions = current.get_available_actions()
             if not actions:
                 break
-            action = random.choice(actions)
-            current = OrienteeringState.apply_action(current, action)
-        return OrienteeringState.get_reward(current)
-
+            current = random.choice(actions)
+        return current.get_reward()
 
     def _backpropagate(self, path, reward):
         for node in reversed(path):

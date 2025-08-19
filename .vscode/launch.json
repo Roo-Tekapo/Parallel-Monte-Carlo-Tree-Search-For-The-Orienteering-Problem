@@ -1,0 +1,7 @@
+{
+    "name": "Run MCTS as module",
+    "type": "python",
+    "request": "launch",
+    "module": "MCTS.mcts_single_thread",
+    "cwd": "${workspaceFolder}"
+}
