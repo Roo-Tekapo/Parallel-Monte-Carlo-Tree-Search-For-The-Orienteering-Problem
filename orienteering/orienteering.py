@@ -50,17 +50,20 @@ class OrienteeringProblem:
 
 
 class OrienteeringState:
-    def __init__(self, problem: OrienteeringProblem, path=None, cost_so_far=0.0, reward_so_far=0.0):
-        """
-        path: list of visited node indices
-        cost_so_far: total distance travelled
-        reward_so_far: total collected reward
-        """
+    def __init__(self, problem: OrienteeringProblem, path=None, cost_so_far=0.0, reward_so_far=None):
+        # path: list of visited node indices
+        # cost_so_far: total distance travelled
+        # reward_so_far: total collected reward
+
         self.problem = problem
         self.path = path or [START_NODE]  # Start at node 0
         self.visited = set(self.path)
         self.cost_so_far = cost_so_far
-        self.reward_so_far = reward_so_far
+        if reward_so_far is None:
+            # TODO: do i need this score of the start node (possible cases where start node has score)
+            self.reward_so_far = self.problem.nodes[self.path[0]].score
+        else:
+            self.reward_so_far = reward_so_far
 
     def is_terminal(self):
         # Can't add any more nodes without exceeding budget
@@ -85,8 +88,7 @@ class OrienteeringState:
     def increment_visits(self):
         self.visited.add(self.path[-1])
 
-    # should this be changed to return a list of OrienteeringState objects?
-    # or should it return a list of available actions (node indices)?
+    
     # This method generates all possible next states from the current state
     def get_available_actions(self):
         children = []
@@ -102,16 +104,17 @@ class OrienteeringState:
         return children
     
     # looks like i dont need this method, as I can just use get_available_actions to get the next states
-    # def apply_action(self, action):
-    #     if action not in self.get_available_actions():
-    #         raise ValueError(f"Action {action} is not available from state {self}")
-    #     return OrienteeringState(
-    #         self.problem,
-    #         path=self.path + [action],
-    #         cost_so_far=self.cost_so_far + self.problem.get_distance(self.path[-1], action),
-    #         reward_so_far=self.reward_so_far + self.problem.nodes[action].score
-    #     )
-    
+    def apply_action(self, node_index):
+        if node_index in self.visited:
+            raise ValueError(f"Node {node_index} already visited.")
+        cost_to_next = self.problem.get_distance(self.path[-1], node_index)
+        if self.cost_so_far + cost_to_next > self.problem.budget:
+            raise ValueError(f"Cannot apply action to node {node_index}, exceeds budget.")
+        new_path = self.path + [node_index]
+        new_cost = self.cost_so_far + cost_to_next
+        new_reward = self.reward_so_far + self.problem.nodes[node_index].score
+        return OrienteeringState(self.problem, new_path, new_cost, new_reward)
+
     def best_child(self):
         # Returns the child with the highest score (reward)
         children = self.get_available_actions()
@@ -137,44 +140,24 @@ if __name__ == "__main__":
         'OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_10.txt'
     )
     problem = OrienteeringProblem(nodes, budget)
-    # print(f"Loaded problem with {len(nodes)} nodes and budget {budget}")
-    # for node in problem.nodes:
-    #     print(f"Node {node.id}: ({node.x}, {node.y}), Score: {node.score}")
 
     state = OrienteeringState(problem)
-    # print("path:", state.get_path())
-    # print("cost:", state.get_cost())
-    # print("reward:", state.get_reward())
-    # print("Initial state:", state)
-    # print("Is terminal:", state.is_terminal())
     print("Available actions:")
     actions = state.get_available_actions()
     for action in actions:
         print(action)
 
+
+
+
     # TODO: error in apply_action
-    if actions:
-        print("\nApplying first action:")
-        new_state = state.apply_action(actions[0])
-        print("New state after applying action:")
-        print(new_state)
-    else:
-        print("No available actions from the initial state.")
-
-
-# class OrienteeringProblem:
-#     def __init__(self, path=None, cost=0, score=0):
-#         self.path = path or [START_NODE]
-#         self.cost = cost
-#         self.score = score
-
-#     def copy(self):
-#         return OrienteeringProblem(self.path[:], self.cost, self.score)
-
-#     def is_terminal(self):
-#         return self.path[-1] == END_NODE and len(self.path) > 1
-
-
+    # if actions:
+    #     print("\nApplying first action:")
+    #     new_state = state.apply_action(actions[0])
+    #     print("New state after applying action:")
+    #     print(new_state)
+    # else:
+    #     print("No available actions from the initial state.")
 
     # def available_actions(self):
     #     visited = set(self.path)
@@ -191,12 +174,3 @@ if __name__ == "__main__":
     #         if self.cost + getDistance(self.path[-1], END_NODE) <= BUDGET:
     #             actions.append(END_NODE)
     #     return actions
-
-
-# class OrienteeringProblem:
-#     def __init__(self, nodes: List[Node], start_id: int, end_id: int, budget: float):
-#         self.nodes = nodes
-#         self.start_id = start_id
-#         self.end_id = end_id
-#         self.budget = budget
-#         self.distance_matrix = self._compute_distances()

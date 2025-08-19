@@ -8,6 +8,7 @@ class single_thread_mcts:
         self.problem = problem
         self.root = OrienteeringState(problem)
         self.visited_nodes = set()
+        self.children = {} # Maps node to its children
 
     def run(self, iterations):
         for _ in range(iterations):
@@ -29,9 +30,9 @@ class single_thread_mcts:
         if node in self.visited_nodes:
             return
         self.visited_nodes.add(node)
-        for action in OrienteeringState.get_available_actions(node):
-            OrienteeringState.apply_action(node, action)
-    
+        children = node.get_available_actions()
+        self.children[node] = children
+
     def _simulate(self, node):
         current = OrienteeringState.copy(node)
         while not OrienteeringState.is_terminal(current):
