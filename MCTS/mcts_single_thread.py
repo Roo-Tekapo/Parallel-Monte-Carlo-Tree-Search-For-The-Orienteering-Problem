@@ -9,6 +9,8 @@ class single_thread_mcts:
         self.root = OrienteeringState(problem)
         self.visited_nodes = set()
         self.children = {} # Maps node to its children
+        # TODO: implement visit counts and rewards
+        self.visit_counts = {} # Maps node to number of visits (not used)
 
     def run(self, iterations):
         for _ in range(iterations):
@@ -24,7 +26,11 @@ class single_thread_mcts:
             path.append(node)
             if OrienteeringState.is_terminal(node) or not OrienteeringState.get_available_actions(node):
                 return path
-            node = OrienteeringState.best_child(node)
+            if node in self.children and self.children[node]:
+                # If node has children, select one using UCT
+                node = self._uct_select(node)
+            else:
+                return path
 
     def _expand(self, node):
         if node in self.visited_nodes:
@@ -33,15 +39,7 @@ class single_thread_mcts:
         children = node.get_available_actions()
         self.children[node] = children
 
-    # def _simulate(self, node):
-    #     current = OrienteeringState.copy(node)
-    #     while not OrienteeringState.is_terminal(current):
-    #         actions = OrienteeringState.get_available_actions(current)
-    #         if not actions:
-    #             break
-    #         action = random.choice(actions)
-    #         current = OrienteeringState.apply_action(current, action)
-    #     return OrienteeringState.get_reward(current)
+
     def _simulate(self, node):
         current = node.copy()
         while not current.is_terminal():
@@ -57,6 +55,8 @@ class single_thread_mcts:
             OrienteeringState.increment_visits(node)
             reward = OrienteeringState.get_reward(node)
 
+    # TODO: uct never reach :(
+
     "Select a child of node, balancing exploration & exploitation"
     def _uct_select(self, node):
         # All children of node should already be expanded:
@@ -71,7 +71,6 @@ class single_thread_mcts:
             )
 
         return max(self.children[node], key=uct)
-    
 
 
     def print_results(self):
@@ -88,5 +87,5 @@ if __name__ == "__main__":
     )
     problem = OrienteeringProblem(nodes, budget)
     mcts_solver = single_thread_mcts(problem)
-    mcts_solver.run(iterations=1000)
+    mcts_solver.run(iterations=10)
     mcts_solver.print_results()

@@ -32,14 +32,14 @@ class TestSingleThreadMCTS(unittest.TestCase):
         reward = self.mcts._simulate(self.mcts.root)
         self.assertIsInstance(reward, (int, float))
 
-    # def test_backpropagate(self):
-    #     path = [self.mcts.root, self.mcts.root.copy()]
-    #     # Should not raise
-    #     self.mcts._backpropagate(path, 1)
+    def test_backpropagate(self):
+        path = [self.mcts.root, self.mcts.root.copy()]
+        # Should not raise
+        self.mcts._backpropagate(path, 1)
 
-    # def test_print_results(self):
-    #     # Should not raise
-    #     self.mcts.print_results()
+    def test_print_results(self):
+        # Should not raise
+        self.mcts.print_results()
 
 if __name__ == "__main__":
     unittest.main()

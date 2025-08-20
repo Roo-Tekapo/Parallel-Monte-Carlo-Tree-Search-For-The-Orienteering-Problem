@@ -40,15 +40,6 @@ class OrienteeringProblem:
         return math.hypot(self.nodes[a].x - self.nodes[b].x, self.nodes[a].y - self.nodes[b].y)
 
 
-# # TODO: test
-# # Load nodes and budget from file - could change so a run method in mcts selects the file
-# nodes, BUDGET = OrienteeringProblem.load_problem(
-#     # r'OP_Benchmark_Set\Tsiligirides_1\tsiligirides_problem_1_budget_85.txt'
-#     # r'OP_Benchmark_Set\test_OP_budget_30.txt'
-#     r"OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_10.txt"
-# )
-
-
 class OrienteeringState:
     def __init__(self, problem: OrienteeringProblem, path=None, cost_so_far=0.0, reward_so_far=None):
         # path: list of visited node indices
@@ -65,14 +56,7 @@ class OrienteeringState:
         else:
             self.reward_so_far = reward_so_far
 
-    # def is_terminal(self):
-    #     # Can't add any more nodes without exceeding budget
-    #     for i in range(self.problem.num_nodes):
-    #         if i not in self.visited:
-    #             cost_to_next = self.problem.get_distance(self.path[-1], i)
-    #             if self.cost_so_far + cost_to_next <= self.problem.budget:
-    #                 return False
-    #     return True
+
     def is_terminal(self):
         # Only terminal if the last node in the path is the END_NODE
         return self.path[-1] == END_NODE
