@@ -15,6 +15,8 @@ class MCTSNode:
         return len(self.untried_actions) == 0
 
     def uct_best_child(self, c_param=math.sqrt(2)):
+        if not self.children:
+            raise ValueError("No children to select from.")
         """Select best child with UCT."""
         choices = []
         for child in self.children:

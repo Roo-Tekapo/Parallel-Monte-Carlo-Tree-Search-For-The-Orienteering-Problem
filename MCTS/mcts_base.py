@@ -18,8 +18,10 @@ class MCTSSingleThread:
         while not current.state.is_terminal():
             if not current.is_fully_expanded():
                 return self.expand(current)
-            else:
+            elif current.children: # if node has children, select one using UCT
                 current = current.uct_best_child(self.const)
+            else:
+                break # if no children, return current node
         return current
     
     # Step 2: Expansion
@@ -65,7 +67,7 @@ class MCTSSingleThread:
 
 if __name__ == "__main__":
     nodes, budget = OrienteeringProblem.load_problem(
-        "OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_10.txt"
+        "OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_15.txt"
     )
 
     problem = OrienteeringProblem(nodes, budget)
