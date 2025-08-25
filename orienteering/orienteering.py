@@ -59,8 +59,11 @@ class OrienteeringState:
 
     def is_terminal(self):
         # Only terminal if the last node in the path is the END_NODE
+        # if self.path[-1] == END_NODE:
+        #     return True
+        # return not self.get_available_actions()
         return self.path[-1] == END_NODE
-    
+
     def copy(self):
         return OrienteeringState(
             self.problem,
@@ -82,6 +85,8 @@ class OrienteeringState:
         for i in range(self.problem.num_nodes):
             if i not in self.visited:
                 cost_to_i = self.problem.get_distance(self.path[-1], i)
+                # cost_to_end = self.problem.get_distance(i, END_NODE)
+                # new_cost = self.cost_so_far + cost_to_i + cost_to_end
                 new_cost = self.cost_so_far + cost_to_i
                 if new_cost <= self.problem.budget:
                     new_path = self.path + [i]

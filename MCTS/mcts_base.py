@@ -42,9 +42,17 @@ class MCTSSingleThread:
             if not actions:
                 break
             current = random.choice(actions)
-            print("Simulated action:", current)
         return current.get_reward()
-    
+
+        # #  If not at END_NODE, force add it (if feasible) --- TODO not sure if this is the best idea will double check
+        # if current.path[-1] != self.problem.end_id:
+        #     cost_to_end = current.problem.get_distance(current.path[-1], self.problem.end_id)
+        #     if current.cost_so_far + cost_to_end <= self.problem.budget:
+        #         current.path.append(self.problem.end_id)
+        #         current.cost_so_far += cost_to_end
+        #         current.reward_so_far += self.problem.nodes[self.problem.end_id].score
+        # return current.reward_so_far # current.get_reward()
+
     # Step 4: Backpropagation
     def backpropagate(self, node: MCTSNode, reward: float):
         while node is not None:
