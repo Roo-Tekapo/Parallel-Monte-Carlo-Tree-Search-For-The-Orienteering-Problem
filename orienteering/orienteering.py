@@ -122,16 +122,16 @@ class OrienteeringState:
         return f"Path: {self.path}, Reward: {self.reward_so_far}, Cost: {self.cost_so_far:.2f}, Terminal: {self.is_terminal()}"
 
 
-if __name__ == "__main__":
-    nodes, budget = OrienteeringProblem.load_problem(
-        'OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_10.txt'
-    )
-    problem = OrienteeringProblem(nodes, budget)
+# if __name__ == "__main__":
+#     nodes, budget = OrienteeringProblem.load_problem(
+#         'OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_10.txt'
+#     )
+#     problem = OrienteeringProblem(nodes, budget)
     
-    state = OrienteeringState(problem)
-    terminalNodes = [node for node in nodes if node.id == END_NODE]
-    print("Initial state:", state)
-    print("Terminal nodes:", terminalNodes)
+#     state = OrienteeringState(problem)
+#     terminalNodes = [node for node in nodes if node.id == END_NODE]
+#     print("Initial state:", state)
+#     print("Terminal nodes:", terminalNodes)
     
     # print("Available actions:")
     # actions = state.get_available_actions()

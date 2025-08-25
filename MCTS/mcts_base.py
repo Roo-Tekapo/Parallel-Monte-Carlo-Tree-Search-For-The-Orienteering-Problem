@@ -6,7 +6,7 @@ from .mcts_node import MCTSNode
 
 
 class MCTSSingleThread:
-    def __init__(self, problem: OrienteeringProblem, iterations, exploration_constant = math.sqrt(4)):
+    def __init__(self, problem: OrienteeringProblem, iterations, exploration_constant = math.sqrt(2)):
         self.problem = problem
         self.iterations = iterations
         self.const = exploration_constant
@@ -42,6 +42,7 @@ class MCTSSingleThread:
             if not actions:
                 break
             current = random.choice(actions)
+            print("Simulated action:", current)
         return current.get_reward()
     
     # Step 4: Backpropagation
@@ -98,6 +99,7 @@ class MCTSSingleThread:
 
             self.iteration += 1
 
+            # TODO: unpdate based on fixed best_descendant lo
             # best child of root (for final result / highlighting)
             best_child = None
             if root.children:
@@ -133,13 +135,13 @@ class MCTSSingleThread:
 
 if __name__ == "__main__":
     nodes, budget = OrienteeringProblem.load_problem(
-        "OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_10.txt"
-        # "OP_Benchmark_Set/set_64_1/set_64_1_70.txt"
+        # "OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_85.txt"
+        "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
     )
 
     problem = OrienteeringProblem(nodes, budget)
 
-    solver = MCTSSingleThread(problem, iterations=100000)
+    solver = MCTSSingleThread(problem, iterations=10000)
     best_state = solver.run()
 
     print("Best path:", best_state.get_path())
