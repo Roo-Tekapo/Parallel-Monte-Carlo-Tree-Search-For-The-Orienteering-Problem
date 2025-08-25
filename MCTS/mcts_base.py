@@ -6,7 +6,7 @@ from .mcts_node import MCTSNode
 
 
 class MCTSSingleThread:
-    def __init__(self, problem: OrienteeringProblem, iterations = 1000, exploration_constant = math.sqrt(4)):
+    def __init__(self, problem: OrienteeringProblem, iterations, exploration_constant = math.sqrt(4)):
         self.problem = problem
         self.iterations = iterations
         self.const = exploration_constant
@@ -50,8 +50,18 @@ class MCTSSingleThread:
             node.visits += 1
             node.total_reward += reward
             node = node.parent
-    
-    def intialize_root(self):
+        
+    def best_descendant(self, node: MCTSNode) -> MCTSNode:
+        current = node
+        while current.children:
+            current = max(
+                current.children, 
+                key=lambda c: c.total_reward / c.visits if c.visits > 0 else float("-inf")
+            )
+        return current
+
+    # For the visualization step-by-step execution
+    def initialize_root(self):
         if self.root is None:
             self.root_state = OrienteeringState(self.problem)
             self.root = MCTSNode(self.root_state)
@@ -117,19 +127,19 @@ class MCTSSingleThread:
             reward = self.simulate(leaf.state)
             # Backpropagation
             self.backpropagate(leaf, reward)
-        
-        best = max(root.children, key=lambda c: c.total_reward / c.visits)
-        return best.state
-    
+
+        best_leaf = self.best_descendant(root)
+        return best_leaf.state
 
 if __name__ == "__main__":
     nodes, budget = OrienteeringProblem.load_problem(
         "OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_10.txt"
+        # "OP_Benchmark_Set/set_64_1/set_64_1_70.txt"
     )
 
     problem = OrienteeringProblem(nodes, budget)
 
-    solver = MCTSSingleThread(problem, iterations=1000)
+    solver = MCTSSingleThread(problem, iterations=100000)
     best_state = solver.run()
 
     print("Best path:", best_state.get_path())
