@@ -40,38 +40,18 @@ Where
 
 
 
-Notes
-C++
+# go to project root
+cd /Users/reubenkappely/Documents/Projects/Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem
 
-Header
-singleThreadMCTS
+# (optional) create and activate virtualenv
+python3 -m venv .venv
+source .venv/bin/activate
 
-orienteeringProblem
+# install dependency
+pip install matplotlib
 
+# run (ensures repo root is on PYTHONPATH)
+PYTHONPATH=$(pwd) python3 viz/mcts_viz.py
 
-Classes
-singleThreadMCTS
-    state
-
-	selection
-
-	expansion
-
-	simulation
-
-	backpropergation
-
-
-orienteeringProblem
-	load_problem from benchmark set
-
-	distance
-
-	copy state ?
-	is_terminal
-
-	find_posible_action
-	
-
-
-tests
+# alternatively (if you already run from repo root)
+python3 viz/mcts_viz.py

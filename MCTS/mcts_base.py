@@ -6,10 +6,13 @@ from .mcts_node import MCTSNode
 
 
 class MCTSSingleThread:
-    def __init__(self, problem: OrienteeringProblem, iterations = 1000, exploration_constant = math.sqrt(2)):
+    def __init__(self, problem: OrienteeringProblem, iterations = 1000, exploration_constant = math.sqrt(4)):
         self.problem = problem
         self.iterations = iterations
         self.const = exploration_constant
+
+        self.root = None  # Will be set to MCTSNode with initial state
+        self.iteration = 0 # Track current iteration
 
     # Step 1: Selection
     def tree_policy(self, node: MCTSNode) -> MCTSNode:
@@ -48,6 +51,60 @@ class MCTSSingleThread:
             node.total_reward += reward
             node = node.parent
     
+    def intialize_root(self):
+        if self.root is None:
+            self.root_state = OrienteeringState(self.problem)
+            self.root = MCTSNode(self.root_state)
+            self.iteration = 0
+        return self.root
+
+    def reset(self):
+        self.root = None
+        self.iteration = 0
+
+    def step(self):
+            """
+            Perform exactly one MCTS iteration (selection→expansion→simulation→backprop)
+            and return a small event dict useful for visualization.
+            """
+            root = self.initialize_root()
+
+            # Selection / Expansion
+            leaf = self.tree_policy(root)
+
+            # produce selection path (root -> leaf)
+            selection_path = []
+            n = leaf
+            while n is not None:
+                selection_path.append(n)
+                n = n.parent
+            selection_path = list(reversed(selection_path))
+
+            # Simulation
+            reward = self.simulate(leaf.state)
+
+            # Backpropagation
+            self.backpropagate(leaf, reward)
+
+            self.iteration += 1
+
+            # best child of root (for final result / highlighting)
+            best_child = None
+            if root.children:
+                # guard division by zero
+                def score(c): return c.total_reward / c.visits if c.visits > 0 else float("-inf")
+                best_child = max(root.children, key=score)
+
+            event = {
+                "iteration": self.iteration,
+                "selection_path": selection_path,  # list of MCTSNode objects
+                "leaf": leaf,
+                "reward": reward,
+                "updated_nodes": selection_path,   # shorthand; nodes that changed
+                "best_child": best_child
+            }
+            return event
+
     # Main MCTS run method
     def run(self):
         root_state = OrienteeringState(self.problem)
@@ -67,7 +124,7 @@ class MCTSSingleThread:
 
 if __name__ == "__main__":
     nodes, budget = OrienteeringProblem.load_problem(
-        "OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_15.txt"
+        "OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_10.txt"
     )
 
     problem = OrienteeringProblem(nodes, budget)
@@ -78,3 +135,8 @@ if __name__ == "__main__":
     print("Best path:", best_state.get_path())
     print("Total reward:", best_state.get_reward())
     print("Total cost:", best_state.get_cost())
+
+
+
+
+# python3 -m MCTS.mcts_base
