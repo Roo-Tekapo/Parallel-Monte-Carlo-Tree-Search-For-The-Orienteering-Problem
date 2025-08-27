@@ -82,17 +82,34 @@ class OrienteeringState:
     # This method generates all possible next states from the current state
     def get_available_actions(self):
         children = []
+        current = self.path[-1]
+
+        # Always consider going directly to END if feasible and not already there
+        if current != END_NODE:
+            cost_to_end = self.problem.get_distance(current, END_NODE)
+            if self.cost_so_far + cost_to_end <= self.problem.budget and END_NODE not in self.visited:
+                end_path = self.path + [END_NODE]
+                end_cost = self.cost_so_far + cost_to_end
+                end_reward = self.reward_so_far + self.problem.nodes[END_NODE].score
+                children.append(OrienteeringState(self.problem, end_path, end_cost, end_reward))
+
+        # Explore other unvisited nodes but reserve budget to still reach END
         for i in range(self.problem.num_nodes):
-            if i not in self.visited:
-                cost_to_i = self.problem.get_distance(self.path[-1], i)
-                # cost_to_end = self.problem.get_distance(i, END_NODE)
-                # new_cost = self.cost_so_far + cost_to_i + cost_to_end
-                new_cost = self.cost_so_far + cost_to_i
-                if new_cost <= self.problem.budget:
-                    new_path = self.path + [i]
-                    new_reward = self.reward_so_far + self.problem.nodes[i].score # double check if score is correct
-                    children.append(OrienteeringState(
-                        self.problem, new_path, new_cost, new_reward))
+            if i in self.visited:
+                continue
+            # skip adding START again
+            if i == START_NODE:
+                continue
+
+            cost_to_i = self.problem.get_distance(current, i)
+            cost_i_to_end = self.problem.get_distance(i, END_NODE)
+            new_cost = self.cost_so_far + cost_to_i
+
+            # Feasible only if we can still reach END
+            if new_cost + cost_i_to_end <= self.problem.budget:
+                new_path = self.path + [i]
+                new_reward = self.reward_so_far + self.problem.nodes[i].score
+                children.append(OrienteeringState(self.problem, new_path, new_cost, new_reward))
         return children
     
     # looks like i dont need this method, as I can just use get_available_actions to get the next states
@@ -100,7 +117,9 @@ class OrienteeringState:
         if node_index in self.visited:
             raise ValueError(f"Node {node_index} already visited.")
         cost_to_next = self.problem.get_distance(self.path[-1], node_index)
-        if self.cost_so_far + cost_to_next > self.problem.budget:
+        # Ensure feasibility to still reach END after taking this action
+        cost_next_to_end = self.problem.get_distance(node_index, END_NODE)
+        if self.cost_so_far + cost_to_next + cost_next_to_end > self.problem.budget:
             raise ValueError(f"Cannot apply action to node {node_index}, exceeds budget.")
         new_path = self.path + [node_index]
         new_cost = self.cost_so_far + cost_to_next

@@ -6,10 +6,11 @@ from .mcts_node import MCTSNode
 
 
 class MCTSSingleThread:
-    def __init__(self, problem: OrienteeringProblem, iterations, exploration_constant = math.sqrt(2)):
+    def __init__(self, problem: OrienteeringProblem, iterations, exploration_constant = math.sqrt(2), epsilon: float = 0.05):
         self.problem = problem
         self.iterations = iterations
         self.const = exploration_constant
+        self.epsilon = epsilon
 
         self.root = None  # Will be set to MCTSNode with initial state
         self.iteration = 0 # Track current iteration
@@ -22,7 +23,7 @@ class MCTSSingleThread:
             if not current.is_fully_expanded():
                 return self.expand(current)
             elif current.children: # if node has children, select one using UCT
-                current = current.uct_best_child(self.const)
+                current = current.uct_best_child(self.const, self.epsilon)
             else:
                 break # if no children, return current node
         return current
@@ -40,6 +41,18 @@ class MCTSSingleThread:
         while not current.is_terminal():
             actions = current.get_available_actions()
             if not actions:
+                # try force moving to END if possible from current
+                if current.path[-1] != self.problem.end_id:
+                    cost_to_end = current.problem.get_distance(current.path[-1], self.problem.end_id)
+                    if current.cost_so_far + cost_to_end <= self.problem.budget:
+                        # apply move to END
+                        current = OrienteeringState(
+                            current.problem,
+                            path=current.path + [self.problem.end_id],
+                            cost_so_far=current.cost_so_far + cost_to_end,
+                            reward_so_far=current.reward_so_far + current.problem.nodes[self.problem.end_id].score,
+                        )
+                        break
                 break
             current = random.choice(actions)
         return current.get_reward()
@@ -52,6 +65,12 @@ class MCTSSingleThread:
         #         current.cost_so_far += cost_to_end
         #         current.reward_so_far += self.problem.nodes[self.problem.end_id].score
         # return current.reward_so_far # current.get_reward()
+
+        # if current.path[-1] != self.problem.end_id:
+        #     cost_to_end = self.problem.get_distance(current.path[-1], self.problem.end_id)
+        #     if current.cost_so_far + cost_to_end <= problem.budget:
+        #         current.path.apply_action(self.problem.end_id)
+        # return current.get_reward()
 
     # Step 4: Backpropagation
     def backpropagate(self, node: MCTSNode, reward: float):
