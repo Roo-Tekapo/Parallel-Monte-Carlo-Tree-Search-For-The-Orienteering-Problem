@@ -30,32 +30,58 @@ class MCTSSingleThread:
     
     # Step 2: Expansion
     def expand(self, node: MCTSNode) -> MCTSNode:
-        new_state = node.untried_actions.pop()
+        action = node.untried_actions.pop()
+        new_state = node.state.apply_action(action)
         child_node = MCTSNode(new_state, parent=node)
         node.children.append(child_node)
         return child_node
+    
+        # def expand(self, node: MCTSNode) -> MCTSNode:
+        # new_state = node.untried_actions.pop()
+        # child_node = MCTSNode(new_state, parent=node)
+        # node.children.append(child_node)
+        # return child_node
     
     # Step 3: Simulation (I ensure state is an OrienteeringState)
     def simulate(self, state: OrienteeringState) -> float:
         current = state.copy()
         while not current.is_terminal():
+            # print("Current state:", current.path)
             actions = current.get_available_actions()
+            # print("Available actions:", actions)
             if not actions:
-                # try force moving to END if possible from current
-                if current.path[-1] != self.problem.end_id:
-                    cost_to_end = current.problem.get_distance(current.path[-1], self.problem.end_id)
-                    if current.cost_so_far + cost_to_end <= self.problem.budget:
-                        # apply move to END
-                        current = OrienteeringState(
-                            current.problem,
-                            path=current.path + [self.problem.end_id],
-                            cost_so_far=current.cost_so_far + cost_to_end,
-                            reward_so_far=current.reward_so_far + current.problem.nodes[self.problem.end_id].score,
-                        )
-                        break
                 break
-            current = random.choice(actions)
+            action = random.choice(actions)
+            current = current.apply_action(action)
+        # print("Final state:", current.path)
         return current.get_reward()
+
+
+
+    # def simulate(self, state: OrienteeringState) -> float:
+        # current = state.copy()
+        # while not current.is_terminal():
+        #     actions = current.get_available_actions()
+        #     # Print the next node index for each action
+        #     next_nodes = [a.path[-1] for a in actions]
+        #     print("Available actions from", current.path, ":", next_nodes)
+        #     if not actions:
+        #         # try force moving to END if possible from current
+        #         if current.path[-1] != self.problem.end_id:
+        #             cost_to_end = current.problem.get_distance(current.path[-1], self.problem.end_id)
+        #             if current.cost_so_far + cost_to_end <= self.problem.budget:
+        #                 # apply move to END
+        #                 current = OrienteeringState(
+        #                     current.problem,
+        #                     path=current.path + [self.problem.end_id],
+        #                     cost_so_far=current.cost_so_far + cost_to_end,
+        #                     reward_so_far=current.reward_so_far + current.problem.nodes[self.problem.end_id].score,
+        #                 )
+        #                 break
+        #         break
+        #     current = random.choice(actions)
+        # return current.get_reward()
+
 
         # #  If not at END_NODE, force add it (if feasible) --- TODO not sure if this is the best idea will double check
         # if current.path[-1] != self.problem.end_id:

@@ -72,6 +72,12 @@ def on_key(event):
 
 fig.canvas.mpl_connect('key_press_event', on_key)
 
+# After plotting the nodes
+node_texts = []
+for i, (x, y) in enumerate(zip(xs, ys)):
+    txt = ax.text(x, y, "", fontsize=8, ha='center', va='center', color='black')
+    node_texts.append(txt)
+
 def update(frame):
     global paused
     if paused:
@@ -114,8 +120,38 @@ def update(frame):
     else:
         best_line.set_data([], [])
 
+    # Draw the full best_path as the green line
+    best_leaf = solver.best_descendant(solver.root)
+    best_path = best_leaf.state.get_path()
+    bx, by = [], []
+    for p in best_path:
+        if isinstance(p, int):
+            bx.append(xs[p]); by.append(ys[p])
+        elif hasattr(p, "x") and hasattr(p, "y"):
+            bx.append(p.x); by.append(p.y)
+    best_line.set_data(bx, by)
+
     ax.set_xlabel(f"iter: {ev['iteration']}  last_reward: {ev['reward']:.3f}")
-    return sel_scatter, best_line, sc
+
+    # Update node labels with visits and reward
+    # Build a mapping from node index to (visits, total_reward)
+    node_stats = {}
+    def collect_stats(node):
+        if node is None: return
+        idx = node.state.path[-1]
+        node_stats[idx] = (node.visits, node.total_reward)
+        for child in node.children:
+            collect_stats(child)
+    collect_stats(solver.root)
+
+    for i, txt in enumerate(node_texts):
+        visits, reward = node_stats.get(i, (0, 0))
+        if visits > 0:
+            txt.set_text(f"{visits}\n{int(reward)}")
+        else:
+            txt.set_text("")
+
+    return sel_scatter, best_line, sc, *node_texts
 
 ani = animation.FuncAnimation(fig, update, interval=50, blit=False)
 plt.show()

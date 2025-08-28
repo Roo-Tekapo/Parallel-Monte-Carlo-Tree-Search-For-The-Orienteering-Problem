@@ -81,36 +81,25 @@ class OrienteeringState:
     
     # This method generates all possible next states from the current state
     def get_available_actions(self):
-        children = []
+        actions = []
         current = self.path[-1]
 
-        # Always consider going directly to END if feasible and not already there
+        # Option to go directly to END if feasible and not already there
         if current != END_NODE:
             cost_to_end = self.problem.get_distance(current, END_NODE)
             if self.cost_so_far + cost_to_end <= self.problem.budget and END_NODE not in self.visited:
-                end_path = self.path + [END_NODE]
-                end_cost = self.cost_so_far + cost_to_end
-                end_reward = self.reward_so_far + self.problem.nodes[END_NODE].score
-                children.append(OrienteeringState(self.problem, end_path, end_cost, end_reward))
+                actions.append(END_NODE)
 
         # Explore other unvisited nodes but reserve budget to still reach END
         for i in range(self.problem.num_nodes):
-            if i in self.visited:
+            if i in self.visited or i == START_NODE or i == END_NODE:
                 continue
-            # skip adding START again
-            if i == START_NODE:
-                continue
-
             cost_to_i = self.problem.get_distance(current, i)
             cost_i_to_end = self.problem.get_distance(i, END_NODE)
             new_cost = self.cost_so_far + cost_to_i
-
-            # Feasible only if we can still reach END
             if new_cost + cost_i_to_end <= self.problem.budget:
-                new_path = self.path + [i]
-                new_reward = self.reward_so_far + self.problem.nodes[i].score
-                children.append(OrienteeringState(self.problem, new_path, new_cost, new_reward))
-        return children
+                actions.append(i)
+        return actions
     
     # looks like i dont need this method, as I can just use get_available_actions to get the next states
     def apply_action(self, node_index):
@@ -146,46 +135,35 @@ class OrienteeringState:
         return f"Path: {self.path}, Reward: {self.reward_so_far}, Cost: {self.cost_so_far:.2f}, Terminal: {self.is_terminal()}"
 
 
-# if __name__ == "__main__":
-#     nodes, budget = OrienteeringProblem.load_problem(
-#         'OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_10.txt'
-#     )
-#     problem = OrienteeringProblem(nodes, budget)
-    
-#     state = OrienteeringState(problem)
-#     terminalNodes = [node for node in nodes if node.id == END_NODE]
-#     print("Initial state:", state)
-#     print("Terminal nodes:", terminalNodes)
-    
-    # print("Available actions:")
-    # actions = state.get_available_actions()
-    # for action in actions:
-    #     print(action)
 
+        # def get_available_actions(self):
+        # children = []
+        # current = self.path[-1]
 
+        # # Always consider going directly to END if feasible and not already there
+        # if current != END_NODE:
+        #     cost_to_end = self.problem.get_distance(current, END_NODE)
+        #     if self.cost_so_far + cost_to_end <= self.problem.budget and END_NODE not in self.visited:
+        #         end_path = self.path + [END_NODE]
+        #         end_cost = self.cost_so_far + cost_to_end
+        #         end_reward = self.reward_so_far + self.problem.nodes[END_NODE].score
+        #         children.append(OrienteeringState(self.problem, end_path, end_cost, end_reward))
 
+        # # Explore other unvisited nodes but reserve budget to still reach END
+        # for i in range(self.problem.num_nodes):
+        #     if i in self.visited:
+        #         continue
+        #     # skip adding START again
+        #     if i == START_NODE:
+        #         continue
 
-    # TODO: error in apply_action
-    # if actions:
-    #     print("\nApplying first action:")
-    #     new_state = state.apply_action(actions[0])
-    #     print("New state after applying action:")
-    #     print(new_state)
-    # else:
-    #     print("No available actions from the initial state.")
+        #     cost_to_i = self.problem.get_distance(current, i)
+        #     cost_i_to_end = self.problem.get_distance(i, END_NODE)
+        #     new_cost = self.cost_so_far + cost_to_i
 
-    # def available_actions(self):
-    #     visited = set(self.path)
-    #     actions = []
-    #     # print("Current path:", self.path, "with cost:", self.cost, "and score:", self.score)
-    #     for i in range(len(nodes)):
-    #         if i not in visited and i != START_NODE and i != END_NODE:
-    #             # Check if we can visit this node and then reach END_NODE within budget
-    #             next_cost = self.cost + getDistance(self.path[-1], i) + getDistance(i, END_NODE)
-    #             if next_cost <= BUDGET:
-    #                 actions.append(i)
-    #     # Option to go directly to END_NODE if not already there
-    #     if self.path[-1] != END_NODE:
-    #         if self.cost + getDistance(self.path[-1], END_NODE) <= BUDGET:
-    #             actions.append(END_NODE)
-    #     return actions
+        #     # Feasible only if we can still reach END
+        #     if new_cost + cost_i_to_end <= self.problem.budget:
+        #         new_path = self.path + [i]
+        #         new_reward = self.reward_so_far + self.problem.nodes[i].score
+        #         children.append(OrienteeringState(self.problem, new_path, new_cost, new_reward))
+        # return children
