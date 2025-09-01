@@ -139,7 +139,8 @@ def update(frame):
     def collect_stats(node):
         if node is None: return
         idx = node.state.path[-1]
-        node_stats[idx] = (node.visits, node.total_reward)
+        average_reward = node.total_reward / node.visits if node.visits > 0 else 0
+        node_stats[idx] = (node.visits, average_reward)
         for child in node.children:
             collect_stats(child)
     collect_stats(solver.root)

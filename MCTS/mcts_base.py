@@ -36,13 +36,19 @@ class MCTSSingleThread:
         node.children.append(child_node)
         return child_node
     
-        # def expand(self, node: MCTSNode) -> MCTSNode:
-        # new_state = node.untried_actions.pop()
-        # child_node = MCTSNode(new_state, parent=node)
-        # node.children.append(child_node)
-        # return child_node
-    
     # Step 3: Simulation (I ensure state is an OrienteeringState)
+    # def simulate(self, state: OrienteeringState) -> float:
+    #     current = state.copy()
+    #     while not current.is_terminal():
+    #         actions = current.get_available_actions()
+    #         if not actions:
+    #             break
+    #         # Bias rollout: pick node with best score/distance ratio
+    #         action = max(actions, key=lambda a: current.problem.nodes[a].score / 
+    #                                     (1 + current.problem.get_distance(current.path[-1], a)))
+    #         current = current.apply_action(action)
+    #     return current.get_reward()
+
     def simulate(self, state: OrienteeringState) -> float:
         current = state.copy()
         while not current.is_terminal():
@@ -55,8 +61,6 @@ class MCTSSingleThread:
             current = current.apply_action(action)
         # print("Final state:", current.path)
         return current.get_reward()
-
-
 
     # def simulate(self, state: OrienteeringState) -> float:
         # current = state.copy()
@@ -182,6 +186,25 @@ class MCTSSingleThread:
             reward = self.simulate(leaf.state)
             # Backpropagation
             self.backpropagate(leaf, reward)
+
+        # Print visit stats for all nodes in the tree (DFS)
+        print("\nNode stats (visits and average reward):")
+        def print_tree(node, depth=0, visited=None):
+            if visited is None:
+                visited = set()
+            if node in visited:
+                return
+            visited.add(node)
+            indent = "  " * depth
+            try:
+                node_id = node.state.path[-1]
+            except Exception:
+                node_id = None
+            avg = (node.total_reward / node.visits) if node.visits else 0.0
+            print(f"{indent}Node {node_id}: visits={node.visits}, avg_reward={avg:.3f}")
+            for child in node.children:
+                print_tree(child, depth+1, visited)
+        print_tree(root)
 
         best_leaf = self.best_descendant(root)
         return best_leaf.state

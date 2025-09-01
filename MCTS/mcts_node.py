@@ -40,6 +40,18 @@ class MCTSNode:
         child_node.parent = self
         self.children.append(child_node)
         return child_node
+    
+
+    # def uct_best_child(self, c_param=math.sqrt(2)):
+    #     for child in self.children:
+    #         if child.visits == 0:
+    #             return child
+    #     choices = [
+    #         (child.total_reward / child.visits) +
+    #         c_param * math.sqrt(math.log(self.visits) / child.visits)
+    #         for child in self.children
+    #     ]
+    #     return self.children[choices.index(max(choices))]
 
     def uct_best_child(self, c_param=math.sqrt(2), epsilon: float = 0.0):
         if not self.children:
