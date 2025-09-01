@@ -1,7 +1,7 @@
 import math
 import random
 from collections import namedtuple
-from typing import List
+from typing import List, Optional, Dict
 
 
 START_NODE = 0
@@ -10,12 +10,17 @@ Node = namedtuple('Node', ['id', 'x', 'y', 'score'])
 
 
 class OrienteeringProblem:
-    def __init__(self, nodes: List[Node], budget: float):
+    def __init__(self, nodes: List[Node], budget: float, max_edge_distance: Optional[float] = 5):
         # nodes is a list of Node namedtuples with id, x, y, and score, have removed score from init as its in namedtuple
         self.nodes = nodes
         self.budget = budget
         self.start_id = START_NODE
         self.end_id = END_NODE
+        # If provided, only edges with distance <= max_edge_distance are allowed
+        self.max_edge_distance: Optional[float] = max_edge_distance
+        self._neighbors: Optional[Dict[int, List[int]]] = None
+        if self.max_edge_distance is not None:
+            self._build_neighbors()
     
     @property
     def num_nodes(self):
@@ -38,6 +43,33 @@ class OrienteeringProblem:
     
     def get_distance(self, a: int, b: int) -> float:
         return math.hypot(self.nodes[a].x - self.nodes[b].x, self.nodes[a].y - self.nodes[b].y)
+
+    def _build_neighbors(self) -> None:
+        n = self.num_nodes
+        self._neighbors = {i: [] for i in range(n)}
+        if self.max_edge_distance is None:
+            return
+        # Fast path: no edges allowed when threshold <= 0
+        if self.max_edge_distance <= 0:
+            return
+        thr_sq = float(self.max_edge_distance) * float(self.max_edge_distance)
+        for i in range(n):
+            for j in range(n):
+                if i == j:
+                    continue
+                # Compare squared distances to avoid sqrt cost
+                dx = self.nodes[i].x - self.nodes[j].x
+                dy = self.nodes[i].y - self.nodes[j].y
+                if (dx * dx + dy * dy) <= thr_sq:
+                    self._neighbors[i].append(j)
+
+    def get_neighbors(self, node_id: int) -> List[int]:
+        # If no constraint set, assume fully connected
+        if self.max_edge_distance is None:
+            return list(range(self.num_nodes))
+        if self._neighbors is None:
+            self._build_neighbors()
+        return self._neighbors.get(node_id, [])
 
 
 class OrienteeringState:
@@ -84,14 +116,17 @@ class OrienteeringState:
         actions = []
         current = self.path[-1]
 
+        # Candidate neighbors: respect max_edge_distance if set
+        neighbor_ids = self.problem.get_neighbors(current)
+
         # Option to go directly to END if feasible and not already there
-        if current != END_NODE:
+        if current != END_NODE and END_NODE in neighbor_ids and END_NODE not in self.visited:
             cost_to_end = self.problem.get_distance(current, END_NODE)
-            if self.cost_so_far + cost_to_end <= self.problem.budget and END_NODE not in self.visited:
+            if self.cost_so_far + cost_to_end <= self.problem.budget:
                 actions.append(END_NODE)
 
-        # Explore other unvisited nodes but reserve budget to still reach END
-        for i in range(self.problem.num_nodes):
+        # Explore other unvisited neighbor nodes but reserve budget to still reach END
+        for i in neighbor_ids:
             if i in self.visited or i == START_NODE or i == END_NODE:
                 continue
             cost_to_i = self.problem.get_distance(current, i)
@@ -105,7 +140,12 @@ class OrienteeringState:
     def apply_action(self, node_index):
         if node_index in self.visited:
             raise ValueError(f"Node {node_index} already visited.")
-        cost_to_next = self.problem.get_distance(self.path[-1], node_index)
+        current = self.path[-1]
+        # Enforce neighbor constraint if configured
+        if self.problem.max_edge_distance is not None:
+            if node_index not in self.problem.get_neighbors(current):
+                raise ValueError(f"Node {node_index} not reachable from {current} under max_edge_distance constraint.")
+        cost_to_next = self.problem.get_distance(current, node_index)
         # Ensure feasibility to still reach END after taking this action
         cost_next_to_end = self.problem.get_distance(node_index, END_NODE)
         if self.cost_so_far + cost_to_next + cost_next_to_end > self.problem.budget:

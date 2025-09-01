@@ -28,7 +28,7 @@ def extract_coords(nodes):
 
 xs, ys = extract_coords(nodes)
 
-solver = MCTSSingleThread(problem, iterations=1000)
+solver = MCTSSingleThread(problem, iterations=10000)
 
 fig, ax = plt.subplots(figsize=(8,6))
 sc = ax.scatter(xs, ys, c='gray', s=40)
@@ -64,11 +64,30 @@ sel_line = Line2D([], [], color='orange', linewidth=1, alpha=0.6)
 ax.add_line(best_line)
 ax.add_line(sel_line)
 
+# Highlight for the node currently being explored (selection leaf)
+current_scatter = ax.scatter([], [], s=200, facecolors='none', edgecolors='magenta', linewidths=2, alpha=0.9)
+
+# Budget text overlay for current best path
+budget_text = ax.text(
+    0.02,
+    0.98,
+    "",
+    transform=ax.transAxes,
+    va='top',
+    ha='left',
+    fontsize=10,
+    bbox=dict(facecolor='white', alpha=0.6, edgecolor='none')
+)
+
 paused = False
+# Toggle whether to aggregate visits across all tree nodes ending at the same graph node
+aggregate_stats = True
 def on_key(event):
-    global paused
+    global paused, aggregate_stats
     if event.key == ' ':
         paused = not paused
+    elif event.key.lower() == 'a':
+        aggregate_stats = not aggregate_stats
 
 fig.canvas.mpl_connect('key_press_event', on_key)
 
@@ -79,9 +98,9 @@ for i, (x, y) in enumerate(zip(xs, ys)):
     node_texts.append(txt)
 
 def update(frame):
-    global paused
+    global paused, aggregate_stats
     if paused:
-        return sel_scatter, best_line, sc
+        return sel_scatter, best_line, sc, current_scatter, budget_text
 
     ev = solver.step()
 
@@ -89,6 +108,8 @@ def update(frame):
     sel_coords_x = []
     sel_coords_y = []
     sel_line.set_data(sel_coords_x, sel_coords_y)
+    # track the currently explored node
+    current_node_xy = None
     try:
         if ev["selection_path"]:
             path = ev["selection_path"][-1].state.get_path()
@@ -97,11 +118,21 @@ def update(frame):
                     sel_coords_x.append(xs[p]); sel_coords_y.append(ys[p])
                 elif hasattr(p, "x") and hasattr(p, "y"):
                     sel_coords_x.append(p.x); sel_coords_y.append(p.y)
+            # The current node being explored is the last in the selection path
+            last = path[-1]
+            if isinstance(last, int):
+                current_node_xy = (xs[last], ys[last])
+            elif hasattr(last, "x") and hasattr(last, "y"):
+                current_node_xy = (last.x, last.y)
     except Exception:
         pass
 
     sel_line.set_data(sel_coords_x, sel_coords_y)
     sel_scatter.set_offsets(list(zip(sel_coords_x, sel_coords_y)))
+    if current_node_xy is not None:
+        current_scatter.set_offsets([current_node_xy])
+    else:
+        current_scatter.set_offsets([])
 
     # draw best child path if available
     best = ev.get("best_child")
@@ -131,28 +162,52 @@ def update(frame):
             bx.append(p.x); by.append(p.y)
     best_line.set_data(bx, by)
 
-    ax.set_xlabel(f"iter: {ev['iteration']}  last_reward: {ev['reward']:.3f}")
+    ax.set_xlabel(
+        f"iterations: {solver.iteration}/{solver.iterations}  last_reward: {ev['reward']:.3f}  mode: {'agg' if aggregate_stats else 'per'}"
+    )
 
-    # Update node labels with visits and reward
-    # Build a mapping from node index to (visits, total_reward)
+    # Update node labels with either aggregated or per-tree-node stats
+    # node_stats maps graph node index -> { 'visits': <int>, 'best_avg': <float> }
     node_stats = {}
     def collect_stats(node):
-        if node is None: return
+        if node is None:
+            return
         idx = node.state.path[-1]
-        average_reward = node.total_reward / node.visits if node.visits > 0 else 0
-        node_stats[idx] = (node.visits, average_reward)
+        avg = (node.total_reward / node.visits) if node.visits > 0 else 0.0
+        entry = node_stats.get(idx)
+        if aggregate_stats:
+            if entry is None:
+                node_stats[idx] = { 'visits': node.visits, 'best_avg': avg }
+            else:
+                entry['visits'] += node.visits
+                if avg > entry['best_avg']:
+                    entry['best_avg'] = avg
+        else:
+            # Non-aggregated: keep the single tree node with the highest visits for this graph node
+            if entry is None or node.visits > entry['visits']:
+                node_stats[idx] = { 'visits': node.visits, 'best_avg': avg }
         for child in node.children:
             collect_stats(child)
     collect_stats(solver.root)
 
     for i, txt in enumerate(node_texts):
-        visits, reward = node_stats.get(i, (0, 0))
-        if visits > 0:
-            txt.set_text(f"{visits}\n{int(reward)}")
+        stats = node_stats.get(i)
+        if stats and stats['visits'] > 0:
+            txt.set_text(f"{stats['visits']}\n{int(stats['best_avg'])}")
         else:
             txt.set_text("")
+    # Update budget overlay using the current best path cost
+    try:
+        best_cost = getattr(best_leaf.state, 'get_cost', None)
+        if callable(best_cost):
+            best_cost_val = best_leaf.state.get_cost()
+        else:
+            best_cost_val = getattr(best_leaf.state, 'cost_so_far', 0.0)
+        budget_text.set_text(f"Best cost: {best_cost_val:.2f} / Budget: {problem.budget:.2f}")
+    except Exception:
+        budget_text.set_text("")
 
-    return sel_scatter, best_line, sc, *node_texts
+    return sel_scatter, best_line, sc, current_scatter, budget_text, *node_texts
 
 ani = animation.FuncAnimation(fig, update, interval=50, blit=False)
 plt.show()
