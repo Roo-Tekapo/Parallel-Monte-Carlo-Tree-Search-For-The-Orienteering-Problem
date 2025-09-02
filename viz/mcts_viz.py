@@ -6,8 +6,8 @@ from orienteering.orienteering import OrienteeringProblem
 
 # Load problem (adjust path as needed)
 nodes, budget = OrienteeringProblem.load_problem(
-    # "OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_85.txt"
-    "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
+    "OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_85.txt"
+    # "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
 
 )
 problem = OrienteeringProblem(nodes, budget)
@@ -32,7 +32,7 @@ solver = MCTSSingleThread(problem, iterations=10000)
 
 fig, ax = plt.subplots(figsize=(8,6))
 sc = ax.scatter(xs, ys, c='gray', s=40)
-ax.set_title("MCTS Viz: press space to pause/resume")
+ax.set_title("MCTS Viz: space=pause, a=agg/per, r=toggle visits/avg")
 
 # --- Highlight start & end nodes ---
 start_node = nodes[0]
@@ -81,13 +81,17 @@ budget_text = ax.text(
 
 paused = False
 # Toggle whether to aggregate visits across all tree nodes ending at the same graph node
-aggregate_stats = True
+aggregate_stats = False
+# Toggle what to show beneath the node id: 'visits' or 'avg'
+label_metric = 'visits'
 def on_key(event):
-    global paused, aggregate_stats
+    global paused, aggregate_stats, label_metric
     if event.key == ' ':
         paused = not paused
     elif event.key.lower() == 'a':
         aggregate_stats = not aggregate_stats
+    elif event.key and event.key.lower() == 'r':
+        label_metric = 'avg' if label_metric == 'visits' else 'visits'
 
 fig.canvas.mpl_connect('key_press_event', on_key)
 
@@ -192,18 +196,26 @@ def update(frame):
 
     for i, txt in enumerate(node_texts):
         stats = node_stats.get(i)
-        if stats and stats['visits'] > 0:
-            txt.set_text(f"{stats['visits']}\n{int(stats['best_avg'])}")
-        else:
-            txt.set_text("")
-    # Update budget overlay using the current best path cost
+        visits_val = stats['visits'] if stats else 0
+        avg_val = int(stats['best_avg']) if stats else 0
+        bottom = visits_val if label_metric == 'visits' else avg_val
+        # Always show node id on the first line
+        txt.set_text(f"{i}\n{bottom}")
+    # Update overlay using the current best path cost and score
     try:
+        # Cost
         best_cost = getattr(best_leaf.state, 'get_cost', None)
         if callable(best_cost):
             best_cost_val = best_leaf.state.get_cost()
         else:
             best_cost_val = getattr(best_leaf.state, 'cost_so_far', 0.0)
-        budget_text.set_text(f"Best cost: {best_cost_val:.2f} / Budget: {problem.budget:.2f}")
+        # Score (total reward)
+        best_reward = getattr(best_leaf.state, 'get_reward', None)
+        if callable(best_reward):
+            best_reward_val = best_leaf.state.get_reward()
+        else:
+            best_reward_val = getattr(best_leaf.state, 'reward_so_far', 0.0)
+        budget_text.set_text(f"Best score: {best_reward_val:.0f}  |  Cost: {best_cost_val:.2f} / Budget: {problem.budget:.2f}")
     except Exception:
         budget_text.set_text("")
 

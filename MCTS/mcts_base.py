@@ -162,7 +162,7 @@ if __name__ == "__main__":
 
     problem = OrienteeringProblem(nodes, budget)
 
-    solver = MCTSSingleThread(problem, iterations=400000)
+    solver = MCTSSingleThread(problem, iterations=40000)
     best_state = solver.run()
 
     print("Best path:", best_state.get_path())
