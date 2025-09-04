@@ -6,8 +6,8 @@ from orienteering.orienteering import OrienteeringProblem
 
 # Load problem (adjust path as needed)
 nodes, budget = OrienteeringProblem.load_problem(
-    "OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_85.txt"
-    # "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
+    # "OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_85.txt"
+    "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
 
 )
 problem = OrienteeringProblem(nodes, budget)

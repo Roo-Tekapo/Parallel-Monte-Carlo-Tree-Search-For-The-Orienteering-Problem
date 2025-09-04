@@ -19,6 +19,10 @@ class OrienteeringProblem:
         # If provided, only edges with distance <= max_edge_distance are allowed
         self.max_edge_distance: Optional[float] = max_edge_distance
         self._neighbors: Optional[Dict[int, List[int]]] = None
+        
+        # Cache for distance calculations - major speed improvement
+        self._distance_cache: Dict[tuple, float] = {}
+        
         if self.max_edge_distance is not None:
             self._build_neighbors()
     
@@ -42,7 +46,14 @@ class OrienteeringProblem:
         return nodes, budget
     
     def get_distance(self, a: int, b: int) -> float:
-        return math.hypot(self.nodes[a].x - self.nodes[b].x, self.nodes[a].y - self.nodes[b].y)
+        # Use cache for significant speedup
+        key = (min(a, b), max(a, b))  # Symmetric distance
+        if key not in self._distance_cache:
+            self._distance_cache[key] = math.hypot(
+                self.nodes[a].x - self.nodes[b].x, 
+                self.nodes[a].y - self.nodes[b].y
+            )
+        return self._distance_cache[key]
 
     def _build_neighbors(self) -> None:
         n = self.num_nodes

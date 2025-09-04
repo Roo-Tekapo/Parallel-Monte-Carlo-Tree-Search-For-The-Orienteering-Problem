@@ -71,10 +71,12 @@ class MCTSNode:
         ln_parent = math.log(parent_visits)
         best_score = float("-inf")
         best_child = None
+        
+        sqrt_ln_parent = math.sqrt(ln_parent)
         for child in self.children:
             # safe since all children visited >0 here
             exploit = child.total_reward / child.visits
-            explore = c_param * math.sqrt(ln_parent / child.visits)
+            explore = c_param * sqrt_ln_parent / math.sqrt(child.visits)
             score = exploit + explore
             if score > best_score:
                 best_score = score
