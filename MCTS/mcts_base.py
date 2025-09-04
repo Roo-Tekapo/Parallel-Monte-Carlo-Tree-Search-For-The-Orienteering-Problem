@@ -6,7 +6,7 @@ from .mcts_node import MCTSNode
 
 
 class MCTSSingleThread:
-    def __init__(self, problem: OrienteeringProblem, iterations, exploration_constant = math.sqrt(2), epsilon: float = 0.05):
+    def __init__(self, problem: OrienteeringProblem, iterations, exploration_constant = 5.0, epsilon: float = 0.05):
         self.problem = problem
         self.iterations = iterations
         self.const = exploration_constant
@@ -133,23 +133,23 @@ class MCTSSingleThread:
             self.backpropagate(leaf, reward)
 
         # Print visit stats for all nodes in the tree (DFS)
-        print("\nNode stats (visits and average reward):")
-        def print_tree(node, depth=0, visited=None):
-            if visited is None:
-                visited = set()
-            if node in visited:
-                return
-            visited.add(node)
-            indent = "  " * depth
-            try:
-                node_id = node.state.path[-1]
-            except Exception:
-                node_id = None
-            avg = (node.total_reward / node.visits) if node.visits else 0.0
-            print(f"{indent}Node {node_id}: visits={node.visits}, avg_reward={avg:.3f}")
-            for child in node.children:
-                print_tree(child, depth+1, visited)
-        print_tree(root)
+        # print("\nNode stats (visits and average reward):")
+        # def print_tree(node, depth=0, visited=None):
+        #     if visited is None:
+        #         visited = set()
+        #     if node in visited:
+        #         return
+        #     visited.add(node)
+        #     indent = "  " * depth
+        #     try:
+        #         node_id = node.state.path[-1]
+        #     except Exception:
+        #         node_id = None
+        #     avg = (node.total_reward / node.visits) if node.visits else 0.0
+        #     print(f"{indent}Node {node_id}: visits={node.visits}, avg_reward={avg:.3f}")
+        #     for child in node.children:
+        #         print_tree(child, depth+1, visited)
+        # print_tree(root)
 
         best_leaf = self.best_descendant(root)
         return best_leaf.state
@@ -158,11 +158,12 @@ if __name__ == "__main__":
     nodes, budget = OrienteeringProblem.load_problem(
         # "OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_85.txt"
         "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
+        # "OP_Benchmark_Set/sample/sample_6_small.txt"
     )
 
     problem = OrienteeringProblem(nodes, budget)
 
-    solver = MCTSSingleThread(problem, iterations=40000)
+    solver = MCTSSingleThread(problem, iterations=10000)
     best_state = solver.run()
 
     print("Best path:", best_state.get_path())

@@ -10,7 +10,7 @@ Node = namedtuple('Node', ['id', 'x', 'y', 'score'])
 
 
 class OrienteeringProblem:
-    def __init__(self, nodes: List[Node], budget: float, max_edge_distance: Optional[float] = None):
+    def __init__(self, nodes: List[Node], budget: float, max_edge_distance: Optional[float] = 5):
         # nodes is a list of Node namedtuples with id, x, y, and score, have removed score from init as its in namedtuple
         self.nodes = nodes
         self.budget = budget
