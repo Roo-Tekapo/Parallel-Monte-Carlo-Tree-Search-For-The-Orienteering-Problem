@@ -10,12 +10,12 @@ from orienteering.orienteering import OrienteeringProblem
 PROBLEM_PATH = "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
 # PROBLEM_PATH = "OP_Benchmark_Set/sample/sample_6_small.txt"
 ITERATIONS = 100000
-INITIAL_TREE_DEPTH = 8
+INITIAL_TREE_DEPTH = 10
 
 # Performance settings
 ANIMATION_INTERVAL = 200  # ms - reduced update frequency
 STEPS_PER_FRAME = 10      # Multiple MCTS steps per visualization update
-MAX_TREE_NODES = 500      # Limit tree visualization nodes
+MAX_TREE_NODES = 200      # Limit tree visualization nodes
 
 
 def extract_coords(nodes):

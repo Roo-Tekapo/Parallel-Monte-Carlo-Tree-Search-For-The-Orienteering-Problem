@@ -53,7 +53,7 @@ class MCTSNode:
     #     ]
     #     return self.children[choices.index(max(choices))]
 
-    def uct_best_child(self, c_param=math.sqrt(2), epsilon: float = 0.0):
+    def uct_best_child(self, c_param, epsilon): #c_param=math.sqrt(2), epsilon: float = 0.05
         if not self.children:
             raise ValueError("No children to select from.")
 

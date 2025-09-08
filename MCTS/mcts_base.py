@@ -6,7 +6,7 @@ from .mcts_node import MCTSNode
 
 
 class MCTSSingleThread:
-    def __init__(self, problem: OrienteeringProblem, iterations, exploration_constant = 5.0, epsilon: float = 0.05):
+    def __init__(self, problem: OrienteeringProblem, iterations, exploration_constant = math.sqrt(2), epsilon: float = 0.05):
         self.problem = problem
         self.iterations = iterations
         self.const = exploration_constant
@@ -163,7 +163,7 @@ if __name__ == "__main__":
 
     problem = OrienteeringProblem(nodes, budget)
 
-    solver = MCTSSingleThread(problem, iterations=10000)
+    solver = MCTSSingleThread(problem, iterations=100000)
     best_state = solver.run()
 
     print("Best path:", best_state.get_path())
