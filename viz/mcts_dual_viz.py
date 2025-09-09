@@ -7,14 +7,15 @@ from orienteering.orienteering import OrienteeringProblem
 
 
 # Config
-PROBLEM_PATH = "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
+# PROBLEM_PATH = "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
 # PROBLEM_PATH = "OP_Benchmark_Set/sample/sample_6_small.txt"
+PROBLEM_PATH = "OP_Benchmark_Set/sample/sample_30.txt"
 ITERATIONS = 100000
 INITIAL_TREE_DEPTH = 10
 
 # Performance settings
-ANIMATION_INTERVAL = 200  # ms - reduced update frequency
-STEPS_PER_FRAME = 10      # Multiple MCTS steps per visualization update
+ANIMATION_INTERVAL = 100  # ms - reduced update frequency for smoother visualization
+STEPS_PER_FRAME = 1       # Single MCTS step per visualization update for better debugging
 MAX_TREE_NODES = 200      # Limit tree visualization nodes
 
 
@@ -32,7 +33,7 @@ def extract_coords(nodes):
     return xs, ys
 
 
-def layout_tree(root, max_depth, max_nodes=500):
+def layout_tree(root, max_depth, max_nodes=500, max_breadth=10):
     # Collect nodes/edges up to depth with early termination
     nodes = []
     edges = []
@@ -57,7 +58,9 @@ def layout_tree(root, max_depth, max_nodes=500):
             continue
             
         if depth < max_depth:
-            for child in node.children:
+            # Limit breadth (number of children processed per node)
+            children_to_process = node.children[:max_breadth] if max_breadth > 0 else node.children
+            for child in children_to_process:
                 if child not in seen and len(nodes) < max_nodes:
                     seen.add(child)
                     edges.append((node, child))
@@ -109,7 +112,7 @@ def main():
     # Figure 1: Map view
     fig_map, ax_map = plt.subplots(figsize=(8,6))
     sc = ax_map.scatter(xs, ys, c='gray', s=40)
-    ax_map.set_title("Map Viz: space=pause, a=agg/per, r=visits/avg")
+    ax_map.set_title("Map Viz: space=pause, a=agg/per, r=visits/avg, q=reset")
     start_scatter = ax_map.scatter([xs[0]], [ys[0]], c='blue', s=120, marker='o', label="Start")
     end_scatter   = ax_map.scatter([xs[1]], [ys[1]], c='red',  s=120, marker='X', label="End")
     sel_scatter = ax_map.scatter([], [], s=120, facecolors='none', edgecolors='yellow', linewidths=2)
@@ -124,7 +127,7 @@ def main():
 
     # Figure 2: Tree view
     fig_tree, ax_tree = plt.subplots(figsize=(10,6))
-    ax_tree.set_title("Tree Viz: up/down=depth ±1, n=labels on/off")
+    ax_tree.set_title("Tree Viz: up/down=depth ±1, left/right=breadth ±1, n=labels on/off")
     ax_tree.axis('off')
     edge_lines = []
     node_scat = None
@@ -137,6 +140,7 @@ def main():
     aggregate_stats = {"v": False}
     label_metric = {"v": 'visits'}
     max_depth = {"v": INITIAL_TREE_DEPTH}
+    max_breadth = {"v": 10}  # Maximum children per node to display
     show_tree_labels = {"v": True}
     
     # Performance optimization: cache tree layout
@@ -150,12 +154,21 @@ def main():
             aggregate_stats["v"] = not aggregate_stats["v"]
         elif event.key and event.key.lower() == 'r':
             label_metric["v"] = 'avg' if label_metric["v"] == 'visits' else 'visits'
+        elif event.key and event.key.lower() == 'q':
+            # Reset/restart the MCTS algorithm
+            nonlocal solver
+            solver = MCTSSingleThread(problem, iterations=ITERATIONS)
+            print("MCTS algorithm reset")
 
     def on_key_tree(event):
         if event.key == 'up':
             max_depth["v"] = min(max_depth["v"] + 1, 15)
         elif event.key == 'down':
             max_depth["v"] = max(1, max_depth["v"] - 1)
+        elif event.key == 'left':
+            max_breadth["v"] = max(1, max_breadth["v"] - 1)
+        elif event.key == 'right':
+            max_breadth["v"] = min(max_breadth["v"] + 1, 50)
         elif event.key and event.key.lower() == 'n':
             show_tree_labels["v"] = not show_tree_labels["v"]
 
@@ -168,11 +181,23 @@ def main():
         # Run multiple MCTS steps per frame for better performance
         ev = {"reward": 0.0, "selection_path": [], "best_child": None}
         if not paused["v"]:
-            for _ in range(STEPS_PER_FRAME):
-                if solver.iteration < solver.iterations:
-                    ev = solver.step()
-                else:
-                    break
+            try:
+                for _ in range(STEPS_PER_FRAME):
+                    if solver.iteration < solver.iterations:
+                        ev = solver.step()
+                        # Check if we're stuck (no available actions and not terminal)
+                        if ev.get("selection_path"):
+                            last_state = ev["selection_path"][-1].state
+                            if not last_state.is_terminal() and not last_state.get_available_actions():
+                                print(f"Warning: Got stuck at iteration {solver.iteration}, state: {last_state}")
+                                print(f"  Path: {last_state.path}")
+                                print(f"  Cost: {last_state.cost_so_far:.2f} / Budget: {solver.problem.budget}")
+                    else:
+                        break
+            except Exception as e:
+                print(f"Error during MCTS step at iteration {solver.iteration}: {e}")
+                import traceback
+                traceback.print_exc()
         
         # Only update tree visualization every few iterations to reduce overhead
         should_update_tree = (solver.iteration % (STEPS_PER_FRAME * 2) == 0 or 
@@ -253,7 +278,7 @@ def main():
 
         # ---- Update tree viz (less frequently) ----
         if should_update_tree:
-            pos, nlist, elist = layout_tree(solver.root, max_depth["v"], MAX_TREE_NODES)
+            pos, nlist, elist = layout_tree(solver.root, max_depth["v"], MAX_TREE_NODES, max_breadth["v"])
             last_tree_update["iter"] = solver.iteration
             last_tree_update["pos"] = pos
             last_tree_update["nodes"] = nlist
@@ -299,7 +324,7 @@ def main():
                             x, y = pos[n]
                             texts_tree.append(ax_tree.text(x, y, node_label(n), fontsize=8, ha='center', va='center', color='black'))
 
-        ax_tree.set_xlabel(f"iterations: {solver.iteration}/{solver.iterations}  depth: {max_depth['v']}")
+        ax_tree.set_xlabel(f"iterations: {solver.iteration}/{solver.iterations}  depth: {max_depth['v']}  breadth: {max_breadth['v']}")
         budget_text_tree.set_text(f"Best score: {best_reward:.0f}  |  Cost: {best_cost:.2f} / Budget: {problem.budget:.2f}")
 
         # Only refresh tree figure when needed
