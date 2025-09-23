@@ -282,13 +282,17 @@ class WUOrienteeringTree:
     def get_statistics(self) -> dict:
         """Get tree statistics"""
         with self.tree_lock:
+            # Get best reward from complete paths (consistent with final output)
+            try:
+                _, best_complete_reward = self._extract_best_complete_path()
+            except:
+                best_complete_reward = 0.0
+            
             return {
                 'simulation_count': self.simulation_count,
                 'root_visits': self.root_node.visit_count,
                 'root_children': len(self.root_node.children),
-                'best_reward': max((child.get_average_reward() 
-                                  for child in self.root_node.children.values() 
-                                  if child.visit_count > 0), default=0)
+                'best_reward': best_complete_reward
             }
     
     def solve_complete_problem(self, max_iterations: int = 10000, 

@@ -38,3 +38,6 @@ python3 main.py --problem-file problem.txt \
 
 
 python3 WU_UCT/main.py --problem-file OP_Benchmark_Set/set_64_1/set_64_1_80.txt --max-edge-distance 1.42 --parallel --verbose --output-file wu_output/solution.txt
+
+
+python3 WU_UCT/main.py --problem-file OP_Benchmark_Set/sample/sample_30.txt --max-edge-distance 4 --parallel --verbose --output-file wu_output/sample30_output.txt

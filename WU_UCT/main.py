@@ -26,12 +26,16 @@ class WUOrienteeringSolver:
     
     def __init__(self, problem: OrienteeringProblem, 
                  num_workers: int = 4,
+                 expansion_workers: int = None,
+                 simulation_workers: int = None,
                  max_steps: int = 1000,
                  max_depth: int = 20,
                  max_width: int = 10,
                  gamma: float = 1.0):
         self.problem = problem
         self.num_workers = num_workers
+        self.expansion_workers = expansion_workers or num_workers
+        self.simulation_workers = simulation_workers or num_workers
         self.max_steps = max_steps
         self.max_depth = max_depth
         self.max_width = max_width
@@ -44,8 +48,8 @@ class WUOrienteeringSolver:
             max_depth=max_depth,
             max_width=max_width,
             gamma=gamma,
-            expansion_worker_num=num_workers,
-            simulation_worker_num=num_workers
+            expansion_worker_num=self.expansion_workers,
+            simulation_worker_num=self.simulation_workers
         )
         
         # Workers
@@ -207,6 +211,10 @@ def main():
     # Parallel parameters
     parser.add_argument("--num-workers", type=int, default=4,
                         help="Number of worker threads (default: 4)")
+    parser.add_argument("--expansion-workers", type=int, default=None,
+                        help="Number of expansion workers (default: 1 for 8+ cores, else num-workers)")
+    parser.add_argument("--simulation-workers", type=int, default=None,
+                        help="Number of simulation workers (default: remaining cores after expansion)")
     parser.add_argument("--parallel", action="store_true",
                         help="Use parallel WU-UCT (default: False)")
     
@@ -232,10 +240,31 @@ def main():
         print(f"Error loading problem file: {e}")
         return
     
+    # Determine optimal worker configuration
+    if args.expansion_workers is None or args.simulation_workers is None:
+        # Auto-configure based on WU-UCT paper recommendations
+        total_cores = args.num_workers
+        if total_cores >= 8:
+            # For 8+ cores: 1 expansion worker, rest simulation workers (WU-UCT paper style)
+            expansion_workers = args.expansion_workers or 1
+            simulation_workers = args.simulation_workers or (total_cores - expansion_workers)
+        else:
+            # For fewer cores: use traditional approach (all workers do full iterations)
+            expansion_workers = args.expansion_workers or total_cores
+            simulation_workers = args.simulation_workers or total_cores
+    else:
+        expansion_workers = args.expansion_workers
+        simulation_workers = args.simulation_workers
+    
+    if args.verbose:
+        print(f"Worker configuration: {expansion_workers} expansion, {simulation_workers} simulation")
+    
     # Create solver
     solver = WUOrienteeringSolver(
         problem=problem,
         num_workers=args.num_workers,
+        expansion_workers=expansion_workers,
+        simulation_workers=simulation_workers,
         max_steps=args.max_steps,
         max_depth=args.max_depth,
         max_width=args.max_width,
