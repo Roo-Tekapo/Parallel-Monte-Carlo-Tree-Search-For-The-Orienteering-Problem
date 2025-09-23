@@ -18,6 +18,7 @@ class WUUCTNode(MCTSNode):
         self.traverse_history = {}  # Maps task_idx -> (action, reward)
         self.visited_node_count = 0
         self.updated_node_count = 0
+        self.ongoing_tasks = set()  # Track which tasks have incomplete updates on this node
     
     def _ensure_tracking_lists_size(self, min_size: int):
         """Ensure tracking lists are at least min_size."""
@@ -60,11 +61,14 @@ class WUUCTNode(MCTSNode):
         return random.choice(best_actions) if best_actions else 0
         # TODO: see how paper does the return of best action in ties
     
-    def update_incomplete(self, action: int):
+    def update_incomplete(self, task_id: int, action: int):
         """Incomplete update for tracking unobserved samples."""
         if self.visits == 0:
             self.visited_node_count += 1
         self.visits += 1
+        
+        # Track this task as having an incomplete update on this node
+        self.ongoing_tasks.add(task_id)
         
         # Track this as an ongoing simulation
         if action >= 0:  # Only for valid actions
@@ -75,6 +79,9 @@ class WUUCTNode(MCTSNode):
     def update_complete(self, task_idx: int, action: int, reward: float) -> float:
         """Complete update for tracking observed samples."""
         action_to_update = action  # Default to passed action
+        
+        # Remove this task from ongoing tasks since it's now complete
+        self.ongoing_tasks.discard(task_idx)
         
         if task_idx in self.traverse_history:
             stored_action, stored_reward = self.traverse_history.pop(task_idx)
@@ -147,7 +154,7 @@ class WUUCTSolver:
             with self.global_tree_lock:
                 # Apply incomplete update (track unobserved sample)
                 if hasattr(current, 'update_incomplete'):
-                    current.update_incomplete(-1)  # -1 for selection
+                    current.update_incomplete(task_id, -1)  # -1 for selection
                 else:
                     current.visits += 1
                 
@@ -234,7 +241,7 @@ class WUUCTSolver:
         """
         current = state.copy()
         steps = 0
-        max_steps = 1000  # Prevent infinite loops
+        max_steps = 10000  # Prevent infinite loops
         
         while not current.is_terminal() and steps < max_steps:
             actions = current.get_available_actions()
@@ -277,7 +284,7 @@ class WUUCTSolver:
         for node, task_id in path:
             with self.global_tree_lock:
                 if hasattr(node, 'update_incomplete'):
-                    node.update_incomplete(-1)
+                    node.update_incomplete(task_id, -1)  # -1 for path traversal
                 else:
                     node.visits += 1  # Fallback
     
@@ -418,8 +425,8 @@ if __name__ == "__main__":
     # Load a sample problem
     try:
         nodes, budget = OrienteeringProblem.load_problem(
-            # "OP_Benchmark_Set/sample/sample_30.txt"
-            "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
+            "OP_Benchmark_Set/sample/sample_30.txt"
+            # "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
         )
         print(f"Loaded problem with {len(nodes)} nodes and budget {budget}")
     except Exception as e:
@@ -433,7 +440,7 @@ if __name__ == "__main__":
     # Create WU-UCT solver
     solver = WUUCTSolver(
         problem=problem,
-        iterations=5000,  # Number of MCTS simulations
+        iterations=10000,  # Number of MCTS simulations
         num_workers=4,    # Number of parallel workers
         exploration_constant=math.sqrt(2),
         epsilon=0.00

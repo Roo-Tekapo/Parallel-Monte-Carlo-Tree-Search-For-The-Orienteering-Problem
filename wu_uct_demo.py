@@ -15,7 +15,7 @@ def main():
     # Load a test problem
     try:
         nodes, budget = OrienteeringProblem.load_problem(
-            "OP_Benchmark_Set/sample/sample_6_small.txt"
+            "OP_Benchmark_Set/sample/sample_30.txt"
         )
         print(f"Loaded problem with {len(nodes)} nodes and budget {budget}")
     except Exception as e:
@@ -27,7 +27,7 @@ def main():
     
     # Configure WU-UCT parameters
     config = {
-        'max_steps': 1000,          # Number of MCTS simulations
+        'max_steps': 5000,          # Number of MCTS simulations
         'expansion_workers': 2,      # Number of expansion worker threads
         'simulation_workers': 4,     # Number of simulation worker threads
         'exploration_constant': math.sqrt(2),  # UCT exploration parameter
@@ -82,11 +82,11 @@ def compare_with_single_threaded():
     print("=" * 50)
     
     try:
-        from MCTS.mcts_single_thread import MCTSSingleThread
+        from MCTS.mcts_base import MCTSSingleThread
         
         # Load problem
         nodes, budget = OrienteeringProblem.load_problem(
-            "OP_Benchmark_Set/sample/sample_6_small.txt"
+            "OP_Benchmark_Set/sample/sample_30.txt"
         )
         problem = OrienteeringProblem(nodes, budget)
         

@@ -102,9 +102,6 @@ class OrienteeringState:
 
     def is_terminal(self):
         # Only terminal if the last node in the path is the END_NODE
-        # if self.path[-1] == END_NODE:
-        #     return True
-        # return not self.get_available_actions()
         return self.path[-1] == END_NODE
 
     def copy(self):
@@ -122,6 +119,51 @@ class OrienteeringState:
         self.visited.add(self.path[-1])
 
     
+    def _can_reach_end_from(self, node_id: int, current_cost: float) -> bool:
+        """Check if we can reach END_NODE from given node within budget, respecting edge constraints."""
+        if node_id == END_NODE:
+            return True
+        
+        # If node can directly reach END, check budget
+        neighbors = self.problem.get_neighbors(node_id)
+        if END_NODE in neighbors:
+            cost_to_end = self.problem.get_distance(node_id, END_NODE)
+            return current_cost + cost_to_end <= self.problem.budget
+        
+        # Otherwise, use BFS to find shortest path to any node that can reach END
+        from collections import deque
+        
+        # Find nodes that can directly reach END
+        end_reachable_nodes = []
+        for i in range(self.problem.num_nodes):
+            if i != END_NODE and END_NODE in self.problem.get_neighbors(i):
+                end_reachable_nodes.append(i)
+        
+        if not end_reachable_nodes:
+            return False
+        
+        # BFS to find shortest path to any end-reachable node
+        queue = deque([(node_id, current_cost)])
+        visited = {node_id}
+        
+        while queue:
+            current_node, cost = queue.popleft()
+            
+            # Check if this node can reach END
+            if current_node in end_reachable_nodes:
+                cost_to_end = self.problem.get_distance(current_node, END_NODE)
+                return cost + cost_to_end <= self.problem.budget
+            
+            # Explore neighbors
+            for neighbor in self.problem.get_neighbors(current_node):
+                if neighbor not in visited and neighbor not in self.visited:
+                    new_cost = cost + self.problem.get_distance(current_node, neighbor)
+                    if new_cost <= self.problem.budget:  # Basic budget check
+                        visited.add(neighbor)
+                        queue.append((neighbor, new_cost))
+        
+        return False
+
     # This method generates all possible next states from the current state
     def get_available_actions(self):
         actions = []
@@ -136,14 +178,15 @@ class OrienteeringState:
             if self.cost_so_far + cost_to_end <= self.problem.budget:
                 actions.append(END_NODE)
 
-        # Explore other unvisited neighbor nodes but reserve budget to still reach END
+        # Explore other unvisited neighbor nodes but ensure we can still reach END
         for i in neighbor_ids:
             if i in self.visited or i == START_NODE or i == END_NODE:
                 continue
             cost_to_i = self.problem.get_distance(current, i)
-            cost_i_to_end = self.problem.get_distance(i, END_NODE)
             new_cost = self.cost_so_far + cost_to_i
-            if new_cost + cost_i_to_end <= self.problem.budget:
+            
+            # Check if we can reach END from node i with remaining budget
+            if self._can_reach_end_from(i, new_cost):
                 actions.append(i)
         return actions
     

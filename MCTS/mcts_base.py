@@ -1,12 +1,12 @@
 import random
 import math
 
-from orienteering.orienteering import OrienteeringProblem, OrienteeringState
+from orienteering.orienteering import OrienteeringProblem, OrienteeringState, END_NODE
 from .mcts_node import MCTSNode
 
 
 class MCTSSingleThread:
-    def __init__(self, problem: OrienteeringProblem, iterations, exploration_constant = math.sqrt(2), epsilon: float = 0.05):
+    def __init__(self, problem: OrienteeringProblem, iterations, exploration_constant = math.sqrt(2), epsilon: float = 0.00):
         self.problem = problem
         self.iterations = iterations
         self.const = exploration_constant
@@ -25,7 +25,8 @@ class MCTSSingleThread:
             elif current.children: # if node has children, select one using UCT
                 current = current.uct_best_child(self.const, self.epsilon)
             else:
-                break # if no children, return current node
+                # Dead-end: no untried actions and no children
+                break
         return current
     
     # Step 2: Expansion
@@ -39,14 +40,12 @@ class MCTSSingleThread:
     def simulate(self, state: OrienteeringState) -> float:
         current = state.copy()
         while not current.is_terminal():
-            # print("Current state:", current.path)
             actions = current.get_available_actions()
-            # print("Available actions:", actions)
             if not actions:
-                break
+                # Dead-end: return current reward with small penalty
+                return current.get_reward() * 0.8  # 20% penalty for not reaching end
             action = random.choice(actions)
             current = current.apply_action(action)
-        # print("Final state:", current.path)
         return current.get_reward()
 
     # Step 4: Backpropagation
@@ -164,7 +163,7 @@ if __name__ == "__main__":
 
     problem = OrienteeringProblem(nodes, budget)
 
-    solver = MCTSSingleThread(problem, iterations=100000)
+    solver = MCTSSingleThread(problem, iterations=10000)
     best_state = solver.run()
 
     print("Best path:", best_state.get_path())
