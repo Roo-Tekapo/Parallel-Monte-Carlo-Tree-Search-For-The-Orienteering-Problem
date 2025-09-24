@@ -15,10 +15,12 @@ from orienteering.orienteering import OrienteeringProblem, OrienteeringState
 try:
     from .wu_orienteering_tree import WUOrienteeringTree
     from .wu_orienteering_worker import WUOrienteeringWorker
+    from .wu_specialized_workers import WUCoordinatedSolver
 except ImportError:
     # If relative import fails, try absolute import
     from wu_orienteering_tree import WUOrienteeringTree
     from wu_orienteering_worker import WUOrienteeringWorker
+    from wu_specialized_workers import WUCoordinatedSolver
 
 
 class WUOrienteeringSolver:
@@ -80,7 +82,7 @@ class WUOrienteeringSolver:
                       iterations_per_worker: Optional[int] = None,
                       verbose: bool = False) -> Tuple[List[int], float, dict]:
         """
-        Solve the orienteering problem using parallel WU-UCT
+        Solve the orienteering problem using parallel WU-UCT (original implementation)
         
         Returns: (best_path, best_reward, statistics)
         """
@@ -115,8 +117,52 @@ class WUOrienteeringSolver:
             print(f"Best reward: {best_reward}")
             print(f"Total time: {elapsed_time:.2f}s")
             print(f"Total simulations: {stats['total_simulations']}")
+            
+            # Display detailed worker statistics
+            print(f"\nWorker Performance Details:")
+            print(f"{'Worker':<8} {'Iterations':<12} {'Rate (it/s)':<12} {'Time (s)':<10} {'Status':<10}")
+            print("-" * 60)
+            for worker_stat in stats['worker_stats']:
+                print(f"{worker_stat['worker_id']:<8} "
+                      f"{worker_stat['iterations_completed']:<12} "
+                      f"{worker_stat['iterations_per_second']:<12.1f} "
+                      f"{worker_stat['elapsed_time']:<10.2f} "
+                      f"{'Running' if worker_stat['running'] else 'Stopped':<10}")
+            
+            print(f"\nSummary:")
+            print(f"- Total workers: {len(stats['worker_stats'])}")
+            print(f"- Average iterations per worker: {stats['total_worker_iterations'] / len(stats['worker_stats']):.0f}")
+            print(f"- Combined iteration rate: {stats['total_worker_iterations'] / elapsed_time:.1f} iterations/s")
         
         return best_path, best_reward, stats
+    
+    def solve_wu_uct(self, max_iterations: Optional[int] = None,
+                     max_time: Optional[float] = None,
+                     verbose: bool = False) -> Tuple[List[int], float, dict]:
+        """
+        Solve the orienteering problem using True WU-UCT with specialized workers
+        
+        Returns: (best_path, best_reward, statistics)
+        """
+        if verbose:
+            print(f"Starting True WU-UCT solver with {self.expansion_workers} expansion workers "
+                  f"and {self.simulation_workers} simulation workers")
+        
+        # Create coordinated solver
+        coordinated_solver = WUCoordinatedSolver(
+            tree=self.tree,
+            num_expansion_workers=self.expansion_workers,
+            num_simulation_workers=self.simulation_workers
+        )
+        
+        try:
+            return coordinated_solver.solve(
+                max_iterations=max_iterations,
+                max_time=max_time,
+                verbose=verbose
+            )
+        finally:
+            coordinated_solver.stop()
     
     def _start_workers(self, iterations_per_worker: Optional[int], max_time: Optional[float]):
         """Start worker threads"""
@@ -145,6 +191,7 @@ class WUOrienteeringSolver:
         
         def monitor():
             start = time.time()
+            progress_count = 0
             while self.workers_running and (time.time() - start) < max_time:
                 time.sleep(5)  # Update every 5 seconds
                 if self.workers_running:
@@ -152,6 +199,14 @@ class WUOrienteeringSolver:
                     elapsed = time.time() - start
                     print(f"Progress: {elapsed:.1f}s, Simulations: {stats['simulation_count']}, "
                           f"Best reward: {stats['best_reward']:.2f}")
+                    
+                    # Show detailed worker stats every 15 seconds
+                    progress_count += 1
+                    if progress_count % 3 == 0:  # Every 15 seconds (3 * 5s intervals)
+                        active_workers = sum(1 for w in self.workers if w.is_alive())
+                        total_iterations = sum(w.iterations_completed for w in self.workers)
+                        print(f"  Active workers: {active_workers}/{len(self.workers)}, "
+                              f"Total iterations: {total_iterations}")
         
         monitor_thread = threading.Thread(target=monitor, daemon=True)
         monitor_thread.start()
@@ -216,7 +271,9 @@ def main():
     parser.add_argument("--simulation-workers", type=int, default=None,
                         help="Number of simulation workers (default: remaining cores after expansion)")
     parser.add_argument("--parallel", action="store_true",
-                        help="Use parallel WU-UCT (default: False)")
+                        help="Use parallel WU-UCT (original implementation, default: False)")
+    parser.add_argument("--wu-uct", action="store_true",
+                        help="Use True WU-UCT with specialized workers (default: False)")
     
     # Output parameters
     parser.add_argument("--verbose", action="store_true",
@@ -273,7 +330,13 @@ def main():
     
     # Solve
     try:
-        if args.parallel:
+        if args.wu_uct:
+            best_path, best_reward, stats = solver.solve_wu_uct(
+                max_iterations=args.max_iterations,
+                max_time=args.max_time,
+                verbose=args.verbose
+            )
+        elif args.parallel:
             best_path, best_reward, stats = solver.solve_parallel(
                 max_iterations=args.max_iterations,
                 max_time=args.max_time,

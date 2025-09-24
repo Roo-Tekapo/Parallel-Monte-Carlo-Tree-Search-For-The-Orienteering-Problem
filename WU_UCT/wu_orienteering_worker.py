@@ -1,6 +1,7 @@
 """
 WU-UCT Worker implementation for Orienteering Problem
 """
+import hashlib
 import threading
 import time
 import random
@@ -35,8 +36,11 @@ class WUOrienteeringWorker(threading.Thread):
         self.iterations_completed = 0
         self.start_time = 0
         
-        # Random seed for worker
-        random.seed(worker_id + int(time.time()))
+        # Random seed for worker - ensure each worker has unique seed
+        seed_string = f"{worker_id}-{time.time()}-{threading.current_thread().ident}"
+        seed_hash = hashlib.md5(seed_string.encode()).hexdigest()
+        worker_seed = int(seed_hash[:8], 16)  # Use first 8 hex chars as seed
+        random.seed(worker_seed)
         
     def run(self):
         """Main worker loop"""

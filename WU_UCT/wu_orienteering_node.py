@@ -111,10 +111,11 @@ class WUOrienteeringNode:
                 # Unvisited action gets priority
                 return action
                 
-            # UCT formula
+            # UCT formula with higher exploration constant for better exploration
             if self.children_completed_visit_count[action] > 0:
                 exploitation = self.Q_values[action] / self.children_completed_visit_count[action]
-                exploration = math.sqrt(2 * math.log(self.visit_count) / self.children_visit_count[action])
+                # Increased exploration constant from sqrt(2) to sqrt(8) for more exploration
+                exploration = math.sqrt(8 * math.log(self.visit_count) / self.children_visit_count[action])
                 score = exploitation + exploration
             else:
                 score = float('inf')  # Prioritize unvisited nodes

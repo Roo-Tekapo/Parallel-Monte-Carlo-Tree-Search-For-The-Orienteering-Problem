@@ -1,7 +1,9 @@
 """
 WU-UCT Tree implementation for Orienteering Problem
 """
+import hashlib
 import math
+import random
 import threading
 import time
 import logging
@@ -42,6 +44,13 @@ class WUOrienteeringTree:
         
         # Global lock for tree modifications
         self.tree_lock = threading.RLock()
+        
+        # Initialize random seed for better exploration diversity
+        # Use a combination of time and problem characteristics for unique seeding
+        seed_string = f"{time.time()}-{len(problem.nodes)}-{problem.budget}-{threading.current_thread().ident}"
+        seed_hash = hashlib.md5(seed_string.encode()).hexdigest()
+        tree_seed = int(seed_hash[:8], 16)  # Use first 8 hex chars as seed
+        random.seed(tree_seed)
         
         # Statistics
         self.simulation_count = 0
@@ -189,34 +198,50 @@ class WUOrienteeringTree:
         return current_state.get_reward()
     
     def _select_greedy_action(self, state: OrienteeringState, actions: List[int]) -> Optional[int]:
-        """Select action greedily based on reward/distance ratio"""
+        """Select action greedily based on reward/distance ratio with minimal random tie-breaking"""
         if not actions:
             return None
             
-        # Prefer going to END if we have collected some rewards
-        if 1 in actions and len(state.path) > 2:  # END_NODE = 1
-            return 1
+        # Prefer going to END if we have collected some rewards and budget is running low
+        if 1 in actions:
+            current_cost = sum(state.problem.get_distance(state.path[i], state.path[i+1]) 
+                             for i in range(len(state.path)-1))
+            remaining_budget = state.problem.budget - current_cost
+            
+            # Go to end if budget is running low or we have a decent path length
+            if remaining_budget < 10 or len(state.path) > 8:
+                return 1
         
-        best_action = None
-        best_ratio = -1
+        # Calculate reward/distance ratios for all actions
+        action_ratios = []
         current_node = state.path[-1]
         
         for action in actions:
-            if action == 1:  # END_NODE
+            if action == 1:  # END_NODE - handle separately above
                 continue
                 
             try:
                 reward = state.problem.nodes[action].score
                 distance = state.problem.get_distance(current_node, action)
                 ratio = reward / (distance + 0.01)  # Small epsilon to avoid division by zero
-                
-                if ratio > best_ratio:
-                    best_ratio = ratio
-                    best_action = action
+                action_ratios.append((action, ratio))
             except (IndexError, ZeroDivisionError):
                 continue
         
-        return best_action if best_action is not None else (actions[0] if actions else None)
+        if not action_ratios:
+            return actions[0] if actions else None
+        
+        # Sort by ratio (best first)
+        action_ratios.sort(key=lambda x: x[1], reverse=True)
+        
+        # If there are ties among top actions, break ties randomly
+        best_ratio = action_ratios[0][1]
+        best_actions = [action for action, ratio in action_ratios if abs(ratio - best_ratio) < 0.001]
+        
+        if len(best_actions) > 1:
+            return random.choice(best_actions)  # Random tie-breaking
+        else:
+            return action_ratios[0][0]  # Single best action
     
     def _backpropagate(self, path: List[Tuple[WUOrienteeringNode, int]], reward: float):
         """Backpropagate reward up the tree"""
