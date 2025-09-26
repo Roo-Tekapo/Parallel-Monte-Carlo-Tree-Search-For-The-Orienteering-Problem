@@ -41,3 +41,9 @@ python3 WU_UCT/main.py --problem-file OP_Benchmark_Set/set_64_1/set_64_1_80.txt 
 
 
 python3 WU_UCT/main.py --problem-file OP_Benchmark_Set/sample/sample_30.txt --max-edge-distance 4 --parallel --verbose --output-file wu_output/sample30_output.txt
+
+
+
+python3 main.py --problem-file OP_Benchmark_Set/set_64_1/set_64_1_80.txt --max-edge-distance 1.42 --wu-uct --verbose --expansion-workers 2 --simulation-workers 4 --output-file wu_output/wu_set64_80.txt --max-iterations 100000
+python3 main.py --problem-file OP_Benchmark_Set/set_64_1/set_64_1_80.txt --max-edge-distance 1.42 --parallel --verbose --num-workers 4 --output-file wu_output/wu_set64_80.txt --max-iterations 100000
+python3 main.py --problem-file OP_Benchmark_Set/set_64_1/set_64_1_80.txt --max-edge-distance 1.42 --verbose --output-file wu_output/wu_set64_80.txt --max-iterations 100000

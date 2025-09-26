@@ -7,9 +7,9 @@ from orienteering.orienteering import OrienteeringProblem
 
 
 # Config
-# PROBLEM_PATH = "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
+PROBLEM_PATH = "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
 # PROBLEM_PATH = "OP_Benchmark_Set/sample/sample_6_small.txt"
-PROBLEM_PATH = "OP_Benchmark_Set/sample/sample_30.txt"
+# PROBLEM_PATH = "OP_Benchmark_Set/sample/sample_30.txt"
 ITERATIONS = 100000
 INITIAL_TREE_DEPTH = 10
 

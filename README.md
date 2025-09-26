@@ -2,6 +2,16 @@
 University Capstone Research Project on Parallel MCTS for Strategic Planning in Robotics using the Orienteering Problem
 
 
+# Single-threaded (no worker info shown)
+python3 main.py --problem-file OP_Benchmark_Set/set_64_1/set_64_1_80.txt --verbose
+
+# Parallel mode (shows parallel worker count)  
+python3 main.py --problem-file OP_Benchmark_Set/set_64_1/set_64_1_80.txt --parallel --num-workers 4 --verbose
+
+# Specialized WU-UCT mode (shows expansion/simulation breakdown)
+python3 main.py --problem-file OP_Benchmark_Set/set_64_1/set_64_1_80.txt --wu-uct --expansion-workers 1 --simulation-workers 3 --verbose
+
+
 
 Single threaded MCTS
 Root and Leaf

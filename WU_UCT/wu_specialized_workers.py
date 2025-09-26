@@ -83,12 +83,21 @@ class WUExpansionWorker(threading.Thread):
                 self._perform_expansion_iteration()
                 self.iterations_completed += 1
                 
-                # Small delay to prevent overwhelming the simulation queue
-                time.sleep(0.001)
+                # Small delay to prevent overwhelming the simulation queue (only if queue is getting full)
+                if self.simulation_task_queue.qsize() > 500:
+                    time.sleep(0.0001)  # Much smaller delay and only when needed
                 
             except Exception as e:
                 print(f"Expansion Worker {self.worker_id} error: {e}")
                 break
+        
+        # Debug: Print why the worker stopped
+        if self.max_iterations and self.iterations_completed >= self.max_iterations:
+            print(f"Expansion Worker {self.worker_id} completed all {self.max_iterations} iterations")
+        elif self.max_time and (time.time() - self.start_time) >= self.max_time:
+            print(f"Expansion Worker {self.worker_id} stopped due to time limit")
+        else:
+            print(f"Expansion Worker {self.worker_id} stopped unexpectedly after {self.iterations_completed} iterations")
         
         self.running = False
     
@@ -312,8 +321,10 @@ class WUCoordinatedSolver:
         # Start workers
         self._start_workers(iterations_per_expansion_worker, max_time)
         
-        if verbose and max_time:
-            self._monitor_progress(max_time, start_time)
+        if verbose:
+            # Monitor progress regardless of time limit
+            estimated_time = max_time if max_time else (max_iterations // 1000 if max_iterations else 60)
+            self._monitor_progress(estimated_time, start_time)
         
         # Wait for completion
         self._wait_for_completion()

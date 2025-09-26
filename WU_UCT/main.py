@@ -7,20 +7,13 @@ import os
 import sys
 from typing import List, Tuple, Optional
 
-# Add the parent directory to path to import orienteering module
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Import orienteering module from current directory
 from orienteering.orienteering import OrienteeringProblem, OrienteeringState
 
-# Handle both relative and absolute imports
-try:
-    from .wu_orienteering_tree import WUOrienteeringTree
-    from .wu_orienteering_worker import WUOrienteeringWorker
-    from .wu_specialized_workers import WUCoordinatedSolver
-except ImportError:
-    # If relative import fails, try absolute import
-    from wu_orienteering_tree import WUOrienteeringTree
-    from wu_orienteering_worker import WUOrienteeringWorker
-    from wu_specialized_workers import WUCoordinatedSolver
+# Import WU-UCT components
+from WU_UCT.wu_orienteering_tree import WUOrienteeringTree
+from WU_UCT.wu_orienteering_worker import WUOrienteeringWorker
+from WU_UCT.wu_specialized_workers import WUCoordinatedSolver
 
 
 class WUOrienteeringSolver:
@@ -68,7 +61,7 @@ class WUOrienteeringSolver:
         Returns: (best_path, best_reward, statistics)
         """
         if verbose:
-            print(f"Starting WU-UCT solver with {self.num_workers} workers")
+            print(f"Starting WU-UCT solver (single-threaded)")
             print(f"Problem: {len(self.problem.nodes)} nodes, budget: {self.problem.budget}")
         
         # Use the tree's solve method which is simpler and more reliable
@@ -87,6 +80,10 @@ class WUOrienteeringSolver:
         Returns: (best_path, best_reward, statistics)
         """
         start_time = time.time()
+        
+        if verbose:
+            print(f"Starting WU-UCT solver (parallel) with {self.num_workers} workers")
+            print(f"Problem: {len(self.problem.nodes)} nodes, budget: {self.problem.budget}")
         
         # Calculate iterations per worker
         if iterations_per_worker is None and max_iterations:
@@ -145,7 +142,7 @@ class WUOrienteeringSolver:
         Returns: (best_path, best_reward, statistics)
         """
         if verbose:
-            print(f"Starting True WU-UCT solver with {self.expansion_workers} expansion workers "
+            print(f"Starting WU-UCT solver with {self.expansion_workers} expansion workers "
                   f"and {self.simulation_workers} simulation workers")
         
         # Create coordinated solver
@@ -313,8 +310,12 @@ def main():
         expansion_workers = args.expansion_workers
         simulation_workers = args.simulation_workers
     
-    if args.verbose:
-        print(f"Worker configuration: {expansion_workers} expansion, {simulation_workers} simulation")
+    # Only print worker configuration for modes that use workers
+    if args.verbose and (args.parallel or args.wu_uct):
+        if args.wu_uct:
+            print(f"Worker configuration: {expansion_workers} expansion, {simulation_workers} simulation")
+        elif args.parallel:
+            print(f"Worker configuration: {args.num_workers} parallel workers")
     
     # Create solver
     solver = WUOrienteeringSolver(

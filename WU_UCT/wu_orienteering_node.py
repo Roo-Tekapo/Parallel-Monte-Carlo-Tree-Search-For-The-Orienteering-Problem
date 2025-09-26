@@ -111,11 +111,11 @@ class WUOrienteeringNode:
                 # Unvisited action gets priority
                 return action
                 
-            # UCT formula with higher exploration constant for better exploration
+                        # UCT formula with standard exploration constant
             if self.children_completed_visit_count[action] > 0:
                 exploitation = self.Q_values[action] / self.children_completed_visit_count[action]
-                # Increased exploration constant from sqrt(2) to sqrt(8) for more exploration
-                exploration = math.sqrt(8 * math.log(self.visit_count) / self.children_visit_count[action])
+                # Standard UCB1 exploration constant sqrt(2)
+                exploration = math.sqrt(2 * math.log(self.visit_count) / self.children_visit_count[action])
                 score = exploitation + exploration
             else:
                 score = float('inf')  # Prioritize unvisited nodes
@@ -154,13 +154,13 @@ class WUOrienteeringNode:
         if not self.available_actions:
             return None
             
-        # Prefer unvisited actions
+        # Only return unvisited actions (actions not in children)
         unvisited = [a for a in self.available_actions if a not in self.children]
         if unvisited:
             return random.choice(unvisited)
             
-        # If all visited, return random available action
-        return random.choice(self.available_actions)
+        # If all actions have been expanded, return None
+        return None
     
     def update_history(self, idx, action_taken, reward):
         """Update traverse history, used to perform update"""

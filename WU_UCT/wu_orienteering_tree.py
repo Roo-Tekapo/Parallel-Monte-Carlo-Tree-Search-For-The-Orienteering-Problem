@@ -142,6 +142,11 @@ class WUOrienteeringTree:
                 # Invalid action, backpropagate current reward
                 reward = selected_node.state.get_reward()
                 self._backpropagate(path, reward)
+        else:
+            # No more actions to expand, but still simulate from current node
+            # This ensures continuous exploration even when tree is "full"
+            simulation_reward = self._simulate(selected_node)
+            self._backpropagate(path, simulation_reward)
     
     def _select_node(self) -> Tuple[WUOrienteeringNode, List[Tuple[WUOrienteeringNode, int]]]:
         """
@@ -171,27 +176,23 @@ class WUOrienteeringTree:
     def _simulate(self, node: WUOrienteeringNode) -> float:
         """
         Simulate from the given node to a terminal state
-        Using greedy simulation for better performance
+        Using random simulation like MCTS base for better exploration
         """
         current_state = node.state.copy()
-        total_reward = current_state.get_reward()
-        steps = 0
         
-        while not current_state.is_terminal() and steps < self.max_depth:
+        while not current_state.is_terminal():
             actions = current_state.get_available_actions()
             if not actions:
-                break
-                
-            # Greedy selection: choose action with best reward/distance ratio
-            best_action = self._select_greedy_action(current_state, actions)
+                # Dead-end: return current reward with small penalty
+                self.simulation_count += 1
+                return current_state.get_reward() * 0.8  # 20% penalty for not reaching end
             
-            if best_action is not None:
-                try:
-                    current_state = current_state.apply_action(best_action)
-                    steps += 1
-                except ValueError:
-                    break
-            else:
+            # Pure random action selection (like MCTS base)
+            action = random.choice(actions)
+            try:
+                current_state = current_state.apply_action(action)
+            except ValueError:
+                # Invalid action, break out
                 break
         
         self.simulation_count += 1

@@ -156,14 +156,14 @@ class MCTSSingleThread:
 if __name__ == "__main__":
     nodes, budget = OrienteeringProblem.load_problem(
         # "OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_85.txt"
-        # "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
+        "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
         # "OP_Benchmark_Set/sample/sample_6_small.txt"
-        "OP_Benchmark_Set/sample/sample_30.txt"
+        # "OP_Benchmark_Set/sample/sample_30.txt"
     )
 
     problem = OrienteeringProblem(nodes, budget)
 
-    solver = MCTSSingleThread(problem, iterations=10000)
+    solver = MCTSSingleThread(problem, iterations=100000)  # Same 100k iterations as WU-UCT
     best_state = solver.run()
 
     print("Best path:", best_state.get_path())
