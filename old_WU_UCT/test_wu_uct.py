@@ -13,16 +13,16 @@ def test_basic_import():
         from orienteering.orienteering import OrienteeringProblem, OrienteeringState, Node
         print("✓ Successfully imported orienteering modules")
         
-        from WU_UCT.wu_orienteering_node import WUOrienteeringNode
+        from old_WU_UCT.wu_orienteering_node import WUOrienteeringNode
         print("✓ Successfully imported WUOrienteeringNode")
         
-        from WU_UCT.wu_orienteering_tree import WUOrienteeringTree
+        from old_WU_UCT.wu_orienteering_tree import WUOrienteeringTree
         print("✓ Successfully imported WUOrienteeringTree")
         
-        from WU_UCT.wu_orienteering_worker import WUOrienteeringWorker
+        from old_WU_UCT.wu_orienteering_worker import WUOrienteeringWorker
         print("✓ Successfully imported WUOrienteeringWorker")
         
-        from WU_UCT.main import WUOrienteeringSolver
+        from old_WU_UCT.main import WUOrienteeringSolver
         print("✓ Successfully imported WUOrienteeringSolver")
         
         return True
@@ -35,7 +35,7 @@ def test_basic_functionality():
     """Test basic functionality"""
     try:
         from orienteering.orienteering import OrienteeringProblem, Node
-        from WU_UCT.main import WUOrienteeringSolver
+        from old_WU_UCT.main import WUOrienteeringSolver
         
         # Create a simple test problem
         nodes = [

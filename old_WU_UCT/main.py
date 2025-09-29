@@ -11,9 +11,9 @@ from typing import List, Tuple, Optional
 from orienteering.orienteering import OrienteeringProblem, OrienteeringState
 
 # Import WU-UCT components
-from WU_UCT.wu_orienteering_tree import WUOrienteeringTree
-from WU_UCT.wu_orienteering_worker import WUOrienteeringWorker
-from WU_UCT.wu_specialized_workers import WUCoordinatedSolver
+from old_WU_UCT.wu_orienteering_tree import WUOrienteeringTree
+from old_WU_UCT.wu_orienteering_worker import WUOrienteeringWorker
+from old_WU_UCT.wu_specialized_workers import WUCoordinatedSolver
 
 
 class WUOrienteeringSolver:

@@ -9,8 +9,8 @@ import time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from orienteering.orienteering import OrienteeringProblem
-from WU_UCT.wu_orienteering_tree import WUOrienteeringTree
-from WU_UCT.main import WUOrienteeringSolver
+from old_WU_UCT.wu_orienteering_tree import WUOrienteeringTree
+from old_WU_UCT.main import WUOrienteeringSolver
 
 
 def test_wu_uct_solver():
