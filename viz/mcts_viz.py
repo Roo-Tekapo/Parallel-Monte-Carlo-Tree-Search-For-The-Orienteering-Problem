@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.lines import Line2D
+import matplotlib.colors as mcolors
+import numpy as np
 from MCTS.mcts_base import MCTSSingleThread
 from orienteering.orienteering import OrienteeringProblem
 
@@ -28,11 +30,25 @@ def extract_coords(nodes):
 
 xs, ys = extract_coords(nodes)
 
+# Extract node scores for color mapping
+node_scores = [node.score for node in nodes]
+min_score = min(node_scores)
+max_score = max(node_scores)
+
+# Create color mapping - use 'Blues' colormap where darker = higher reward
+cmap = plt.cm.Blues
+norm = mcolors.Normalize(vmin=min_score, vmax=max_score)
+node_colors = [cmap(norm(score)) for score in node_scores]
+
 solver = MCTSSingleThread(problem, iterations=10000)
 
-fig, ax = plt.subplots(figsize=(8,6))
-sc = ax.scatter(xs, ys, c='gray', s=40)
-ax.set_title("MCTS Viz: space=pause, a=agg/per, r=toggle visits/avg")
+fig, ax = plt.subplots(figsize=(10,6))
+sc = ax.scatter(xs, ys, c=node_colors, s=40, edgecolors='black', linewidths=0.5)
+ax.set_title("MCTS Viz: space=pause, a=agg/per, r=toggle visits/avg (Node color = reward)")
+
+# Add colorbar to show reward scale
+cbar = plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, shrink=0.6)
+cbar.set_label('Node Reward', rotation=270, labelpad=15)
 
 # --- Highlight start & end nodes ---
 start_node = nodes[0]
@@ -52,7 +68,7 @@ def get_xy(n):
 start_x, start_y = get_xy(start_node)
 end_x, end_y     = get_xy(end_node)
 
-start_scatter = ax.scatter([start_x], [start_y], c='blue', s=120, marker='o', label="Start")
+start_scatter = ax.scatter([start_x], [start_y], c='green', s=120, marker='o', label="Start")
 end_scatter   = ax.scatter([end_x], [end_y], c='red',  s=120, marker='X', label="End")
 
 

@@ -14,6 +14,7 @@ while simulation workers handle the computationally intensive rollouts.
 import threading
 import queue
 import math
+import time
 from typing import Optional, Dict, Any
 
 from orienteering.orienteering import OrienteeringProblem, OrienteeringState
@@ -21,7 +22,7 @@ from .uct_single_thread import UCTNode
 from .work_units import WorkUnit, SimulationResult
 
 
-class WUUCTExpansionWorker:
+class WUUCTExpansionWorker(threading.Thread):
     """
     The expansion worker manages the search tree structure.
     
@@ -33,28 +34,56 @@ class WUUCTExpansionWorker:
     - Thread-safe tree access coordination
     """
     
-    def __init__(self, problem: OrienteeringProblem, exploration_constant: float = math.sqrt(2)):
+    def __init__(self, problem: OrienteeringProblem, worker_id: int = 0, 
+                 exploration_constant: float = math.sqrt(2),
+                 max_distance: Optional[float] = None,
+                 work_queue: Optional[queue.Queue] = None,
+                 result_queue: Optional[queue.Queue] = None,
+                 max_iterations: Optional[int] = None,
+                 max_time: Optional[float] = None):
         """
         Initialize the expansion worker.
         
         Args:
             problem: The orienteering problem instance
+            worker_id: Unique identifier for this expansion worker
             exploration_constant: UCT exploration parameter (default: √2)
+            max_distance: Maximum distance limit for simulations (optional)
+            work_queue: Shared work queue for simulation tasks (optional)
+            result_queue: Shared result queue for simulation results (optional)
+            max_iterations: Maximum iterations for this worker (optional)
+            max_time: Maximum time for this worker (optional)
         """
+        super().__init__(daemon=True)
         self.problem = problem
+        self.worker_id = worker_id
         self.exploration_constant = exploration_constant
+        self.max_distance = max_distance
+        self.max_iterations = max_iterations
+        self.max_time = max_time
         self.root: Optional[UCTNode] = None
         self.work_counter = 0
+        
+        # Thread control
+        self.running = False
+        self.iterations_completed = 0
+        self.start_time = 0
         
         # Thread safety lock for tree modifications
         self.lock = threading.Lock()
         
-        # Communication queues with simulation workers
-        self.work_queue: queue.Queue[WorkUnit] = queue.Queue()
-        self.result_queue: queue.Queue[SimulationResult] = queue.Queue()
+        # Communication queues with simulation workers (shared or create new)
+        self.work_queue: queue.Queue[WorkUnit] = work_queue or queue.Queue()
+        self.result_queue: queue.Queue[SimulationResult] = result_queue or queue.Queue()
         
-        # Keep track of pending work units to match results with nodes
+        # Keep track of pending work units for THIS worker only
         self.pending_work: Dict[int, UCTNode] = {}
+        
+        # Per-thread statistics
+        self.nodes_expanded = 0
+        self.simulations_requested = 0
+        self.simulations_processed = 0
+        self.best_reward = 0.0
     
     def initialize_root(self) -> UCTNode:
         """
@@ -64,9 +93,81 @@ class WUUCTExpansionWorker:
             The root node of the search tree
         """
         if self.root is None:
+            # Apply max_distance constraint to the problem if specified
+            if self.max_distance is not None:
+                self.problem.max_edge_distance = self.max_distance
+                
             root_state = OrienteeringState(self.problem)
             self.root = UCTNode(root_state)
         return self.root
+    
+    def run(self):
+        """Main expansion worker thread loop."""
+        self.running = True
+        self.start_time = time.time()
+        
+        while self.should_continue():
+            try:
+                # Process any completed simulation results
+                self._process_simulation_results()
+                
+                # Perform expansion iteration
+                work_unit = self.selection_and_expansion()
+                if work_unit is not None:
+                    # Send work unit to simulation workers
+                    self.work_queue.put(work_unit)
+                    self.iterations_completed += 1
+                else:
+                    # No work available, small delay to prevent busy waiting
+                    time.sleep(0.001)
+                
+                # Small delay to prevent overwhelming the simulation queue
+                if self.work_queue.qsize() > 500:
+                    time.sleep(0.001)
+                    
+            except Exception as e:
+                print(f"Expansion Worker {self.worker_id} error: {e}")
+                break
+        
+        self.running = False
+    
+    def should_continue(self) -> bool:
+        """Check if worker should continue running."""
+        if not self.running:
+            return False
+            
+        # Check iteration limit
+        if self.max_iterations and self.iterations_completed >= self.max_iterations:
+            return False
+            
+        # Check time limit
+        if self.max_time and (time.time() - self.start_time) >= self.max_time:
+            return False
+            
+        return True
+    
+    def _process_simulation_results(self):
+        """Process completed simulation results for this worker."""
+        try:
+            while True:
+                try:
+                    result = self.result_queue.get_nowait()
+                    # Check if this result belongs to this worker
+                    worker_id = result.work_id >> 16
+                    if worker_id == self.worker_id and result.work_id in self.pending_work:
+                        self.process_simulation_result(result)
+                    elif worker_id != self.worker_id:
+                        # Put it back for the correct worker
+                        self.result_queue.put(result)
+                        break
+                except queue.Empty:
+                    break
+        except Exception as e:
+            print(f"Error processing simulation results: {e}")
+    
+    def stop(self):
+        """Stop the expansion worker."""
+        self.running = False
     
     def selection_and_expansion(self) -> Optional[WorkUnit]:
         """
@@ -94,11 +195,13 @@ class WUUCTExpansionWorker:
                         new_state = current.state.apply_action(action)
                         child_node = UCTNode(new_state, parent=current)
                         current.add_child(child_node)
+                        self.nodes_expanded += 1
                         
                         # Create work unit for simulation workers
-                        self.work_counter += 1
-                        work_unit = WorkUnit(child_node, new_state, self.work_counter)
-                        self.pending_work[self.work_counter] = child_node
+                        work_id = self._get_unique_work_id()
+                        work_unit = WorkUnit(child_node, new_state, work_id)
+                        self.pending_work[work_id] = child_node
+                        self.simulations_requested += 1
                         return work_unit
                     else:
                         # This shouldn't happen - node claims to not be fully expanded
@@ -114,9 +217,9 @@ class WUUCTExpansionWorker:
             # If we reach here, we found a terminal node or dead end
             if current.is_terminal():
                 # Create work unit for direct evaluation of terminal state
-                self.work_counter += 1
-                work_unit = WorkUnit(current, current.state, self.work_counter)
-                self.pending_work[self.work_counter] = current
+                work_id = self._get_unique_work_id()
+                work_unit = WorkUnit(current, current.state, work_id)
+                self.pending_work[work_id] = current
                 return work_unit
             
             # No work available (shouldn't happen in practice)
@@ -138,6 +241,11 @@ class WUUCTExpansionWorker:
             if result.work_id in self.pending_work:
                 # Find the node that corresponds to this result
                 node = self.pending_work.pop(result.work_id)
+                self.simulations_processed += 1
+                
+                # Track best reward seen by this worker
+                if result.reward > self.best_reward:
+                    self.best_reward = result.reward
                 
                 # Backpropagation - update all nodes in the path to root
                 current = node
@@ -146,6 +254,25 @@ class WUUCTExpansionWorker:
                     current.total_reward += result.reward
                     current = current.parent
     
+    def get_thread_statistics(self) -> dict:
+        """
+        Get statistics for this expansion worker thread.
+        
+        Returns:
+            Dictionary containing thread statistics
+        """
+        elapsed_time = time.time() - self.start_time if self.start_time else 0
+        return {
+            'worker_id': self.worker_id,
+            'iterations': self.iterations_completed,
+            'nodes_expanded': self.nodes_expanded,
+            'simulations_requested': self.simulations_requested,
+            'simulations_processed': self.simulations_processed,
+            'pending_simulations': len(self.pending_work),
+            'best_reward': self.best_reward,
+            'iterations_per_second': self.iterations_completed / elapsed_time if elapsed_time > 0 else 0
+        }
+
     def get_best_path(self) -> Optional[OrienteeringState]:
         """
         Get the best path found so far by following highest reward children.
@@ -165,6 +292,17 @@ class WUUCTExpansionWorker:
                 current = best_child
             
             return current.state
+    
+    def _get_unique_work_id(self) -> int:
+        """
+        Generate a unique work ID by encoding worker ID in high bits.
+        This prevents task ID conflicts between multiple expansion workers.
+        
+        Returns:
+            Unique work ID combining worker_id and work_counter
+        """
+        self.work_counter += 1
+        return (self.worker_id << 16) | self.work_counter
     
     def get_statistics(self) -> Dict[str, Any]:
         """

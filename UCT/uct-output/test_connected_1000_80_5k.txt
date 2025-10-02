@@ -1,0 +1,9 @@
+# UCT Results
+# Problem: ../OP_Benchmark_Set/set_1000_1/set_1000_1_80.txt
+# Iterations: 5000
+# Exploration constant: 1.4142135623730951
+# Execution time: 649.88s
+#
+Path= 0 24 447 730
+Reward= 96
+Cost= 52.40681693273769

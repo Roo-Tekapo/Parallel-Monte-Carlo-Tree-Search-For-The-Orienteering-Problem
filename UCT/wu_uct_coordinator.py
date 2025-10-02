@@ -13,6 +13,7 @@ the interface simple for users.
 
 import time
 import queue
+from typing import Optional
 import math
 from typing import Dict, Any
 
@@ -36,7 +37,8 @@ class WUUCT:
     def __init__(self, problem: OrienteeringProblem, 
                  expansion_workers: int = 1,
                  simulation_workers: int = 4,
-                 exploration_constant: float = math.sqrt(2)):
+                 exploration_constant: float = math.sqrt(2),
+                 max_distance: Optional[float] = None):
         """
         Initialize the WU-UCT coordinator.
         
@@ -45,19 +47,16 @@ class WUUCT:
             expansion_workers: Number of expansion workers (must be 1 for WU-UCT)
             simulation_workers: Number of simulation workers
             exploration_constant: UCT exploration parameter
+            max_distance: Maximum distance limit for simulations (optional)
             
-        Raises:
-            ValueError: If expansion_workers != 1 (WU-UCT requires exactly 1)
+            max_distance: Maximum distance limit for simulations (optional)
         """
-        if expansion_workers != 1:
-            raise ValueError("WU-UCT requires exactly 1 expansion worker")
-        
         self.problem = problem
+        self.expansion_workers_count = expansion_workers
         self.simulation_workers_count = simulation_workers
         self.exploration_constant = exploration_constant
-        
-        # Create the expansion worker (manages the tree)
-        self.expansion_worker = WUUCTExpansionWorker(problem, exploration_constant)
+        self.max_distance = max_distance        # Create expansion workers (manage the tree)
+        self.expansion_workers = []
         
         # Create the simulation worker pool
         self.simulation_worker_pool = SimulationWorkerPool(simulation_workers)
@@ -70,9 +69,9 @@ class WUUCT:
         Run the WU-UCT algorithm for the specified number of iterations.
         
         This is the main method that:
-        1. Starts all simulation workers
-        2. Main loop: expansion worker creates work, simulation workers process it
-        3. Processes results and tracks progress
+        1. Creates and starts multiple expansion workers in separate threads
+        2. Starts all simulation workers
+        3. Monitors progress while workers run independently
         4. Stops workers and returns the best solution found
         
         Args:
@@ -85,58 +84,67 @@ class WUUCT:
         self.running = True
         start_time = time.time()
         
-        # Start simulation workers
-        self.simulation_worker_pool.start_workers(
-            self.expansion_worker.work_queue,
-            self.expansion_worker.result_queue
-        )
+        # Create shared queues for all workers
+        shared_work_queue = queue.Queue()
+        shared_result_queue = queue.Queue()
+        
+        # Calculate iterations per expansion worker
+        iterations_per_worker = max_iterations // self.expansion_workers_count
+        
+        # Create and start expansion workers with shared queues
+        for i in range(self.expansion_workers_count):
+            worker = WUUCTExpansionWorker(
+                self.problem, 
+                worker_id=i,
+                exploration_constant=self.exploration_constant,
+                max_distance=self.max_distance,
+                work_queue=shared_work_queue,
+                result_queue=shared_result_queue,
+                max_iterations=iterations_per_worker
+            )
+            self.expansion_workers.append(worker)
+            worker.start()  # Start the thread
+        
+        # Start simulation workers with shared queues
+        self.simulation_worker_pool.start_workers(shared_work_queue, shared_result_queue)
         
         try:
-            iteration = 0
-            
             if verbose:
-                print(f"Starting WU-UCT with {self.simulation_workers_count} simulation workers")
+                print(f"Starting WU-UCT with {self.expansion_workers_count} expansion workers "
+                      f"and {self.simulation_workers_count} simulation workers")
             
-            # Main algorithm loop
-            while iteration < max_iterations and self.running:
-                # Expansion worker creates work units
-                work_unit = self.expansion_worker.selection_and_expansion()
-                
-                if work_unit is None:
-                    # No more work available (shouldn't happen in practice)
-                    if verbose:
-                        print(f"No more work available at iteration {iteration}")
-                    break
-                
-                # Send work unit to simulation workers
-                self.expansion_worker.work_queue.put(work_unit)
-                
-                # Process any completed simulation results
-                self._process_available_results()
+            # Monitor progress while workers run independently
+            last_iteration = 0
+            while self.running and any(worker.is_alive() for worker in self.expansion_workers):
+                time.sleep(1)  # Check every second
                 
                 # Update iteration count based on completed simulations
-                iteration = self._count_completed_iterations()
+                current_iteration = self._count_completed_iterations()
                 
                 # Print progress if requested
-                if verbose and iteration > 0 and iteration % 10000 == 0:
-                    self._print_progress(iteration, start_time)
-                
-                # Small delay to prevent overwhelming the system
-                if self.expansion_worker.work_queue.qsize() > 1000:
-                    time.sleep(0.001)
+                if verbose and current_iteration > last_iteration and current_iteration % 10000 == 0:
+                    self._print_progress(current_iteration, start_time)
+                    last_iteration = current_iteration
             
-            # Process any remaining results
-            self._process_remaining_results()
+            # Wait for all expansion workers to complete
+            for worker in self.expansion_workers:
+                worker.join(timeout=1.0)
+            
+            # Get final iteration count
+            final_iteration = self._count_completed_iterations()
             
             if verbose:
-                self._print_final_statistics(iteration, start_time)
+                self._print_final_statistics(final_iteration, start_time)
         
         finally:
             # Always clean up workers
             self._cleanup_workers()
         
-        # Get the best solution found
-        best_state = self.expansion_worker.get_best_path()
+        # Get the best solution found (use first expansion worker since they share the tree)
+        best_state = None
+        if self.expansion_workers:
+            best_state = self.expansion_workers[0].get_best_path()
+        
         if best_state is None:
             # Fallback to initial state if no solution found
             return OrienteeringState(self.problem)
@@ -145,10 +153,20 @@ class WUUCT:
     
     def _process_available_results(self):
         """Process all currently available simulation results."""
+        if not self.expansion_workers:
+            return
+            
+        # Use first expansion worker's result queue (shared by all)
+        result_queue = self.expansion_workers[0].result_queue
+        
         while True:
             try:
-                result = self.expansion_worker.result_queue.get_nowait()
-                self.expansion_worker.process_simulation_result(result)
+                result = result_queue.get_nowait()
+                # Find which expansion worker should process this result
+                # by checking the worker_id encoded in the work_id
+                worker_id = result.work_id >> 16
+                if worker_id < len(self.expansion_workers):
+                    self.expansion_workers[worker_id].process_simulation_result(result)
             except queue.Empty:
                 break
     
@@ -160,35 +178,52 @@ class WUUCT:
     
     def _count_completed_iterations(self) -> int:
         """Count total completed iterations from all workers."""
-        stats = self.expansion_worker.get_statistics()
+        if not self.expansion_workers:
+            return 0
+        # Use first expansion worker since they all share the same tree
+        stats = self.expansion_workers[0].get_statistics()
         return stats.get('root_visits', 0)
     
     def _print_progress(self, iteration: int, start_time: float):
         """Print progress information."""
         elapsed = time.time() - start_time
-        stats = self.expansion_worker.get_statistics()
-        print(f"Iteration {iteration}, "
-              f"Time: {elapsed:.1f}s, "
-              f"Nodes: {stats['nodes']}, "
-              f"Root visits: {stats['root_visits']}")
+        if self.expansion_workers:
+            stats = self.expansion_workers[0].get_statistics()
+            print(f"Iteration {iteration}, "
+                  f"Time: {elapsed:.1f}s, "
+                  f"Nodes: {stats['nodes']}, "
+                  f"Root visits: {stats['root_visits']}")
     
     def _print_final_statistics(self, iteration: int, start_time: float):
         """Print final algorithm statistics."""
         elapsed = time.time() - start_time
-        expansion_stats = self.expansion_worker.get_statistics()
-        worker_stats = self.simulation_worker_pool.get_total_statistics()
         
-        print(f"Completed {iteration} iterations in {elapsed:.1f}s")
-        print(f"Tree statistics: {expansion_stats}")
-        print(f"Worker statistics: {worker_stats}")
-        
-        # Print individual worker performance
-        for i, worker_stat in enumerate(worker_stats['individual_worker_stats']):
-            print(f"Simulation worker {i}: {worker_stat['simulations_completed']} simulations")
+        if self.expansion_workers:
+            expansion_stats = self.expansion_workers[0].get_statistics()
+            worker_stats = self.simulation_worker_pool.get_total_statistics()
+            
+            print(f"Completed {iteration} iterations in {elapsed:.1f}s")
+            print(f"Tree statistics: {expansion_stats}")
+            print(f"Worker statistics: {worker_stats}")
+            
+            # Print individual worker performance
+            for i, worker_stat in enumerate(worker_stats['individual_worker_stats']):
+                print(f"Simulation worker {i}: {worker_stat['simulations_completed']} simulations")
     
     def _cleanup_workers(self):
         """Clean up all workers."""
         self.running = False
+        
+        # Stop expansion workers
+        for worker in self.expansion_workers:
+            worker.stop()
+        
+        # Wait for expansion workers to finish
+        for worker in self.expansion_workers:
+            if worker.is_alive():
+                worker.join(timeout=2.0)
+        
+        # Stop simulation workers
         self.simulation_worker_pool.stop_workers(timeout=2.0)
     
     def get_statistics(self) -> Dict[str, Any]:
@@ -198,7 +233,11 @@ class WUUCT:
         Returns:
             Dictionary with detailed statistics from all components
         """
-        expansion_stats = self.expansion_worker.get_statistics()
+        if not self.expansion_workers:
+            expansion_stats = {}
+        else:
+            expansion_stats = self.expansion_workers[0].get_statistics()
+            
         worker_stats = self.simulation_worker_pool.get_total_statistics()
         
         # Combine statistics
@@ -207,6 +246,7 @@ class WUUCT:
             'simulation_workers': worker_stats,
             'algorithm': {
                 'running': self.running,
+                'expansion_workers_count': self.expansion_workers_count,
                 'simulation_workers_count': self.simulation_workers_count,
                 'exploration_constant': self.exploration_constant
             }
@@ -231,7 +271,13 @@ class WUUCT:
         if self.running:
             self._cleanup_workers()
         
-        self.expansion_worker.reset()
+        # Reset all expansion workers
+        for expansion_worker in self.expansion_workers:
+            expansion_worker.reset()
+        
+        # Clear the expansion workers list
+        self.expansion_workers.clear()
+        
         self.simulation_worker_pool.reset_all_statistics()
         self.running = False
 

@@ -1,0 +1,10 @@
+# UCT Results
+# Problem: OP_Benchmark_Set/grid_sample/grid_10x10_easy_20.txt
+# Iterations: 1000
+# Exploration constant: 1.4142135623730951
+# Max distance: 1.0
+# Execution time: 0.35s
+#
+Path= 0 66 77 78 79 89 100 112 113 102 103 114 104 94 84 74 65 1
+Reward= 199
+Cost= 19.899494936611667

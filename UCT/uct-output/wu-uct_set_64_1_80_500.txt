@@ -1,11 +1,11 @@
 # WU-UCT Results
 # Problem: /Users/reubenkappely/Documents/Projects/Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem/OP_Benchmark_Set/set_64_1/set_64_1_80.txt
-# Iterations: 1000
+# Iterations: 500
 # Exploration constant: 1.4142135623730951
-# Expansion workers: 3
-# Simulation workers: 4
-# Execution time: 2.18s
+# Expansion workers: 1
+# Simulation workers: 2
+# Execution time: 0.60s
 #
-Path= 0 2 4 8 12 7 11 16 22 29 37 44 50
-Reward= 288
-Cost= 16.970562748477146
+Path= 0 2 4 7 11 17
+Reward= 84
+Cost= 7.0710678118654755

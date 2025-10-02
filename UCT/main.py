@@ -31,19 +31,16 @@ def main():
                        help='UCT exploration constant (default: sqrt(2))')
     parser.add_argument('--simulation-workers', type=int, default=4,
                        help='Number of simulation workers for WU-UCT (default: 4)')
-    parser.add_argument('--expansion-workers', type=int, default=1,
-                       help='Number of expansion workers for WU-UCT (must be 1, default: 1)')
+    parser.add_argument('--expansion-workers', type=int, default=2,
+                       help='Number of expansion workers for WU-UCT (default: 2)')
+    parser.add_argument('--max-distance', type=float,
+                       help='Maximum distance limit for simulations (optional)')
     parser.add_argument('--verbose', action='store_true',
                        help='Enable verbose output')
     parser.add_argument('--output-file', type=str,
                        help='Output file to save results')
     
     args = parser.parse_args()
-    
-    # Validate expansion workers for WU-UCT
-    if args.algorithm == 'wu-uct' and args.expansion_workers != 1:
-        print("ERROR: WU-UCT requires exactly 1 expansion worker")
-        sys.exit(1)
     
     # Load problem
     try:
@@ -53,6 +50,8 @@ def main():
         if args.verbose:
             print(f"Loaded problem: {len(nodes)} nodes, budget: {budget}")
             print(f"Problem file: {args.problem_file}")
+            if args.max_distance:
+                print(f"Max distance limit: {args.max_distance}")
     except Exception as e:
         print(f"ERROR: Failed to load problem file: {e}")
         sys.exit(1)
@@ -66,7 +65,8 @@ def main():
         
         uct = UCTSingleThread(problem, 
                              iterations=args.max_iterations,
-                             exploration_constant=args.exploration_constant)
+                             exploration_constant=args.exploration_constant,
+                             max_distance=args.max_distance)
         best_state = uct.run()
         
         if args.verbose:
@@ -82,7 +82,8 @@ def main():
         wu_uct = WUUCT(problem,
                       expansion_workers=args.expansion_workers,
                       simulation_workers=args.simulation_workers,
-                      exploration_constant=args.exploration_constant)
+                      exploration_constant=args.exploration_constant,
+                      max_distance=args.max_distance)
         
         best_state = wu_uct.run(max_iterations=args.max_iterations, verbose=args.verbose)
         
@@ -124,6 +125,8 @@ def main():
             f.write(f"# Problem: {args.problem_file}\n")
             f.write(f"# Iterations: {args.max_iterations}\n")
             f.write(f"# Exploration constant: {args.exploration_constant}\n")
+            if args.max_distance:
+                f.write(f"# Max distance: {args.max_distance}\n")
             if args.algorithm == 'wu-uct':
                 f.write(f"# Expansion workers: {args.expansion_workers}\n")
                 f.write(f"# Simulation workers: {args.simulation_workers}\n")

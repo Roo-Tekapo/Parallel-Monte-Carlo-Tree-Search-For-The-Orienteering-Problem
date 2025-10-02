@@ -108,10 +108,12 @@ class UCTSingleThread:
     """
     
     def __init__(self, problem: OrienteeringProblem, iterations: int, 
-                 exploration_constant: float = math.sqrt(2)):
+                 exploration_constant: float = math.sqrt(2),
+                 max_distance: Optional[float] = None):
         self.problem = problem
         self.iterations = iterations
         self.exploration_constant = exploration_constant
+        self.max_distance = max_distance
         
         self.root: Optional[UCTNode] = None
         self.current_iteration = 0
