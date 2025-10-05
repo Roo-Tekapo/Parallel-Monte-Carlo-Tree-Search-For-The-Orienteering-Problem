@@ -16,7 +16,7 @@ import queue
 import random
 from typing import TYPE_CHECKING
 
-from orienteering.orienteering import OrienteeringState
+from orienteering.orienteering import OrienteeringState, END_NODE
 from .work_units import WorkUnit, SimulationResult
 
 if TYPE_CHECKING:
@@ -69,8 +69,20 @@ class WUUCTSimulationWorker:
             actions = current.get_available_actions()
             
             if not actions:
-                # Dead end - no available actions but not terminal
-                # Apply penalty for not reaching the end properly
+                # Dead-end: try to force completion to END_NODE if possible
+                current_node = current.path[-1]
+                if current_node != END_NODE:
+                    # Check if we can reach END_NODE directly within budget
+                    cost_to_end = current.problem.get_distance(current_node, END_NODE)
+                    if current.cost_so_far + cost_to_end <= current.problem.budget:
+                        # Force move to END_NODE to complete the path
+                        try:
+                            current = current.apply_action(END_NODE)
+                            break
+                        except ValueError:
+                            # Can't apply action, return penalized reward
+                            pass
+                # Dead end - apply penalty for incomplete path
                 self.simulations_completed += 1
                 return current.get_reward() * 0.8  # 20% penalty
             

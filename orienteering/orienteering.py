@@ -180,7 +180,10 @@ class OrienteeringState:
 
         # Explore other unvisited neighbor nodes but ensure we can still reach END
         for i in neighbor_ids:
-            if i in self.visited or i == START_NODE or i == END_NODE:
+            if i in self.visited or i == START_NODE:
+                continue
+            # END_NODE is handled separately above, skip it here to avoid duplicates
+            if i == END_NODE:
                 continue
             cost_to_i = self.problem.get_distance(current, i)
             new_cost = self.cost_so_far + cost_to_i

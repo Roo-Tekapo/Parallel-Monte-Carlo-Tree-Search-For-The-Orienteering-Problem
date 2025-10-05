@@ -7,7 +7,7 @@ import random
 import math
 from typing import Optional, List
 
-from orienteering.orienteering import OrienteeringProblem, OrienteeringState
+from orienteering.orienteering import OrienteeringProblem, OrienteeringState, END_NODE
 
 
 class UCTNode:
@@ -147,7 +147,8 @@ class UCTSingleThread:
                 current = current.uct_select_child(self.exploration_constant)
             else:
                 # Dead end - no children and no untried actions
-                break
+                # Return this node so expansion/simulation can handle it
+                return current
         
         return current
     
@@ -178,7 +179,20 @@ class UCTSingleThread:
         while not current.is_terminal():
             actions = current.get_available_actions()
             if not actions:
-                # Dead end - apply penalty
+                # Dead-end: try to force completion to END_NODE if possible
+                current_node = current.path[-1]
+                if current_node != END_NODE:
+                    # Check if we can reach END_NODE directly within budget
+                    cost_to_end = current.problem.get_distance(current_node, END_NODE)
+                    if current.cost_so_far + cost_to_end <= current.problem.budget:
+                        # Force move to END_NODE to complete the path
+                        try:
+                            current = current.apply_action(END_NODE)
+                            break
+                        except ValueError:
+                            # Can't apply action, return penalized reward
+                            pass
+                # Dead end - apply penalty for incomplete path
                 return current.get_reward() * 0.8  # 20% penalty
             
             # Random action selection

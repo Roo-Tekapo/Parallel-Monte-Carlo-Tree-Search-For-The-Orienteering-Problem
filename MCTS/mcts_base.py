@@ -26,7 +26,8 @@ class MCTSSingleThread:
                 current = current.uct_best_child(self.const, self.epsilon)
             else:
                 # Dead-end: no untried actions and no children
-                break
+                # Return this node so simulation can handle the dead-end
+                return current
         return current
     
     # Step 2: Expansion
@@ -42,7 +43,20 @@ class MCTSSingleThread:
         while not current.is_terminal():
             actions = current.get_available_actions()
             if not actions:
-                # Dead-end: return current reward with small penalty
+                # Dead-end: try to force completion to END_NODE if possible
+                current_node = current.path[-1]
+                if current_node != END_NODE:
+                    # Check if we can reach END_NODE directly within budget
+                    cost_to_end = current.problem.get_distance(current_node, END_NODE)
+                    if current.cost_so_far + cost_to_end <= current.problem.budget:
+                        # Force move to END_NODE to complete the path
+                        try:
+                            current = current.apply_action(END_NODE)
+                            break
+                        except ValueError:
+                            # Can't apply action, return penalized reward
+                            pass
+                # Return current reward with penalty for incomplete path
                 return current.get_reward() * 0.8  # 20% penalty for not reaching end
             action = random.choice(actions)
             current = current.apply_action(action)
