@@ -185,30 +185,80 @@ class WUUCT:
         return stats.get('root_visits', 0)
     
     def _print_progress(self, iteration: int, start_time: float):
-        """Print progress information."""
+        """Print progress information with per-thread statistics."""
         elapsed = time.time() - start_time
-        if self.expansion_workers:
-            stats = self.expansion_workers[0].get_statistics()
-            print(f"Iteration {iteration}, "
-                  f"Time: {elapsed:.1f}s, "
-                  f"Nodes: {stats['nodes']}, "
-                  f"Root visits: {stats['root_visits']}")
-    
-    def _print_final_statistics(self, iteration: int, start_time: float):
-        """Print final algorithm statistics."""
-        elapsed = time.time() - start_time
+        print(f"\n=== WU-UCT Progress: Iteration {iteration}, Time: {elapsed:.1f}s ===")
         
         if self.expansion_workers:
+            # Print overall tree statistics from first worker (they share the tree)
+            overall_stats = self.expansion_workers[0].get_statistics()
+            print(f"Tree: {overall_stats['nodes']} nodes, {overall_stats['root_visits']} root visits")
+            
+            # Print per-thread expansion worker statistics
+            print("\nExpansion Worker Thread Results:")
+            total_expanded = 0
+            total_simulations = 0
+            for worker in self.expansion_workers:
+                thread_stats = worker.get_thread_statistics()
+                total_expanded += thread_stats['nodes_expanded']
+                total_simulations += thread_stats['simulations_processed']
+                print(f"  Worker {thread_stats['worker_id']}: "
+                      f"{thread_stats['iterations']} iter, "
+                      f"{thread_stats['nodes_expanded']} expanded, "
+                      f"{thread_stats['simulations_processed']}/{thread_stats['simulations_requested']} sims, "
+                      f"best reward: {thread_stats['best_reward']:.1f}, "
+                      f"{thread_stats['iterations_per_second']:.1f} iter/s")
+            
+            print(f"  Total: {total_expanded} nodes expanded, {total_simulations} simulations processed")
+            
+            # Print simulation worker statistics
+            sim_stats = self.simulation_worker_pool.get_total_statistics()
+            print(f"Simulation Workers: {sim_stats['total_simulations']} completed")
+    
+    def _print_final_statistics(self, iteration: int, start_time: float):
+        """Print final algorithm statistics with per-thread details."""
+        elapsed = time.time() - start_time
+        
+        print(f"\n=== WU-UCT Final Results ===")
+        print(f"Completed {iteration} iterations in {elapsed:.1f}s ({iteration/elapsed:.1f} iter/s)")
+        
+        if self.expansion_workers:
+            # Overall tree statistics
             expansion_stats = self.expansion_workers[0].get_statistics()
+            print(f"\nTree: {expansion_stats['nodes']} total nodes, {expansion_stats['root_visits']} root visits")
+            
+            # Detailed per-thread expansion worker statistics
+            print(f"\nExpansion Worker Thread Performance:")
+            total_expanded = 0
+            total_simulations_req = 0
+            total_simulations_proc = 0
+            best_overall_reward = 0
+            
+            for worker in self.expansion_workers:
+                thread_stats = worker.get_thread_statistics()
+                total_expanded += thread_stats['nodes_expanded']
+                total_simulations_req += thread_stats['simulations_requested']
+                total_simulations_proc += thread_stats['simulations_processed']
+                best_overall_reward = max(best_overall_reward, thread_stats['best_reward'])
+                
+                print(f"  Worker {thread_stats['worker_id']}: "
+                      f"{thread_stats['iterations']:>6} iterations, "
+                      f"{thread_stats['nodes_expanded']:>6} nodes expanded, "
+                      f"{thread_stats['simulations_processed']:>6}/{thread_stats['simulations_requested']:>6} simulations, "
+                      f"best reward: {thread_stats['best_reward']:>6.1f}, "
+                      f"{thread_stats['iterations_per_second']:>6.1f} iter/s")
+            
+            print(f"  Total: {total_expanded} nodes expanded, {total_simulations_proc}/{total_simulations_req} simulations")
+            print(f"  Best reward found: {best_overall_reward:.1f}")
+            
+            # Simulation worker statistics
             worker_stats = self.simulation_worker_pool.get_total_statistics()
+            print(f"\nSimulation Workers: {worker_stats['total_simulations']} total completions")
             
-            print(f"Completed {iteration} iterations in {elapsed:.1f}s")
-            print(f"Tree statistics: {expansion_stats}")
-            print(f"Worker statistics: {worker_stats}")
-            
-            # Print individual worker performance
+            # Individual simulation worker performance
             for i, worker_stat in enumerate(worker_stats['individual_worker_stats']):
-                print(f"Simulation worker {i}: {worker_stat['simulations_completed']} simulations")
+                sim_count = worker_stat.get('simulations_completed', 0)
+                print(f"  Sim worker {i}: {sim_count} simulations")
     
     def _cleanup_workers(self):
         """Clean up all workers."""
