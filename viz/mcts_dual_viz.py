@@ -10,8 +10,9 @@ from orienteering.orienteering import OrienteeringProblem
 
 # Config
 # PROBLEM_PATH = "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
-PROBLEM_PATH = "OP_Benchmark_Set/grid_sample/grid_10x10_long_50.txt"
-# PROBLEM_PATH = "OP_Benchmark_Set/sample/sample_6_small.txt"
+# PROBLEM_PATH = "OP_Benchmark_Set/grid_sample/grid_10x10_long_50.txt"
+# PROBLEM_PATH = "OP_Benchmark_Set/grid_patterns/grid_corners_b40.txt"
+PROBLEM_PATH = "OP_Benchmark_Set/parallel_friendly_v2/xlarge/xlarge_40x40_r0_42.txt"
 # PROBLEM_PATH = "OP_Benchmark_Set/sample/sample_30.txt"
 # PROBLEM_PATH = "OP_Benchmark_Set/sample/sample_1000.txt"
 ITERATIONS = 100000
@@ -20,7 +21,7 @@ INITIAL_TREE_DEPTH = 10
 # Performance settings
 ANIMATION_INTERVAL = 100  # ms - reduced update frequency for smoother visualization
 STEPS_PER_FRAME = 1       # Single MCTS step per visualization update for better debugging
-MAX_TREE_NODES = 200      # Limit tree visualization nodes
+MAX_TREE_NODES = 2000      # Limit tree visualization nodes
 
 
 def extract_coords(nodes):

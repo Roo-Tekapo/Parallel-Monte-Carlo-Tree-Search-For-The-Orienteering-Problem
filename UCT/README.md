@@ -102,6 +102,7 @@ best_state = wu_uct.run(max_iterations=10000)
 - `--expansion-workers`: Must be 1 for WU-UCT (default: 1)
 - `--verbose`: Enable detailed progress output
 - `--output-file`: Save results to file
+-  `--max-distance`: Sets max travle from given node
 
 ## Performance Comparison
 

@@ -1,0 +1,12 @@
+# WU-UCT Results
+# Problem: C:\Users\reube\Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem\OP_Benchmark_Set\grid_patterns\grid_corners_b40.txt
+# Iterations: 100000
+# Exploration constant: 1.4142135623730951
+# Max distance: 1.42
+# Expansion workers: 2
+# Simulation workers: 4
+# Execution time: 50.30s
+#
+Path= 0 32 23 13 2 12 3 4 14 24 34 43 33 42 52 61 71 60 70 80 90 91 92 81 82 72 83 93 94 95 86 97 87 78 69 1
+Reward= 423
+Cost= 39.556349186104036

@@ -95,6 +95,9 @@ budget_text = ax.text(
     bbox=dict(facecolor='white', alpha=0.6, edgecolor='none')
 )
 
+# Dead-end counter (global)
+dead_end_count = 0
+
 paused = False
 # Toggle whether to aggregate visits across all tree nodes ending at the same graph node
 aggregate_stats = False
@@ -118,11 +121,15 @@ for i, (x, y) in enumerate(zip(xs, ys)):
     node_texts.append(txt)
 
 def update(frame):
-    global paused, aggregate_stats
+    global paused, aggregate_stats, dead_end_count
     if paused:
         return sel_scatter, best_line, sc, current_scatter, budget_text
 
     ev = solver.step()
+    
+    # Track dead-ends
+    if ev.get("leaf") and hasattr(ev["leaf"], "is_dead_end") and ev["leaf"].is_dead_end:
+        dead_end_count += 1
 
     # highlight selection path nodes (use node.state to get path indexes)
     sel_coords_x = []
@@ -182,8 +189,13 @@ def update(frame):
             bx.append(p.x); by.append(p.y)
     best_line.set_data(bx, by)
 
+    # Check if the leaf is a dead-end for display
+    is_leaf_dead_end = hasattr(ev.get("leaf"), "is_dead_end") and ev["leaf"].is_dead_end
+    dead_end_marker = " [DEAD-END]" if is_leaf_dead_end else ""
+    
     ax.set_xlabel(
-        f"iterations: {solver.iteration}/{solver.iterations}  last_reward: {ev['reward']:.3f}  mode: {'agg' if aggregate_stats else 'per'}"
+        f"iterations: {solver.iteration}/{solver.iterations}  last_reward: {ev['reward']:.3f}  "
+        f"mode: {'agg' if aggregate_stats else 'per'}  dead-ends: {dead_end_count}{dead_end_marker}"
     )
 
     # Update node labels with either aggregated or per-tree-node stats

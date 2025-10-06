@@ -14,6 +14,8 @@ class MCTSNode:
         self.untried_actions = list(state.get_available_actions() or [])
         if self.untried_actions:
             random.shuffle(self.untried_actions)
+        # Mark as dead-end if no actions available and not terminal
+        self.is_dead_end = (len(self.untried_actions) == 0 and not state.is_terminal())
 
     def __repr__(self):
         try:
@@ -57,12 +59,20 @@ class MCTSNode:
         if not self.children:
             raise ValueError("No children to select from.")
 
+        # Filter out dead-end children (nodes with no actions that aren't terminal)
+        viable_children = [c for c in self.children if not c.is_dead_end]
+        
+        # If all children are dead-ends, fall back to all children
+        # (This shouldn't happen often but prevents crashes)
+        if not viable_children:
+            viable_children = self.children
+
         # epsilon-greedy occasional random pick
         if epsilon > 0.0 and random.random() < epsilon:
-            return random.choice(self.children)
+            return random.choice(viable_children)
 
         # prefer any unvisited child first
-        unvisited = [c for c in self.children if c.visits == 0]
+        unvisited = [c for c in viable_children if c.visits == 0]
         if unvisited:
             return random.choice(unvisited)
 
@@ -73,7 +83,7 @@ class MCTSNode:
         best_child = None
         
         sqrt_ln_parent = math.sqrt(ln_parent)
-        for child in self.children:
+        for child in viable_children:
             # safe since all children visited >0 here
             exploit = child.total_reward / child.visits
             explore = c_param * sqrt_ln_parent / math.sqrt(child.visits)

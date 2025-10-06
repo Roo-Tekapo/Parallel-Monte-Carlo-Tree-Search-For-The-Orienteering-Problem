@@ -20,13 +20,20 @@ class MCTSSingleThread:
         # traverse the tree until a leaf node is reached
         current = node
         while not current.state.is_terminal():
+            # Check if this is a dead-end node (no actions available, not terminal)
+            if current.is_dead_end:
+                # Dead-end node: cannot expand, return for simulation
+                return current
+            
             if not current.is_fully_expanded():
+                # Has untried actions, expand one
                 return self.expand(current)
-            elif current.children: # if node has children, select one using UCT
+            elif current.children:
+                # Fully expanded with children, select best child using UCT
                 current = current.uct_best_child(self.const, self.epsilon)
             else:
-                # Dead-end: no untried actions and no children
-                # Return this node so simulation can handle the dead-end
+                # Fully expanded but no children - shouldn't happen after dead-end check
+                # but return it anyway for simulation
                 return current
         return current
     
@@ -40,7 +47,11 @@ class MCTSSingleThread:
 
     def simulate(self, state: OrienteeringState) -> float:
         current = state.copy()
-        while not current.is_terminal():
+        max_simulation_steps = 1000  # Prevent infinite loops
+        steps = 0
+        
+        while not current.is_terminal() and steps < max_simulation_steps:
+            steps += 1
             actions = current.get_available_actions()
             if not actions:
                 # Dead-end: try to force completion to END_NODE if possible
@@ -57,7 +68,7 @@ class MCTSSingleThread:
                             # Can't apply action, return penalized reward
                             pass
                 # Return current reward with penalty for incomplete path
-                return current.get_reward() * 0.8  # 20% penalty for not reaching end
+                return current.get_reward() * 0.5  # 50% penalty for dead-end
             action = random.choice(actions)
             current = current.apply_action(action)
         return current.get_reward()
@@ -173,7 +184,8 @@ if __name__ == "__main__":
         # "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
         # "OP_Benchmark_Set/sample/sample_30.txt"
         # "OP_Benchmark_Set/set_1000_1/set_1000_1_30.txt"
-        "OP_Benchmark_Set/grid_sample/grid_10x10_long_50.txt"
+        # "OP_Benchmark_Set/grid_sample/grid_10x10_long_50.txt"
+        "OP_Benchmark_Set\grid_patterns\grid_corners_b40.txt"
     )
 
     problem = OrienteeringProblem(nodes, budget)
