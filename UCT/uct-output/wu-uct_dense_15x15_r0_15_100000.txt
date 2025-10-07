@@ -1,0 +1,12 @@
+# WU-UCT Results
+# Problem: OP_Benchmark_Set\parallel_friendly_v2\dense_grid\dense_15x15_r0_15.txt
+# Iterations: 100000
+# Exploration constant: 1.4142135623730951
+# Max distance: 1.42
+# Expansion workers: 2
+# Simulation workers: 4
+# Execution time: 4.29s
+#
+Path= 0 16 32 47 62 77 76 90 75 60 45 30 15 1
+Reward= 222
+Cost= 14.656854249492381

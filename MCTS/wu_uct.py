@@ -145,12 +145,15 @@ class WUUCTSolver:
         """
         WU-UCT selection: traverse tree until finding a node to expand.
         Returns the selected node, path taken, and task ID.
+        
+        OPTIMIZATION: Release lock between nodes to allow parallel tree traversal.
         """
         current = node
         path = [current]
         task_id = self.get_task_id()
         
         while not current.state.is_terminal():
+            # Lock only for operations on current node, then release
             with self.global_tree_lock:
                 # Apply incomplete update (track unobserved sample)
                 if hasattr(current, 'update_incomplete'):
@@ -161,16 +164,21 @@ class WUUCTSolver:
                 if not current.is_fully_expanded():
                     # Found expandable node
                     return current, path, task_id
-                elif current.children:
-                    # Select best child using WU-UCT formula
-                    action_idx = current.select_action_wu_uct(self.exploration_constant)
-                    if action_idx is not None and action_idx < len(current.children):
-                        current = current.children[action_idx]
-                        path.append(current)
-                    else:
-                        break
-                else:
+                
+                if not current.children:
                     break
+                
+                # Select best child using WU-UCT formula
+                action_idx = current.select_action_wu_uct(self.exploration_constant)
+                if action_idx is None or action_idx >= len(current.children):
+                    break
+                
+                # Get reference to next child while we have the lock
+                next_child = current.children[action_idx]
+            
+            # Move to next node OUTSIDE the lock (allows other workers to traverse)
+            current = next_child
+            path.append(current)
         
         return current, path, task_id
     
@@ -266,11 +274,14 @@ class WUUCTSolver:
         """
         WU-UCT backpropagation: complete updates for observed samples.
         path contains tuples of (node, task_id) for proper tracking.
+        
+        OPTIMIZATION: Single lock for entire backpropagation instead of per-node.
         """
         accumulated_reward = reward
         
-        for node, task_id in reversed(path):
-            with self.global_tree_lock:
+        # Acquire lock once for entire backpropagation
+        with self.global_tree_lock:
+            for node, task_id in reversed(path):
                 if hasattr(node, 'update_complete'):
                     # Complete update for WU-UCT nodes
                     accumulated_reward = node.update_complete(task_id, -1, accumulated_reward)

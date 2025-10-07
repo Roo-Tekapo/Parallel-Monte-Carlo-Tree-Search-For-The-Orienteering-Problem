@@ -18,7 +18,7 @@ import time
 from typing import Optional, Dict, Any
 
 from orienteering.orienteering import OrienteeringProblem, OrienteeringState
-from .uct_single_thread import UCTNode
+from .wu_uct_node import WUUCTNode
 from .work_units import WorkUnit, SimulationResult
 
 
@@ -61,7 +61,7 @@ class WUUCTExpansionWorker(threading.Thread):
         self.max_distance = max_distance
         self.max_iterations = max_iterations
         self.max_time = max_time
-        self.root: Optional[UCTNode] = None
+        self.root: Optional[WUUCTNode] = None
         self.work_counter = 0
         
         # Thread control
@@ -77,7 +77,7 @@ class WUUCTExpansionWorker(threading.Thread):
         self.result_queue: queue.Queue[SimulationResult] = result_queue or queue.Queue()
         
         # Keep track of pending work units for THIS worker only
-        self.pending_work: Dict[int, UCTNode] = {}
+        self.pending_work: Dict[int, WUUCTNode] = {}
         
         # Per-thread statistics
         self.nodes_expanded = 0
@@ -85,7 +85,7 @@ class WUUCTExpansionWorker(threading.Thread):
         self.simulations_processed = 0
         self.best_reward = 0.0
     
-    def initialize_root(self) -> UCTNode:
+    def initialize_root(self) -> WUUCTNode:
         """
         Initialize the root node if it doesn't exist.
         
@@ -98,7 +98,7 @@ class WUUCTExpansionWorker(threading.Thread):
                 self.problem.max_edge_distance = self.max_distance
                 
             root_state = OrienteeringState(self.problem)
-            self.root = UCTNode(root_state)
+            self.root = WUUCTNode(root_state)
         return self.root
     
     def run(self):
@@ -193,9 +193,16 @@ class WUUCTExpansionWorker(threading.Thread):
                         # Select an untried action and create new child
                         action = current.untried_actions.pop()
                         new_state = current.state.apply_action(action)
-                        child_node = UCTNode(new_state, parent=current)
+                        child_node = WUUCTNode(new_state, parent=current)
                         current.add_child(child_node)
                         self.nodes_expanded += 1
+                        
+                        # Apply Watch the Unobservable mechanism
+                        # Increment pending_simulations (O_n) for this node and all ancestors
+                        node = child_node
+                        while node is not None:
+                            node.pending_simulations += 1
+                            node = node.parent
                         
                         # Create work unit for simulation workers
                         work_id = self._get_unique_work_id()
@@ -208,8 +215,9 @@ class WUUCTExpansionWorker(threading.Thread):
                         # but has no untried actions
                         break
                 elif current.children:
-                    # Node is fully expanded, select best child using UCT
-                    current = current.uct_select_child(self.exploration_constant)
+                    # Node is fully expanded, select best child using WU-UCT formula
+                    # This uses the Watch the Unobservable mechanism
+                    current = current.wu_uct_select_child(self.exploration_constant)
                 else:
                     # Dead end - no children and no untried actions
                     break
@@ -231,8 +239,9 @@ class WUUCTExpansionWorker(threading.Thread):
         
         This method:
         1. Finds the node corresponding to the work unit
-        2. Backpropagates the reward up the tree
-        3. Updates visit counts and total rewards
+        2. Decrements pending_simulations (Watch the Unobservable)
+        3. Backpropagates the reward up the tree
+        4. Updates visit counts and total rewards
         
         Args:
             result: The simulation result to process
@@ -246,6 +255,13 @@ class WUUCTExpansionWorker(threading.Thread):
                 # Track best reward seen by this worker
                 if result.reward > self.best_reward:
                     self.best_reward = result.reward
+                
+                # Remove virtual loss first (Watch the Unobservable)
+                # Decrement pending_simulations for this node and all ancestors
+                current = node
+                while current is not None:
+                    current.pending_simulations -= 1
+                    current = current.parent
                 
                 # Backpropagation - update all nodes in the path to root
                 current = node

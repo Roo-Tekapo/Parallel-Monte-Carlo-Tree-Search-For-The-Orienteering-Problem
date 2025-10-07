@@ -182,10 +182,11 @@ if __name__ == "__main__":
     nodes, budget = OrienteeringProblem.load_problem(
         # "OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_85.txt"
         # "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
-        # "OP_Benchmark_Set/sample/sample_30.txt"
         # "OP_Benchmark_Set/set_1000_1/set_1000_1_30.txt"
         # "OP_Benchmark_Set/grid_sample/grid_10x10_long_50.txt"
-        "OP_Benchmark_Set\grid_patterns\grid_corners_b40.txt"
+        # "OP_Benchmark_Set\grid_patterns\grid_corners_b40.txt"
+        "OP_Benchmark_Set/parallel_friendly_v2/xlarge/xlarge_40x40_r0_42.txt"
+        # "OP_Benchmark_Set\parallel_friendly_v2\clustered\clustered_c4_s4_sp6_19.txt"
     )
 
     problem = OrienteeringProblem(nodes, budget)

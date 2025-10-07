@@ -27,6 +27,8 @@ def main():
                        help='Algorithm to use (default: wu-uct)')
     parser.add_argument('--max-iterations', type=int, default=100000,
                        help='Maximum number of iterations (default: 100000)')
+    parser.add_argument('--max-time', type=float, default=None,
+                       help='Maximum time in seconds (optional, overrides max-iterations if both specified)')
     parser.add_argument('--exploration-constant', type=float, default=math.sqrt(2),
                        help='UCT exploration constant (default: sqrt(2))')
     parser.add_argument('--simulation-workers', type=int, default=4,
@@ -52,6 +54,8 @@ def main():
             print(f"Problem file: {args.problem_file}")
             if args.max_distance:
                 print(f"Max distance limit: {args.max_distance}")
+            if args.max_time:
+                print(f"Max time: {args.max_time} seconds")
     except Exception as e:
         print(f"ERROR: Failed to load problem file: {e}")
         sys.exit(1)
@@ -61,13 +65,16 @@ def main():
     
     if args.algorithm == 'uct':
         if args.verbose:
-            print(f"Running single-threaded UCT with {args.max_iterations} iterations")
+            if args.max_time:
+                print(f"Running single-threaded UCT with max time {args.max_time}s")
+            else:
+                print(f"Running single-threaded UCT with {args.max_iterations} iterations")
         
         uct = UCTSingleThread(problem, 
                              iterations=args.max_iterations,
                              exploration_constant=args.exploration_constant,
                              max_distance=args.max_distance)
-        best_state = uct.run()
+        best_state = uct.run(max_time=args.max_time)
         
         if args.verbose:
             stats = uct.get_statistics()
@@ -75,7 +82,10 @@ def main():
     
     elif args.algorithm == 'wu-uct':
         if args.verbose:
-            print(f"Running WU-UCT with {args.max_iterations} iterations")
+            if args.max_time:
+                print(f"Running WU-UCT with max time {args.max_time}s")
+            else:
+                print(f"Running WU-UCT with {args.max_iterations} iterations")
             print(f"Expansion workers: {args.expansion_workers}")
             print(f"Simulation workers: {args.simulation_workers}")
         
@@ -85,7 +95,7 @@ def main():
                       exploration_constant=args.exploration_constant,
                       max_distance=args.max_distance)
         
-        best_state = wu_uct.run(max_iterations=args.max_iterations, verbose=args.verbose)
+        best_state = wu_uct.run(max_iterations=args.max_iterations, max_time=args.max_time, verbose=args.verbose)
         
         if args.verbose:
             stats = wu_uct.get_statistics()
@@ -124,6 +134,8 @@ def main():
             f.write(f"# {args.algorithm.upper()} Results\n")
             f.write(f"# Problem: {args.problem_file}\n")
             f.write(f"# Iterations: {args.max_iterations}\n")
+            if args.max_time:
+                f.write(f"# Max time: {args.max_time}s\n")
             f.write(f"# Exploration constant: {args.exploration_constant}\n")
             if args.max_distance:
                 f.write(f"# Max distance: {args.max_distance}\n")

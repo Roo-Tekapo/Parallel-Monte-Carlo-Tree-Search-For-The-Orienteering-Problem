@@ -48,14 +48,14 @@ class WUUCT:
             simulation_workers: Number of simulation workers
             exploration_constant: UCT exploration parameter
             max_distance: Maximum distance limit for simulations (optional)
-            
-            max_distance: Maximum distance limit for simulations (optional)
         """
         self.problem = problem
         self.expansion_workers_count = expansion_workers
         self.simulation_workers_count = simulation_workers
         self.exploration_constant = exploration_constant
-        self.max_distance = max_distance        # Create expansion workers (manage the tree)
+        self.max_distance = max_distance
+        
+        # Create expansion workers (manage the tree)
         self.expansion_workers = []
         
         # Create the simulation worker pool
@@ -64,9 +64,9 @@ class WUUCT:
         # Algorithm state
         self.running = False
     
-    def run(self, max_iterations: int, verbose: bool = False) -> OrienteeringState:
+    def run(self, max_iterations: int, max_time: Optional[float] = None, verbose: bool = False) -> OrienteeringState:
         """
-        Run the WU-UCT algorithm for the specified number of iterations.
+        Run the WU-UCT algorithm for the specified number of iterations or time limit.
         
         This is the main method that:
         1. Creates and starts multiple expansion workers in separate threads
@@ -76,6 +76,7 @@ class WUUCT:
         
         Args:
             max_iterations: Maximum number of iterations to run
+            max_time: Maximum time in seconds (optional, overrides max_iterations if specified)
             verbose: Whether to print progress information
             
         Returns:
@@ -88,8 +89,8 @@ class WUUCT:
         shared_work_queue = queue.Queue()
         shared_result_queue = queue.Queue()
         
-        # Calculate iterations per expansion worker
-        iterations_per_worker = max_iterations // self.expansion_workers_count
+        # Calculate iterations per expansion worker (only if not using time limit)
+        iterations_per_worker = None if max_time else max_iterations // self.expansion_workers_count
         
         # Create and start expansion workers with shared queues
         for i in range(self.expansion_workers_count):
@@ -100,7 +101,8 @@ class WUUCT:
                 max_distance=self.max_distance,
                 work_queue=shared_work_queue,
                 result_queue=shared_result_queue,
-                max_iterations=iterations_per_worker
+                max_iterations=iterations_per_worker,
+                max_time=max_time
             )
             self.expansion_workers.append(worker)
             worker.start()  # Start the thread
@@ -116,6 +118,12 @@ class WUUCT:
             # Monitor progress while workers run independently
             last_iteration = 0
             while self.running and any(worker.is_alive() for worker in self.expansion_workers):
+                # Check for time limit
+                if max_time and (time.time() - start_time) >= max_time:
+                    if verbose:
+                        print(f"Time limit of {max_time}s reached, stopping workers...")
+                    break
+                
                 time.sleep(1)  # Check every second
                 
                 # Update iteration count based on completed simulations

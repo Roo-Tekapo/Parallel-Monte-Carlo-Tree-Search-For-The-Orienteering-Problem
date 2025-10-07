@@ -1,12 +1,12 @@
 # WU-UCT Results
-# Problem: C:\Users\reube\Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem\OP_Benchmark_Set\set_64_1\set_64_1_80.txt
+# Problem: OP_Benchmark_Set\set_64_1\set_64_1_80.txt
 # Iterations: 100000
 # Exploration constant: 1.4142135623730951
 # Max distance: 1.42
 # Expansion workers: 2
 # Simulation workers: 4
-# Execution time: 17.05s
+# Execution time: 18.59s
 #
-Path= 0 3 6 9 14 10 15 21 28 35 43 49 42 34 27 20 26 33 25 18 12 8 5 2 4 7 11 17 23 16 22 29 37 30 38 31 24 32 39 45 50 55 59 56 51 46 40 47 41 48 54 58 53 57 61 63 1
-Reward= 1218
+Path= 0 2 5 9 6 10 15 21 28 36 43 35 42 34 27 20 14 19 26 33 25 18 12 8 4 7 11 16 22 29 37 44 38 30 23 17 24 31 39 45 50 55 59 56 52 46 40 47 41 48 54 58 53 57 61 63 1
+Reward= 1242
 Cost= 79.19595949289325

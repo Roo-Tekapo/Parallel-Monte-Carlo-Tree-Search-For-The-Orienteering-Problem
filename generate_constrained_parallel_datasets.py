@@ -45,18 +45,25 @@ class GridBasedOPGenerator:
         """
         nodes = []
         
-        # Always place start/end at origin
+        # Node 0: START at origin with reward 0
         nodes.append((0.0, 0.0, 0))
         
-        # Generate grid nodes
+        # Node 1: END at opposite corner with reward 0
+        end_x = (grid_width - 1) * self.unit_spacing
+        end_y = (grid_height - 1) * self.unit_spacing
+        nodes.append((end_x, end_y, 0))
+        
+        # Generate grid nodes (excluding start and end positions)
         grid_positions = []
         for i in range(grid_width):
             for j in range(grid_height):
-                if i == 0 and j == 0:
-                    continue  # Skip origin (already added as start/end)
-                
                 x = i * self.unit_spacing
                 y = j * self.unit_spacing
+                
+                # Skip START and END positions
+                if (i == 0 and j == 0) or (i == grid_width - 1 and j == grid_height - 1):
+                    continue
+                
                 grid_positions.append((x, y))
         
         # Randomly remove some interior nodes for complexity
@@ -99,15 +106,27 @@ class GridBasedOPGenerator:
             (nodes, budget)
         """
         nodes = []
+        
+        # Node 0: START at origin with reward 0
         nodes.append((0.0, 0.0, 0))
         
-        # Generate all possible grid positions
+        # Node 1: END at opposite corner with reward 0
+        end_x = (grid_width - 1) * self.unit_spacing
+        end_y = (grid_height - 1) * self.unit_spacing
+        nodes.append((end_x, end_y, 0))
+        
+        # Generate all possible grid positions (excluding start and end)
         all_positions = []
         for i in range(grid_width):
             for j in range(grid_height):
-                if i == 0 and j == 0:
+                x = i * self.unit_spacing
+                y = j * self.unit_spacing
+                
+                # Skip START and END positions
+                if (i == 0 and j == 0) or (i == grid_width - 1 and j == grid_height - 1):
                     continue
-                all_positions.append((i * self.unit_spacing, j * self.unit_spacing))
+                    
+                all_positions.append((x, y))
         
         # Keep only density% of nodes
         n_keep = int(len(all_positions) * density)
@@ -145,7 +164,13 @@ class GridBasedOPGenerator:
             (nodes, budget)
         """
         nodes = []
+        
+        # Node 0: START at origin with reward 0
         nodes.append((0.0, 0.0, 0))
+        
+        # We'll set END node position after generating all clusters
+        end_node_placeholder_idx = len(nodes)
+        nodes.append((0.0, 0.0, 0))  # Placeholder for END node
         
         # Arrange clusters in a grid pattern
         clusters_per_side = int(np.ceil(np.sqrt(n_clusters)))
@@ -177,6 +202,21 @@ class GridBasedOPGenerator:
                 
                 cluster_id += 1
         
+        # Find farthest node from START to set as END
+        if len(nodes) > 2:
+            max_dist = 0
+            farthest_idx = 2  # Start checking from index 2 (after placeholder)
+            for i in range(2, len(nodes)):
+                dist = math.sqrt(nodes[i][0]**2 + nodes[i][1]**2)
+                if dist > max_dist:
+                    max_dist = dist
+                    farthest_idx = i
+            # Replace placeholder END node with the farthest node (with reward 0)
+            end_x, end_y, _ = nodes[farthest_idx]
+            nodes[end_node_placeholder_idx] = (end_x, end_y, 0)
+            # Remove the duplicate node
+            del nodes[farthest_idx]
+        
         # Budget to visit multiple clusters
         span = clusters_per_side * cluster_spacing * self.unit_spacing
         budget = budget_ratio * span * 4.0
@@ -203,7 +243,13 @@ class GridBasedOPGenerator:
             (nodes, budget)
         """
         nodes = []
+        
+        # Node 0: START at origin with reward 0
         nodes.append((0.0, 0.0, 0))
+        
+        # We'll set END node position after generating all corridors
+        end_node_placeholder_idx = len(nodes)
+        nodes.append((0.0, 0.0, 0))  # Placeholder for END node
         
         # Create main corridors radiating from origin
         for corridor_idx in range(n_corridors):
@@ -239,6 +285,21 @@ class GridBasedOPGenerator:
             reward = np.random.randint(15, 25)
             nodes.append((x, y, reward))
         
+        # Find farthest node from START to set as END
+        if len(nodes) > 2:
+            max_dist = 0
+            farthest_idx = 2  # Start checking from index 2 (after placeholder)
+            for i in range(2, len(nodes)):
+                dist = math.sqrt(nodes[i][0]**2 + nodes[i][1]**2)
+                if dist > max_dist:
+                    max_dist = dist
+                    farthest_idx = i
+            # Replace placeholder END node with the farthest node (with reward 0)
+            end_x, end_y, _ = nodes[farthest_idx]
+            nodes[end_node_placeholder_idx] = (end_x, end_y, 0)
+            # Remove the duplicate node
+            del nodes[farthest_idx]
+        
         # Budget for corridor exploration
         budget = budget_ratio * corridor_length * self.unit_spacing * 3.0
         
@@ -268,7 +329,13 @@ class GridBasedOPGenerator:
             (nodes, budget)
         """
         nodes = []
+        
+        # Node 0: START at origin with reward 0
         nodes.append((0.0, 0.0, 0))
+        
+        # We'll set END node position after generating all islands
+        end_node_placeholder_idx = len(nodes)
+        nodes.append((0.0, 0.0, 0))  # Placeholder for END node
         
         # Generate island centers (avoid placing too close)
         island_centers = []
@@ -330,6 +397,21 @@ class GridBasedOPGenerator:
                         # Bridge nodes have high rewards (incentive to use bridges)
                         reward = np.random.randint(20, 28)
                         nodes.append((bx, by, reward))
+        
+        # Find farthest node from START to set as END
+        if len(nodes) > 2:
+            max_dist = 0
+            farthest_idx = 2  # Start checking from index 2 (after placeholder)
+            for i in range(2, len(nodes)):
+                dist = math.sqrt(nodes[i][0]**2 + nodes[i][1]**2)
+                if dist > max_dist:
+                    max_dist = dist
+                    farthest_idx = i
+            # Replace placeholder END node with the farthest node (with reward 0)
+            end_x, end_y, _ = nodes[farthest_idx]
+            nodes[end_node_placeholder_idx] = (end_x, end_y, 0)
+            # Remove the duplicate node
+            del nodes[farthest_idx]
         
         # Budget to visit multiple islands
         max_span = max_separation * 4

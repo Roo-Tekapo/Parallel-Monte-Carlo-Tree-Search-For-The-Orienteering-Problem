@@ -62,9 +62,21 @@ class UCTNode:
     
     def uct_select_child(self, exploration_constant: float = math.sqrt(2)) -> 'UCTNode':
         """
-        Select child using UCT (Upper Confidence Bounds for Trees) formula.
+        Select child using standard UCT (Upper Confidence Bounds for Trees) formula.
+        
         UCT = exploitation + exploration
-        UCT = (reward/visits) + c * sqrt(ln(parent_visits) / child_visits)
+        UCT = (Q/N) + c * sqrt(ln(N_parent) / N_child)
+        
+        Where:
+        - Q = total reward of child
+        - N = visit count
+        - c = exploration constant (typically sqrt(2))
+        
+        Args:
+            exploration_constant: Exploration parameter c (default: sqrt(2))
+        
+        Returns:
+            Selected child node
         """
         if not self.children:
             raise ValueError("Cannot select child from node with no children")
@@ -75,7 +87,7 @@ class UCTNode:
             return random.choice(unvisited)
         
         # Calculate UCT values for all children
-        parent_visits = max(1, self.visits)  # Prevent division by zero
+        parent_visits = max(1, self.visits)
         ln_parent_visits = math.log(parent_visits)
         
         best_child = None
@@ -270,15 +282,28 @@ class UCTSingleThread:
             'best_child': self.get_best_child(root)
         }
     
-    def run(self) -> OrienteeringState:
+    def run(self, max_time: Optional[float] = None) -> OrienteeringState:
         """
-        Run the complete UCT algorithm for the specified number of iterations.
+        Run the complete UCT algorithm for the specified number of iterations or time limit.
+        
+        Args:
+            max_time: Maximum time in seconds (optional, overrides iterations if specified)
+        
         Returns the best state found.
         """
+        import time
+        
         self.initialize_root()
         
-        for _ in range(self.iterations):
-            self.run_iteration()
+        if max_time is not None:
+            # Run with time limit
+            start_time = time.time()
+            while (time.time() - start_time) < max_time:
+                self.run_iteration()
+        else:
+            # Run with iteration limit
+            for _ in range(self.iterations):
+                self.run_iteration()
         
         return self.get_best_path()
     

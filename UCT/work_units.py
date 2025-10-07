@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 from orienteering.orienteering import OrienteeringState
 
 if TYPE_CHECKING:
-    from .uct_single_thread import UCTNode
+    from .wu_uct_node import WUUCTNode
 
 
 @dataclass
@@ -19,11 +19,11 @@ class WorkUnit:
     
     This is the basic unit of work passed from the expansion worker
     to the simulation workers. It contains:
-    - The node that needs simulation
+    - The node that needs simulation (WUUCTNode for WU-UCT)
     - A copy of the state for the simulation
     - A unique work ID for tracking
     """
-    node: 'UCTNode'
+    node: 'WUUCTNode'
     state: OrienteeringState
     work_id: int
     

@@ -1,0 +1,10 @@
+# UCT Results
+# Problem: OP_Benchmark_Set\parallel_friendly_v2\xlarge\xlarge_40x40_r0_42.txt
+# Iterations: 100000
+# Exploration constant: 1.4142135623730951
+# Max distance: 1.42
+# Execution time: 20.51s
+#
+Path= 0 41 40 81 120 160 200 240 280 321 322 361 402 362 401 360 320 281 241 201 161 121 122 163 203 242 282 323 283 243 202 162 123 82 42 1
+Reward= 623
+Cost= 41.62741699796952

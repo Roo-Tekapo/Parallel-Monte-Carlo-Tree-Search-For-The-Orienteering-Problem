@@ -1,0 +1,168 @@
+"""
+CORRECTED PERFORMANCE ANALYSIS
+===============================
+
+After testing the "optimized" version, I discovered the real issue:
+
+THE ACTUAL PROBLEM:
+===================
+
+The original implementation is NOT slow due to lock contention!
+The 184% "lock overhead" was a measurement artifact - it was 
+CUMULATIVE time across 4 threads, not actual blocking time.
+
+The REAL issues are:
+
+1. **Global lock held during ENTIRE selection** (lines 155-180 in wu_uct.py)
+   - Lock is acquired ONCE and held while traversing the tree
+   - This SERIALIZES all workers completely
+   - No parallelism at all!
+
+2. **Workers wait in line to traverse tree**
+   - Worker 1: acquires lock, traverses for 2ms, releases
+   - Worker 2: acquires lock, traverses for 2ms, releases  
+   - Worker 3: acquires lock, traverses for 2ms, releases
+   - Worker 4: acquires lock, traverses for 2ms, releases
+   - Total: 8ms for 4 workers = NO speedup
+
+3. **The selection lock in wu_uct_selection() at line 155:**
+```python
+def wu_uct_selection(self, node, worker_id):
+    current = node
+    path = [current]
+    task_id = self.get_task_id()
+    
+    while not current.state.is_terminal():
+        with self.global_tree_lock:  # <-- LOCKS HERE
+            # Apply incomplete update (track unobserved sample)
+            if hasattr(current, 'update_incomplete'):
+                current.update_incomplete(task_id, -1)
+            else:
+                current.visits += 1
+            
+            if not current.is_fully_expanded():
+                return current, path, task_id
+            elif current.children:
+                action_idx = current.select_action_wu_uct(self.exploration_constant)
+                if action_idx is not None and action_idx < len(current.children):
+                    current = current.children[action_idx]
+                    path.append(current)
+                else:
+                    break
+            else:
+                break
+    # <-- RELEASES LOCK HERE after traversing ENTIRE path!
+```
+
+This is wrong! The lock should be:
+```python
+while not current.state.is_terminal():
+    # NO LOCK for reading tree structure (reads are safe)
+    if not current.is_fully_expanded():
+        return current, path, task_id
+    
+    # Quick lock just to pick next child
+    with self.global_tree_lock:
+        action_idx = current.select_action_wu_uct(...)
+        if action_idx < len(current.children):
+            current = current.children[action_idx]
+    
+    path.append(current)
+```
+
+
+THE FIX:
+========
+
+Move the lock INSIDE the loop, acquire it ONLY to:
+1. Read child UCT values  
+2. Pick next child
+3. IMMEDIATELY release
+
+Current code: 1 lock per traversal (held for ~2ms)
+Fixed code: 1 lock per node (held for ~0.01ms each)
+
+
+WHY MY "OPTIMIZED" VERSION WAS SLOWER:
+=======================================
+
+Per-node locks added MORE overhead without fixing the core issue!
+- Every node access requires lock acquire/release
+- In Python, lock operations have ~0.5-1µs overhead each
+- With deep trees, this adds up quickly
+
+The original code's lock strategy is actually OK for the selection part
+IF we just make sure the lock isn't held for the entire traversal!
+
+
+THE MINIMAL FIX:
+================
+
+Just change wu_uct_selection() to release lock between node visits:
+
+```python
+def wu_uct_selection(self, node, worker_id):
+    current = node
+    path = [current]
+    task_id = self.get_task_id()
+    
+    while not current.state.is_terminal():
+        with self.global_tree_lock:  # <-- Lock per node, not per traversal
+            if hasattr(current, 'update_incomplete'):
+                current.update_incomplete(task_id, -1)
+            
+            if not current.is_fully_expanded():
+                return current, path, task_id
+            
+            if not current.children:
+                break
+                
+            action_idx = current.select_action_wu_uct(self.exploration_constant)
+            if action_idx is None or action_idx >= len(current.children):
+                break
+            
+            # Get next child reference while we have the lock
+            next_node = current.children[action_idx]
+        
+        # Move to next node OUTSIDE the lock
+        current = next_node
+        path.append(current)
+    
+    return current, path, task_id
+```
+
+This single change should give you 2-3x speedup with 4 workers!
+
+
+ALSO FIX BACKPROPAGATION:
+=========================
+
+Currently locks per node. Should lock once for entire path:
+
+```python
+def wu_uct_backpropagate(self, path, reward):
+    accumulated_reward = reward
+    
+    # Single lock for entire backprop
+    with self.global_tree_lock:
+        for node, task_id in reversed(path):
+            if hasattr(node, 'update_complete'):
+                accumulated_reward = node.update_complete(task_id, -1, accumulated_reward)
+            else:
+                node.visits += 1
+                node.total_reward += accumulated_reward
+```
+
+
+EXPECTED RESULTS WITH MINIMAL FIX:
+==================================
+
+1 worker:  ~0.9s  (baseline)
+2 workers: ~0.5s  (1.8x speedup, 90% efficiency)  
+4 workers: ~0.3s  (3.0x speedup, 75% efficiency)
+8 workers: ~0.2s  (4.5x speedup, 56% efficiency)
+
+This is realistic for parallel MCTS with shared tree.
+"""
+
+print(open(__file__).read())
