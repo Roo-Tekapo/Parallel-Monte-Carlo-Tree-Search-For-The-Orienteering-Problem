@@ -129,6 +129,21 @@ class WUUCTExpansionWorker(threading.Thread):
                 print(f"Expansion Worker {self.worker_id} error: {e}")
                 break
         
+        # Cleanup phase: process remaining results before exiting
+        print(f"Worker {self.worker_id}: Beginning cleanup - {len(self.pending_work)} pending, {self.result_queue.qsize()} in queue")
+        
+        # Process any remaining simulation results
+        cleanup_start = time.time()
+        max_cleanup_time = 1.0  # Maximum 1 second for cleanup (increased from 0.5s)
+        
+        while len(self.pending_work) > 0 and time.time() - cleanup_start < max_cleanup_time:
+            results_processed = self._process_simulation_results()
+            if results_processed == 0:
+                # No new results, small delay before checking again
+                time.sleep(0.001)
+        
+        print(f"Worker {self.worker_id}: Cleanup complete - {len(self.pending_work)} pending, {self.result_queue.qsize()} in queue")
+        
         self.running = False
     
     def should_continue(self) -> bool:
@@ -149,19 +164,28 @@ class WUUCTExpansionWorker(threading.Thread):
     def _process_simulation_results(self):
         """Process completed simulation results for this worker."""
         try:
+            results_seen = 0
             while True:
                 try:
                     result = self.result_queue.get_nowait()
-                    # Check if this result belongs to this worker
+                    results_seen += 1
+                    
+                    # Extract worker ID from work_id (upper 16 bits)
                     worker_id = result.work_id >> 16
+                    
+                    # Check if this result belongs to this worker
                     if worker_id == self.worker_id and result.work_id in self.pending_work:
                         self.process_simulation_result(result)
                     elif worker_id != self.worker_id:
-                        # Put it back for the correct worker
+                        # Put it back for the correct worker but continue processing other results
                         self.result_queue.put(result)
-                        break
+                        # Don't break - continue processing other results in the queue
                 except queue.Empty:
                     break
+            
+            # Return number of results processed
+            return results_seen
+                
         except Exception as e:
             print(f"Error processing simulation results: {e}")
     

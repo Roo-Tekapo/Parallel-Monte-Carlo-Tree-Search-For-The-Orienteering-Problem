@@ -1,0 +1,11 @@
+# Simple WU-UCT Results
+# Problem: ../../OP_Benchmark_Set/parallel_friendly_v2/xlarge/xlarge_40x40_r0_42.txt
+# Iterations: 10000
+# Exploration constant: 1.4142135623730951
+# Number of workers: 4
+# Max distance: 1.42
+# Execution time: 16.28s
+#
+Path= 0
+Reward= 0
+Cost= 0.0

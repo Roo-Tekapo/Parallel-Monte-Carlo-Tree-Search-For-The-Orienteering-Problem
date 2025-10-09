@@ -25,8 +25,8 @@ def main():
                        help='Path to the orienteering problem file')
     parser.add_argument('--algorithm', type=str, choices=['uct', 'wu-uct'], default='wu-uct',
                        help='Algorithm to use (default: wu-uct)')
-    parser.add_argument('--max-iterations', type=int, default=100000,
-                       help='Maximum number of iterations (default: 100000)')
+    parser.add_argument('--max-iterations', type=int, default=10000,
+                       help='Maximum number of iterations (default: 10000)')
     parser.add_argument('--max-time', type=float, default=None,
                        help='Maximum time in seconds (optional, overrides max-iterations if both specified)')
     parser.add_argument('--exploration-constant', type=float, default=math.sqrt(2),

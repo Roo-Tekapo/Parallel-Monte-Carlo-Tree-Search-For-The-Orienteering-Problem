@@ -185,7 +185,8 @@ if __name__ == "__main__":
         # "OP_Benchmark_Set/set_1000_1/set_1000_1_30.txt"
         # "OP_Benchmark_Set/grid_sample/grid_10x10_long_50.txt"
         # "OP_Benchmark_Set\grid_patterns\grid_corners_b40.txt"
-        "OP_Benchmark_Set/parallel_friendly_v2/xlarge/xlarge_40x40_r0_42.txt"
+        # "OP_Benchmark_Set/parallel_friendly_v2/xlarge/xlarge_40x40_r0_42.txt"
+        "OP_Benchmark_Set/grid_patterns/grid_corners_b40.txt"
         # "OP_Benchmark_Set\parallel_friendly_v2\clustered\clustered_c4_s4_sp6_19.txt"
     )
 

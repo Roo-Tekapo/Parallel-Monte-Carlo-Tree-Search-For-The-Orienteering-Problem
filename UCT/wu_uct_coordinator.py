@@ -279,7 +279,7 @@ class WUUCT:
         # Wait for expansion workers to finish
         for worker in self.expansion_workers:
             if worker.is_alive():
-                worker.join(timeout=2.0)
+                worker.join(timeout=3.0)  # Slightly increased from 2.0s for cleanup
         
         # Stop simulation workers
         self.simulation_worker_pool.stop_workers(timeout=2.0)

@@ -33,13 +33,31 @@ class WUUCTNode(UCTNode):
     def __init__(self, state: OrienteeringState, parent: Optional['WUUCTNode'] = None):
         super().__init__(state, parent)
         
+        # WU-UCT Core: Dual visit counters for tracking unobserved samples
+        # children_visit_count: ALL simulations (including ongoing) - corresponds to N_c + O_c
+        # children_completed_visit_count: ONLY finished simulations - corresponds to N_c  
+        self.children_visit_count = []  # Total visits (including ongoing)
+        self.children_completed_visit_count = []  # Only completed simulations
+        
+        # Initialize counters for each possible action
+        actions = state.get_available_actions() or []
+        self.children_visit_count = [0] * len(actions)
+        self.children_completed_visit_count = [0] * len(actions)
+        
+        # Task tracking for unobserved samples (maps simulation_id -> (action, reward))
+        self.traverse_history = {}  # Maps simulation_id -> (action, reward, start_time)
+        
+        # Track visited vs updated children (from original paper)
+        self.visited_node_count = 0  # Number of children that have been visited
+        self.updated_node_count = 0  # Number of children that have been updated with results
+        
         # Watch the Unobservable: Track pending simulations
         # O_n in the WU-UCT paper - number of unobserved samples
         self.pending_simulations = 0
         
-        # Individual lock for atomic pending_simulations updates
-        # This allows virtual loss operations without holding the global tree lock
-        self._pending_lock = threading.Lock()
+        # Individual lock for atomic operations
+        # This allows operations without holding the global tree lock
+        self._node_lock = threading.Lock()
     
     def __repr__(self):
         try:
@@ -47,7 +65,8 @@ class WUUCTNode(UCTNode):
         except Exception:
             last_node = None
         avg_reward = self.total_reward / self.visits if self.visits > 0 else 0.0
-        return f"<WUUCTNode node={last_node} N={self.visits} O={self.pending_simulations} V={avg_reward:.2f} children={len(self.children)}>"
+        return f"<WUUCTNode node={last_node} N={self.visits} O={self.get_pending_count()} V={avg_reward:.2f} " \
+               f"visited={self.visited_node_count} updated={self.updated_node_count} children={len(self.children)}>"
     
     def wu_uct_select_child(self, exploration_constant: float = math.sqrt(2)) -> 'WUUCTNode':
         """
@@ -79,7 +98,7 @@ class WUUCTNode(UCTNode):
         
         # WU-UCT formula: parent term includes actual visits + unobserved samples
         N_parent = self.visits  # Actual visits to parent
-        O_parent = self.pending_simulations  # Unobserved samples for parent
+        O_parent = self.get_pending_count()  # Unobserved samples for parent
         
         # Handle edge case: if parent has no visits yet, prefer unvisited children
         if N_parent + O_parent == 0:
@@ -93,7 +112,7 @@ class WUUCTNode(UCTNode):
         
         for child in self.children:
             N_child = child.visits  # Actual visits to child
-            O_child = child.pending_simulations  # Unobserved samples for child
+            O_child = child.get_pending_count()  # Unobserved samples for child
             
             # Denominator: actual visits + unobserved samples
             denominator = N_child + O_child
@@ -120,6 +139,99 @@ class WUUCTNode(UCTNode):
         
         return best_child
     
+    def no_child_available(self) -> bool:
+        """Check if all child nodes have not been expanded."""
+        return self.updated_node_count == 0
+
+    def all_child_visited(self) -> bool:
+        """Check if all child nodes have been visited (not necessarily updated)."""
+        available_actions = self.state.get_available_actions() or []
+        return self.visited_node_count == len(available_actions)
+
+    def all_child_updated(self) -> bool:
+        """Check if all child nodes have been updated with simulation results."""
+        available_actions = self.state.get_available_actions() or []
+        return self.updated_node_count == len(available_actions)
+
+    def update_history(self, simulation_id: int, action: int, reward: float) -> bool:
+        """
+        Update traverse history for tracking unobserved samples.
+        
+        Args:
+            simulation_id: Unique identifier for this simulation
+            action: Action taken for this simulation
+            reward: Immediate reward from taking the action
+            
+        Returns:
+            True if successfully added, False if simulation_id already exists
+        """
+        with self._node_lock:
+            if simulation_id in self.traverse_history:
+                return False
+            self.traverse_history[simulation_id] = (action, reward, 0.0)  # (action, reward, start_time)
+            return True
+
+    def update_incomplete(self, simulation_id: int) -> None:
+        """
+        Incomplete update: Called when simulation STARTS.
+        
+        This is Algorithm 2 from the WU-UCT paper.
+        Tracks the unobserved samples by incrementing visit counts
+        but NOT updating Q-values (since simulation isn't complete).
+        
+        Args:
+            simulation_id: Unique identifier for this simulation
+        """
+        if simulation_id not in self.traverse_history:
+            return
+            
+        action = self.traverse_history[simulation_id][0]
+        
+        with self._node_lock:
+            # Increment total visit count (including ongoing simulations)
+            if action < len(self.children_visit_count):
+                if self.children_visit_count[action] == 0:
+                    self.visited_node_count += 1
+                self.children_visit_count[action] += 1
+            
+            # Increment overall visit count
+            self.visits += 1
+
+    def update_complete(self, simulation_id: int, accumulated_reward: float) -> float:
+        """
+        Complete update: Called when simulation FINISHES.
+        
+        This is Algorithm 3 from the WU-UCT paper.
+        Updates Q-values and completed visit counts with the actual simulation result.
+        
+        Args:
+            simulation_id: Unique identifier for this simulation
+            accumulated_reward: Total discounted reward from simulation
+            
+        Returns:
+            Updated accumulated reward (with immediate reward added)
+        """
+        if simulation_id not in self.traverse_history:
+            return accumulated_reward
+            
+        with self._node_lock:
+            # Remove from history and get action/reward
+            action, immediate_reward, _ = self.traverse_history.pop(simulation_id)
+            
+            # Add immediate reward to accumulated reward
+            accumulated_reward = immediate_reward + accumulated_reward
+            
+            # Update completed visit count
+            if action < len(self.children_completed_visit_count):
+                if self.children_completed_visit_count[action] == 0:
+                    self.updated_node_count += 1
+                self.children_completed_visit_count[action] += 1
+            
+            # Update Q-values (total reward)
+            self.total_reward += accumulated_reward
+            
+        return accumulated_reward
+
     def apply_virtual_loss(self):
         """
         Apply virtual loss atomically up the tree without holding tree lock.
@@ -131,7 +243,7 @@ class WUUCTNode(UCTNode):
         """
         current = self
         while current is not None:
-            with current._pending_lock:
+            with current._node_lock:
                 current.pending_simulations += 1
             current = current.parent
     
@@ -145,7 +257,7 @@ class WUUCTNode(UCTNode):
         """
         current = self
         while current is not None:
-            with current._pending_lock:
+            with current._node_lock:
                 current.pending_simulations -= 1
             current = current.parent
     
@@ -156,5 +268,26 @@ class WUUCTNode(UCTNode):
         Returns:
             Current number of unobserved samples (pending simulations)
         """
-        with self._pending_lock:
-            return self.pending_simulations
+        with self._node_lock:
+            # Pending simulations = simulations in traverse_history (started but not completed)
+            return len(self.traverse_history)
+
+    def select_expand_action(self) -> Optional[int]:
+        """
+        Select an action for expansion based on WU-UCT logic.
+        
+        Returns:
+            Action index to expand, or None if no actions available
+        """
+        available_actions = self.state.get_available_actions()
+        if not available_actions:
+            return None
+            
+        # Try to find an unvisited action first
+        for i, action in enumerate(available_actions):
+            if i < len(self.children_visit_count) and self.children_visit_count[i] == 0:
+                return action
+                
+        # If all actions visited, select one based on some heuristic
+        # For now, just select randomly among available actions
+        return random.choice(available_actions)
