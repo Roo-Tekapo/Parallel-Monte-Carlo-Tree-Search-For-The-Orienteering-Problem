@@ -50,7 +50,7 @@ Simplified coordinator that:
 
 ### Basic Usage
 ```python
-from UCT.Simple_WU.simple_wu_coordinator import SimpleWUUCT
+from Simple_WU.simple_wu_coordinator import SimpleWUUCT
 from orienteering.orienteering import OrienteeringProblem
 
 # Load problem

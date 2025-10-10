@@ -14,11 +14,11 @@ import math
 from pathlib import Path
 
 # Add the project root to Python path
-project_root = Path(__file__).parent.parent.parent
+project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
 from orienteering.orienteering import OrienteeringProblem, START_NODE
-from UCT.Simple_WU.simple_wu_coordinator import SimpleWUUCT
+from Simple_WU.simple_wu_coordinator import SimpleWUUCT
 
 
 def run_simple_wu_uct(problem_file: str, 

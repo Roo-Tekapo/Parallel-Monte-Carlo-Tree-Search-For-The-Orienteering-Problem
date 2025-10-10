@@ -4,14 +4,14 @@ import random
 from orienteering.orienteering import OrienteeringState
 
 class MCTSNode:
-    def __init__(self, state: OrienteeringState, parent=None):
+    def __init__(self, state: OrienteeringState, parent=None, traditional_mcts: bool = False):
         self.state = state
         self.parent = parent
         self.children = []
         self.visits = 0
         self.total_reward = 0.0
         # copy actions list to avoid aliasing and randomize order
-        self.untried_actions = list(state.get_available_actions() or [])
+        self.untried_actions = list(state.get_available_actions(traditional_mcts=traditional_mcts) or [])
         if self.untried_actions:
             random.shuffle(self.untried_actions)
         # Mark as dead-end if no actions available and not terminal

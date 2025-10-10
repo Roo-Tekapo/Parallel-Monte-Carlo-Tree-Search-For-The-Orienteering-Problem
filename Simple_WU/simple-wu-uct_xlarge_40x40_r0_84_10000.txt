@@ -1,0 +1,11 @@
+# Simple WU-UCT Results
+# Problem: /Users/reubenkappely/Documents/Projects/Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem/OP_Benchmark_Set/parallel_friendly_v2/xlarge/xlarge_40x40_r0_84.txt
+# Iterations: 10000
+# Exploration constant: 1.4142135623730951
+# Number of workers: 6
+# Max distance: 1.42
+# Execution time: 1020.57s
+#
+Path= 0 41 81 121 161 202 201 241 281 242 243 282 283 323 363 403 444 485 486 527 566 567 568 569 610 649 650 690 691 651 611 652 692 732 731 730 729 769 770 771 812 813 814 815 816 817 858 899 940 980 981 982 1022 1023 1024 984 985 1025 1066 1107 1148 1189 1190 1231 1272 1313 1354 1395 1436 1477 1518 1559 1
+Reward= 1216
+Cost= 83.59797974644661

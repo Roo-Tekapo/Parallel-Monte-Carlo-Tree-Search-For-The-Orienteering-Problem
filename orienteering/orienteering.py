@@ -10,7 +10,7 @@ Node = namedtuple('Node', ['id', 'x', 'y', 'score'])
 
 
 class OrienteeringProblem:
-    def __init__(self, nodes: List[Node], budget: float, max_edge_distance: Optional[float] = 10):
+    def __init__(self, nodes: List[Node], budget: float, max_edge_distance: Optional[float] = 1.42):
         # nodes is a list of Node namedtuples with id, x, y, and score, have removed score from init as its in namedtuple
         self.nodes = nodes
         self.budget = budget
@@ -220,7 +220,15 @@ class OrienteeringState:
         return False
 
     # This method generates all possible next states from the current state
-    def get_available_actions(self):
+    def get_available_actions(self, traditional_mcts=False):
+        """
+        Get available actions from current state.
+        
+        Args:
+            traditional_mcts (bool): If True, uses traditional MCTS approach without 
+                                   pre-filtering for end reachability. If False, uses 
+                                   conservative approach ensuring end node is reachable.
+        """
         actions = []
         current = self.path[-1]
 
@@ -233,7 +241,7 @@ class OrienteeringState:
             if self.cost_so_far + cost_to_end <= self.problem.budget:
                 actions.append(END_NODE)
 
-        # Explore other unvisited neighbor nodes but ensure we can still reach END
+        # Explore other unvisited neighbor nodes
         for i in neighbor_ids:
             if i in self.visited or i == START_NODE:
                 continue
@@ -243,13 +251,18 @@ class OrienteeringState:
             cost_to_i = self.problem.get_distance(current, i)
             new_cost = self.cost_so_far + cost_to_i
             
-            # Check if we can reach END from node i with remaining budget
-            if self._can_reach_end_from(i, new_cost):
-                actions.append(i)
+            if traditional_mcts:
+                # Traditional MCTS: Only check if we can afford this single move
+                if new_cost <= self.problem.budget:
+                    actions.append(i)
+            else:
+                # Conservative approach: Check if we can reach END from node i with remaining budget
+                if self._can_reach_end_from(i, new_cost):
+                    actions.append(i)
         return actions
     
     # looks like i dont need this method, as I can just use get_available_actions to get the next states
-    def apply_action(self, node_index):
+    def apply_action(self, node_index, traditional_mcts=False):
         if node_index in self.visited:
             raise ValueError(f"Node {node_index} already visited.")
         current = self.path[-1]
@@ -258,12 +271,19 @@ class OrienteeringState:
             if node_index not in self.problem.get_neighbors(current):
                 raise ValueError(f"Node {node_index} not reachable from {current} under max_edge_distance constraint.")
         cost_to_next = self.problem.get_distance(current, node_index)
-        # Ensure feasibility to still reach END after taking this action
-        cost_next_to_end = self.problem.get_distance(node_index, END_NODE)
-        if self.cost_so_far + cost_to_next + cost_next_to_end > self.problem.budget:
-            raise ValueError(f"Cannot apply action to node {node_index}, exceeds budget.")
-        new_path = self.path + [node_index]
         new_cost = self.cost_so_far + cost_to_next
+        
+        if traditional_mcts:
+            # Traditional MCTS: Only check if we can afford this single move
+            if new_cost > self.problem.budget:
+                raise ValueError(f"Cannot apply action to node {node_index}, move cost exceeds budget.")
+        else:
+            # Conservative approach: Ensure feasibility to still reach END after taking this action
+            cost_next_to_end = self.problem.get_distance(node_index, END_NODE)
+            if new_cost + cost_next_to_end > self.problem.budget:
+                raise ValueError(f"Cannot apply action to node {node_index}, exceeds budget.")
+        
+        new_path = self.path + [node_index]
         new_reward = self.reward_so_far + self.problem.nodes[node_index].score
         return OrienteeringState(self.problem, new_path, new_cost, new_reward)
 

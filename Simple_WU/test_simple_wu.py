@@ -10,11 +10,11 @@ import os
 from pathlib import Path
 
 # Add project root to Python path
-project_root = Path(__file__).parent.parent.parent
+project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
 from orienteering.orienteering import OrienteeringProblem
-from UCT.Simple_WU.simple_wu_coordinator import SimpleWUUCT
+from Simple_WU.simple_wu_coordinator import SimpleWUUCT
 
 
 def test_basic_functionality():
@@ -89,8 +89,8 @@ def test_minimal_problem():
     # This would require creating a minimal OrienteeringProblem manually
     # For now, we'll just verify imports work
     try:
-        from UCT.Simple_WU.simple_wu_coordinator import SimpleWUUCT
-        from UCT.Simple_WU.simple_wu_worker import SimpleWUWorker
+        from Simple_WU.simple_wu_coordinator import SimpleWUUCT
+        from Simple_WU.simple_wu_worker import SimpleWUWorker
         from UCT.wu_uct_node import WUUCTNode
         
         print("✓ All imports successful!")
@@ -108,7 +108,7 @@ def test_worker_statistics():
     print("\\nTesting worker statistics collection...")
     
     try:
-        from UCT.Simple_WU.simple_wu_worker import SimpleWUWorker
+        from Simple_WU.simple_wu_worker import SimpleWUWorker
         from UCT.wu_uct_node import WUUCTNode
         from orienteering.orienteering import OrienteeringState
         

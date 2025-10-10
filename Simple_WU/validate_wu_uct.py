@@ -11,12 +11,12 @@ import os
 from pathlib import Path
 
 # Add project root to Python path
-project_root = Path(__file__).parent.parent.parent
+project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
 from orienteering.orienteering import OrienteeringProblem
-from UCT.Simple_WU.simple_wu_coordinator import SimpleWUUCT
-from UCT.Simple_WU.simple_wu_worker import SimpleWUWorker
+from Simple_WU.simple_wu_coordinator import SimpleWUUCT
+from Simple_WU.simple_wu_worker import SimpleWUWorker
 from UCT.wu_uct_node import WUUCTNode
 
 

@@ -6,11 +6,14 @@ from .mcts_node import MCTSNode
 
 
 class MCTSSingleThread:
-    def __init__(self, problem: OrienteeringProblem, iterations, exploration_constant = math.sqrt(2), epsilon: float = 0.00):
+    def __init__(self, problem: OrienteeringProblem, iterations, exploration_constant = math.sqrt(2), epsilon: float = 0.00, traditional_mcts: bool = False, soft_end_bias: bool = False, bias_decay_factor: float = 10.0):
         self.problem = problem
         self.iterations = iterations
         self.const = exploration_constant
         self.epsilon = epsilon
+        self.traditional_mcts = traditional_mcts  # Use traditional MCTS approach
+        self.soft_end_bias = soft_end_bias  # Use soft bias toward end node
+        self.bias_decay_factor = bias_decay_factor  # Controls how aggressively bias increases
 
         self.root = None  # Will be set to MCTSNode with initial state
         self.iteration = 0 # Track current iteration
@@ -40,10 +43,137 @@ class MCTSSingleThread:
     # Step 2: Expansion
     def expand(self, node: MCTSNode) -> MCTSNode:
         action = node.untried_actions.pop()
-        new_state = node.state.apply_action(action)
-        child_node = MCTSNode(new_state, parent=node)
+        new_state = node.state.apply_action(action, traditional_mcts=self.traditional_mcts)
+        child_node = MCTSNode(new_state, parent=node, traditional_mcts=self.traditional_mcts)
         node.children.append(child_node)
         return child_node
+
+    def _calculate_end_bias_probability(self, current_state: OrienteeringState) -> float:
+        """Calculate probability of biasing toward end node based on remaining budget"""
+        if not self.soft_end_bias:
+            return 0.0
+        
+        current_node = current_state.path[-1]
+        if current_node == END_NODE:
+            return 0.0  # Already at end
+        
+        # Calculate cost to reach end from current position
+        cost_to_end = current_state.problem.get_distance(current_node, END_NODE)
+        
+        # Calculate remaining budget after reaching end
+        remaining_budget = current_state.problem.budget - current_state.cost_so_far - cost_to_end
+        
+        # If we can't reach end, return maximum bias
+        if remaining_budget < 0:
+            return 0.9
+        
+        # Budget pressure: how much of total budget we've used
+        budget_used_ratio = current_state.cost_so_far / current_state.problem.budget
+        
+        # Combine remaining budget and budget pressure for smarter bias
+        # Start biasing earlier when we've used significant portion of budget
+        if budget_used_ratio > 0.6:  # Start biasing after using 60% of budget
+            # Stronger bias as we approach budget limit
+            pressure_bias = (budget_used_ratio - 0.6) / 0.4  # Scale 0.6-1.0 to 0.0-1.0
+            remaining_bias = math.exp(-remaining_budget / self.bias_decay_factor)
+            
+            # Take the maximum of pressure-based and remaining-budget-based bias
+            bias_probability = max(pressure_bias * 0.6, remaining_bias)
+            return min(bias_probability, 0.9)
+        else:
+            # Light bias in early stages
+            bias_probability = math.exp(-remaining_budget / (self.bias_decay_factor * 2))
+            return min(bias_probability, 0.3)  # Cap early bias at 30%
+    
+    def _choose_biased_action(self, state, actions):
+        """Choose action with bias toward END_NODE and budget reservation"""
+        if END_NODE not in actions:
+            # Filter actions that would leave enough budget to reach END_NODE
+            if self.soft_end_bias:
+                safe_actions = []
+                current_node = state.path[-1]
+                
+                for action in actions:
+                    # Calculate total cost if we take this action then go to END_NODE
+                    cost_to_action = state.problem.get_distance(current_node, action)
+                    cost_action_to_end = state.problem.get_distance(action, END_NODE)
+                    total_future_cost = state.cost_so_far + cost_to_action + cost_action_to_end
+                    
+                    if total_future_cost <= state.problem.budget:
+                        safe_actions.append(action)
+                
+                # Use safe actions if available, otherwise fall back to all actions
+                if safe_actions:
+                    actions = safe_actions
+            
+            return random.choice(actions)
+        
+        budget_used_ratio = state.cost_so_far / state.problem.budget
+        
+        # Very strong bias when budget > 80% - almost always go to END_NODE
+        if budget_used_ratio > 0.8:
+            if random.random() < 0.95:  # 95% chance
+                return END_NODE
+        
+        # Strong bias when budget > 70%
+        elif budget_used_ratio > 0.7:
+            if random.random() < 0.7:  # 70% chance
+                return END_NODE
+        
+        # Check if we should reserve budget for END_NODE
+        current_node = state.path[-1]
+        cost_to_end = state.problem.get_distance(current_node, END_NODE)
+        
+        # If we're close to budget limit, strongly prefer END_NODE
+        if state.cost_so_far + cost_to_end > state.problem.budget * 0.9:
+            if random.random() < 0.9:  # 90% chance to go to end
+                return END_NODE
+        
+        # Calculate bias probability for moderate budget usage
+        bias_prob = self._calculate_end_bias_probability(state)
+        
+        if bias_prob > 0:
+            # Weighted selection: give END_NODE higher probability
+            choices = []
+            weights = []
+            
+            # Add END_NODE with bias weight
+            choices.append(END_NODE)
+            weights.append(bias_prob * 5.0)  # Strong bias weight
+            
+            # Add other actions with normal weight, but filter unsafe ones
+            other_actions = [a for a in actions if a != END_NODE]
+            
+            if self.soft_end_bias:
+                # Only consider actions that leave budget for END_NODE
+                safe_other_actions = []
+                for action in other_actions:
+                    cost_to_action = state.problem.get_distance(current_node, action)
+                    cost_action_to_end = state.problem.get_distance(action, END_NODE)
+                    total_future_cost = state.cost_so_far + cost_to_action + cost_action_to_end
+                    
+                    if total_future_cost <= state.problem.budget:
+                        safe_other_actions.append(action)
+                
+                other_actions = safe_other_actions if safe_other_actions else other_actions
+            
+            for action in other_actions:
+                choices.append(action)
+                weights.append(1.0)
+            
+            # Weighted random selection
+            if not weights:
+                return END_NODE  # Safety fallback
+                
+            total_weight = sum(weights)
+            r = random.random() * total_weight
+            cumulative = 0
+            for i, weight in enumerate(weights):
+                cumulative += weight
+                if r <= cumulative:
+                    return choices[i]
+        
+        return random.choice(actions)
 
     def simulate(self, state: OrienteeringState) -> float:
         current = state.copy()
@@ -52,26 +182,40 @@ class MCTSSingleThread:
         
         while not current.is_terminal() and steps < max_simulation_steps:
             steps += 1
-            actions = current.get_available_actions()
+            actions = current.get_available_actions(traditional_mcts=self.traditional_mcts)
             if not actions:
-                # Dead-end: try to force completion to END_NODE if possible
-                current_node = current.path[-1]
-                if current_node != END_NODE:
-                    # Check if we can reach END_NODE directly within budget
-                    cost_to_end = current.problem.get_distance(current_node, END_NODE)
-                    if current.cost_so_far + cost_to_end <= current.problem.budget:
-                        # Force move to END_NODE to complete the path
-                        try:
-                            current = current.apply_action(END_NODE)
-                            break
-                        except ValueError:
-                            # Can't apply action, return penalized reward
-                            pass
-                # Return current reward with penalty for incomplete path
-                return current.get_reward() * 0.5  # 50% penalty for dead-end
-            action = random.choice(actions)
-            current = current.apply_action(action)
-        return current.get_reward()
+                if self.traditional_mcts:
+                    # Traditional MCTS: No forcing, just return current reward
+                    break
+                else:
+                    # Conservative approach: try to force completion to END_NODE if possible
+                    current_node = current.path[-1]
+                    if current_node != END_NODE:
+                        # Check if we can reach END_NODE directly within budget
+                        cost_to_end = current.problem.get_distance(current_node, END_NODE)
+                        if current.cost_so_far + cost_to_end <= current.problem.budget:
+                            # Force move to END_NODE to complete the path
+                            try:
+                                current = current.apply_action(END_NODE, traditional_mcts=self.traditional_mcts)
+                                break
+                            except ValueError:
+                                # Can't apply action, return penalized reward
+                                pass
+                    # Severe penalty for incomplete path - make it much worse than any complete path
+                    return current.get_reward() * 0.1  # 90% penalty for not reaching end
+            else:
+                # Use biased action selection if soft_end_bias is enabled
+                if self.soft_end_bias:
+                    action = self._choose_biased_action(current, actions)
+                else:
+                    action = random.choice(actions)
+                current = current.apply_action(action, traditional_mcts=self.traditional_mcts)
+        
+        # Add completion bonus if we reached the END_NODE
+        reward = current.get_reward()
+        if current.is_terminal():
+            reward += 100  # Bonus for completing the path
+        return reward
 
     # Step 4: Backpropagation
     def backpropagate(self, node: MCTSNode, reward: float):
@@ -93,7 +237,7 @@ class MCTSSingleThread:
     def initialize_root(self):
         if self.root is None:
             self.root_state = OrienteeringState(self.problem)
-            self.root = MCTSNode(self.root_state)
+            self.root = MCTSNode(self.root_state, traditional_mcts=self.traditional_mcts)
             self.iteration = 0
         return self.root
 
@@ -146,7 +290,7 @@ class MCTSSingleThread:
     # Main MCTS run method
     def run(self):
         root_state = OrienteeringState(self.problem)
-        root = MCTSNode(root_state)
+        root = MCTSNode(root_state, traditional_mcts=self.traditional_mcts)
 
         for _ in range(self.iterations):
             # Selection and Expansion
@@ -181,23 +325,27 @@ class MCTSSingleThread:
 if __name__ == "__main__":
     nodes, budget = OrienteeringProblem.load_problem(
         # "OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_85.txt"
-        # "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
+        "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
         # "OP_Benchmark_Set/set_1000_1/set_1000_1_30.txt"
         # "OP_Benchmark_Set/grid_sample/grid_10x10_long_50.txt"
         # "OP_Benchmark_Set\grid_patterns\grid_corners_b40.txt"
-        # "OP_Benchmark_Set/parallel_friendly_v2/xlarge/xlarge_40x40_r0_42.txt"
-        "OP_Benchmark_Set/grid_patterns/grid_corners_b40.txt"
+        # "OP_Benchmark_Set/parallel_friendly_v2/xlarge/xlarge_50x50_r0_104.txt"
+        # "OP_Benchmark_Set/grid_patterns/grid_corners_b40.txt"
         # "OP_Benchmark_Set\parallel_friendly_v2\clustered\clustered_c4_s4_sp6_19.txt"
     )
 
-    problem = OrienteeringProblem(nodes, budget)
+    # Remove max_edge_distance constraint for traditional MCTS testing
+    problem = OrienteeringProblem(nodes, budget, max_edge_distance=1.42)
 
-    solver = MCTSSingleThread(problem, iterations=10000)
+    # Enable traditional MCTS approach
+    solver = MCTSSingleThread(problem, iterations=100000, traditional_mcts=False)
     best_state = solver.run()
 
+    print("Traditional MCTS Results:")
     print("Best path:", best_state.get_path())
     print("Total reward:", best_state.get_reward())
     print("Total cost:", best_state.get_cost())
+    print("Valid solution:", best_state.is_terminal())
 
 
 
