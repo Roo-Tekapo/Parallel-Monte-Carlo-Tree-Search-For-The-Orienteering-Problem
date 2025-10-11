@@ -66,6 +66,9 @@ class SimpleWUWorker(threading.Thread):
         # Track action -> child mapping for easier access
         self.action_to_child_cache = {}
         
+        # For visualization: track the current selection path
+        self.last_selection_path = []
+        
     def run(self):
         """
         Main worker loop performing MCTS iterations.
@@ -83,6 +86,12 @@ class SimpleWUWorker(threading.Thread):
         """
         # Phase 1: Selection - find leaf node using WU-UCT
         path, leaf_node, leaf_state = self._select_leaf()
+        
+        # Store the selection path for visualization
+        if leaf_state and hasattr(leaf_state, 'path'):
+            self.last_selection_path = leaf_state.path[:]
+        else:
+            self.last_selection_path = []
         
         # Phase 2: Apply virtual loss to selected path (for coordination)
         simulation_id = self._apply_virtual_loss(path)

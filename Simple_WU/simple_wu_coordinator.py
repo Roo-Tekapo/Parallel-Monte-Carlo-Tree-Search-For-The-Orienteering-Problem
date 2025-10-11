@@ -13,7 +13,7 @@ from typing import Optional, List
 
 from orienteering.orienteering import OrienteeringProblem, OrienteeringState
 from UCT.wu_uct_node import WUUCTNode
-from .simple_wu_worker import SimpleWUWorker
+from simple_wu_worker import SimpleWUWorker
 
 
 class SimpleWUUCT:
