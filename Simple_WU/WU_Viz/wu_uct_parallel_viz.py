@@ -579,7 +579,7 @@ class EnhancedWUUCTVisualizer:
 
 def main():
     """Main function to run the enhanced WU-UCT visualization."""
-    problem_path = "../../OP_Benchmark_Set/grid_sample/grid_10x10_medium_30.txt"
+    problem_path = "OP_Benchmark_Set/grid_sample/grid_10x10_medium_30.txt"
     
     visualizer = EnhancedWUUCTVisualizer(
         problem_path=problem_path,

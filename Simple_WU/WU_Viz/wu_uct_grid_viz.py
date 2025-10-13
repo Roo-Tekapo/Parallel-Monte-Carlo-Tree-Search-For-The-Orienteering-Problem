@@ -1026,9 +1026,9 @@ def main():
     """Main function for standalone execution."""
     # Default configuration - try multiple possible paths
     possible_paths = [
-        "../../OP_Benchmark_Set/grid_sample/grid_10x10_long_50.txt",
-        "OP_Benchmark_Set/grid_sample/grid_10x10_long_50.txt",
-        "../OP_Benchmark_Set/grid_sample/grid_10x10_long_50.txt"
+        "../../OP_Benchmark_Set/grid_sample/grid_10x10_medium_30.txt",
+        "OP_Benchmark_Set/grid_sample/grid_10x10_medium_30.txt",
+        "../OP_Benchmark_Set/grid_sample/grid_10x10_medium_30.txt"
     ]
     
     problem_path = None

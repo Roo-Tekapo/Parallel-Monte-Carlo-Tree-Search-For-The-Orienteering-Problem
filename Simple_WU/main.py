@@ -178,17 +178,18 @@ def main():
     print(f"Execution time: {elapsed_time:.2f} seconds")
     
     # Save results to file if specified or create default filename
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    results_dir = os.path.join(script_dir, 'results')
+    
     if args.output_file:
         output_file = args.output_file
-        # If output file doesn't have path, put it in current directory
+        # If output file doesn't have path, put it in results directory
         if not os.path.isabs(output_file):
-            script_dir = os.path.dirname(os.path.abspath(__file__))
-            output_file = os.path.join(script_dir, output_file)
+            output_file = os.path.join(results_dir, output_file)
     else:
-        # Create default filename 
-        script_dir = os.path.dirname(os.path.abspath(__file__))
+        # Create default filename in results directory
         problem_name = os.path.splitext(os.path.basename(args.problem_file))[0]
-        output_file = os.path.join(script_dir, f"simple-wu-uct_{problem_name}_{args.max_iterations}.txt")
+        output_file = os.path.join(results_dir, f"simple-wu-uct_{problem_name}_{args.max_iterations}.txt")
     
     try:
         os.makedirs(os.path.dirname(output_file), exist_ok=True)

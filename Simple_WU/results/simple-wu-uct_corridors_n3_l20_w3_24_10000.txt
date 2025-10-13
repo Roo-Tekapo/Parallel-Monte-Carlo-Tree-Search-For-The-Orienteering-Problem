@@ -1,0 +1,11 @@
+# Simple WU-UCT Results
+# Problem: OP_Benchmark_Set/parallel_friendly_v2/corridors/corridors_n3_l20_w3_24.txt
+# Iterations: 10000
+# Exploration constant: 1.4142135623730951
+# Number of workers: 4
+# Max distance: 1.42
+# Execution time: 0.44s
+#
+Path= 0 4 8 9 5 82 86 90 94 98 102 106 110 114 118 122 126 130 262 134 138 142 146 150 154 1
+Reward= 287
+Cost= 23.957714074606933

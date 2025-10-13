@@ -20,14 +20,37 @@ from wu_uct_parallel_viz import EnhancedWUUCTVisualizer
 from wu_uct_grid_viz import WUUCTGridVisualizer
 
 
+def find_problem_file(filename):
+    """Find the problem file by trying multiple possible paths."""
+    possible_paths = [
+        f"../../OP_Benchmark_Set/grid_sample/{filename}",  # From WU_Viz directory
+        f"OP_Benchmark_Set/grid_sample/{filename}",        # From project root
+        f"../OP_Benchmark_Set/grid_sample/{filename}",     # From Simple_WU directory
+    ]
+    
+    for path in possible_paths:
+        if os.path.exists(path):
+            return path
+    
+    # If not found, raise helpful error
+    raise FileNotFoundError(
+        f"Could not find {filename}. Tried:\n" + 
+        "\n".join(f"  - {p}" for p in possible_paths) +
+        "\n\nPlease run from the project root, Simple_WU, or Simple_WU/WU_Viz directory."
+    )
+
+
 def run_basic_visualization():
     """Run the basic WU-UCT tree visualization."""
     print("Starting Basic WU-UCT Tree Visualization...")
     print("This shows the shared tree development with WU-UCT specific features.")
     print()
     
+    problem_path = find_problem_file("grid_10x10_medium_30.txt")
+    print(f"Using problem file: {problem_path}\n")
+    
     visualizer = WUUCTTreeVisualizer(
-        problem_path="../../OP_Benchmark_Set/grid_sample/grid_10x10_medium_30.txt",
+        problem_path=problem_path,
         iterations=5000,
         num_workers=4,
         initial_max_depth=6,
@@ -43,8 +66,11 @@ def run_parallel_visualization():
     print("This shows detailed worker activity and parallel interaction.")
     print()
     
+    problem_path = find_problem_file("grid_10x10_medium_30.txt")
+    print(f"Using problem file: {problem_path}\n")
+    
     visualizer = EnhancedWUUCTVisualizer(
-        problem_path="../../OP_Benchmark_Set/grid_sample/grid_10x10_medium_30.txt",
+        problem_path=problem_path,
         iterations= 10000,
         num_workers=4,
         initial_max_depth=6,
@@ -62,8 +88,11 @@ def run_grid_visualization():
     print("  • Press 'P' to toggle worker path display")
     print()
     
+    problem_path = find_problem_file("grid_10x10_medium_30.txt")
+    print(f"Using problem file: {problem_path}\n")
+    
     visualizer = WUUCTGridVisualizer(
-        problem_path="../../OP_Benchmark_Set/grid_sample/grid_10x10_medium_30.txt",
+        problem_path=problem_path,
         iterations=12000,
         num_workers=4,
         exploration_constant=1.414,

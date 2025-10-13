@@ -27,7 +27,7 @@ from simple_wu_worker import SimpleWUWorker
 
 
 # ---- Config ----
-PROBLEM_PATH = "../../OP_Benchmark_Set/grid_sample/grid_10x10_medium_30.txt"
+PROBLEM_PATH = "OP_Benchmark_Set/grid_sample/grid_10x10_medium_30.txt"
 ITERATIONS = 10000
 INITIAL_MAX_DEPTH = 8
 MAX_NODES = 200  # Limit nodes to prevent overcrowding
