@@ -341,9 +341,13 @@ if __name__ == "__main__":
     solver = MCTSSingleThread(problem, iterations=100000, traditional_mcts=False)
     best_state = solver.run()
 
+    # Calculate raw reward by summing actual node scores
+    raw_reward = sum(problem.nodes[node_id].score for node_id in best_state.get_path())
+    
     print("Traditional MCTS Results:")
     print("Best path:", best_state.get_path())
-    print("Total reward:", best_state.get_reward())
+    print("Normalized reward:", best_state.get_reward())
+    print("Raw reward:", raw_reward)
     print("Total cost:", best_state.get_cost())
     print("Valid solution:", best_state.is_terminal())
 

@@ -170,10 +170,14 @@ def main():
         print(f"  Total visits: {tree_stats['total_visits']}")
     
     # Print results
+    # Calculate raw reward by summing actual node scores
+    raw_reward = sum(problem.nodes[node_id].score for node_id in best_state.path)
+    
     print(f"\\nResults:")
     print(f"Algorithm: Simple WU-UCT")
     print(f"Best path: {' -> '.join(map(str, best_state.path))}")
-    print(f"Total reward: {best_state.reward_so_far}")
+    print(f"Normalized reward: {best_state.reward_so_far}")
+    print(f"Raw reward: {raw_reward}")
     print(f"Total cost: {best_state.cost_so_far:.2f}")
     print(f"Execution time: {elapsed_time:.2f} seconds")
     
