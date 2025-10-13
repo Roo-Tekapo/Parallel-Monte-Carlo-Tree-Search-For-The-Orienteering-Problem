@@ -1,0 +1,147 @@
+# Simple WU-UCT Batch Results
+# Date: 2025-10-13 16:06:02
+# Max iterations: 2000
+# Number of workers: 4
+# Exploration constant: 1.414
+#
+# Results:
+#
+
+## grid_corners_b30.txt
+Problem file: /Users/reubenkappely/Documents/Projects/Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem/OP_Benchmark_Set/grid_patterns/grid_corners_b30.txt
+Nodes: 100
+Budget: 30.0
+Path: 0 -> 32 -> 22 -> 23 -> 13 -> 3
+Reward: 70.0
+Cost: 5.00
+Execution time: 3.43s
+Tree nodes: 2001
+Tree depth: 6
+Tree visits: 10631
+
+
+## grid_center_b30.txt
+Problem file: /Users/reubenkappely/Documents/Projects/Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem/OP_Benchmark_Set/grid_patterns/grid_center_b30.txt
+Nodes: 100
+Budget: 30.0
+Path: 0 -> 42 -> 43 -> 52 -> 60 -> 51
+Reward: 41.0
+Cost: 5.83
+Execution time: 3.40s
+Tree nodes: 2000
+Tree depth: 6
+Tree visits: 10604
+
+
+## grid_edges_b30.txt
+Problem file: /Users/reubenkappely/Documents/Projects/Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem/OP_Benchmark_Set/grid_patterns/grid_edges_b30.txt
+Nodes: 100
+Budget: 30.0
+Path: 0 -> 32 -> 22 -> 33 -> 23 -> 24
+Reward: 81.0
+Cost: 5.41
+Execution time: 3.50s
+Tree nodes: 1998
+Tree depth: 6
+Tree visits: 10630
+
+
+## grid_diagonal_b30.txt
+Problem file: /Users/reubenkappely/Documents/Projects/Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem/OP_Benchmark_Set/grid_patterns/grid_diagonal_b30.txt
+Nodes: 100
+Budget: 30.0
+Path: 0 -> 32 -> 22 -> 23 -> 13 -> 3
+Reward: 82.0
+Cost: 5.00
+Execution time: 3.48s
+Tree nodes: 2001
+Tree depth: 6
+Tree visits: 10614
+
+
+## grid_grad_horiz_b30.txt
+Problem file: /Users/reubenkappely/Documents/Projects/Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem/OP_Benchmark_Set/grid_patterns/grid_grad_horiz_b30.txt
+Nodes: 100
+Budget: 30.0
+Path: 0 -> 51 -> 60 -> 70 -> 80 -> 71 -> 61
+Reward: 84.0
+Cost: 6.41
+Execution time: 3.48s
+Tree nodes: 2001
+Tree depth: 6
+Tree visits: 10680
+
+
+## grid_quadrants_b30.txt
+Problem file: /Users/reubenkappely/Documents/Projects/Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem/OP_Benchmark_Set/grid_patterns/grid_quadrants_b30.txt
+Nodes: 100
+Budget: 30.0
+Path: 0 -> 32 -> 22 -> 13 -> 12 -> 2
+Reward: 35.0
+Cost: 5.41
+Execution time: 3.51s
+Tree nodes: 2001
+Tree depth: 6
+Tree visits: 10612
+
+
+## grid_checkerboard_b30.txt
+Problem file: /Users/reubenkappely/Documents/Projects/Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem/OP_Benchmark_Set/grid_patterns/grid_checkerboard_b30.txt
+Nodes: 100
+Budget: 30.0
+Path: 0 -> 52 -> 53 -> 62 -> 61 -> 72
+Reward: 45.0
+Cost: 5.83
+Execution time: 3.62s
+Tree nodes: 2000
+Tree depth: 6
+Tree visits: 10607
+
+
+## grid_ring_b30.txt
+Problem file: /Users/reubenkappely/Documents/Projects/Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem/OP_Benchmark_Set/grid_patterns/grid_ring_b30.txt
+Nodes: 100
+Budget: 30.0
+Path: 0 -> 32 -> 33 -> 42 -> 34 -> 35
+Reward: 77.0
+Cost: 5.41
+Execution time: 3.52s
+Tree nodes: 2000
+Tree depth: 6
+Tree visits: 10622
+
+
+## grid_clustered_b30.txt
+Problem file: /Users/reubenkappely/Documents/Projects/Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem/OP_Benchmark_Set/grid_patterns/grid_clustered_b30.txt
+Nodes: 100
+Budget: 30.0
+Path: 0 -> 32 -> 23 -> 12 -> 2 -> 3 -> 13
+Reward: 82.0
+Cost: 6.83
+Execution time: 3.50s
+Tree nodes: 2000
+Tree depth: 6
+Tree visits: 10615
+
+
+## grid_random_b30.txt
+Problem file: /Users/reubenkappely/Documents/Projects/Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem/OP_Benchmark_Set/grid_patterns/grid_random_b30.txt
+Nodes: 100
+Budget: 30.0
+Path: 0 -> 51 -> 60 -> 70 -> 80 -> 81 -> 82
+Reward: 63.0
+Cost: 6.00
+Execution time: 3.54s
+Tree nodes: 2001
+Tree depth: 6
+Tree visits: 10624
+
+
+================================================================================
+SUMMARY
+================================================================================
+Total problems: 10
+Successful runs: 10
+Total execution time: 34.98s
+Average time per problem: 3.50s
+Total reward collected: 660.0

@@ -1,0 +1,215 @@
+"""
+WU-UCT PERFORMANCE ANALYSIS AND RECOMMENDATIONS
+================================================
+
+PROBLEMS IDENTIFIED:
+===================
+
+1. EXCESSIVE LOCK CONTENTION (184% overhead!)
+   - 47,670 lock acquisitions for just 500 simulations (~95 locks per simulation)
+   - Lock is held during entire selection, expansion, and backpropagation
+   - This serializes the parallel algorithm, making it slower than single-threaded
+
+2. LOCK SCOPE TOO LARGE
+   In wu_uct_selection():
+   - Lock held for ENTIRE selection traversal (lines 155-180 in wu_uct.py)
+   - Each tree traversal acquires lock and holds it through multiple nodes
+   - Should only lock when reading/modifying shared state
+
+3. REDUNDANT UPDATES
+   - update_incomplete() called for every node in selection path
+   - This adds overhead without benefit for simple tree traversal
+
+4. EXPENSIVE OPERATIONS IN CRITICAL SECTIONS
+   - get_available_actions() called ~4,857 times (very expensive with BFS)
+   - _can_reach_end_from() called ~22,072 times (pathfinding for every action)
+   - These should be cached or computed outside critical sections
+
+5. NO ACTUAL PARALLELISM
+   - Workers spend more time waiting for locks than doing work
+   - Parallel efficiency: 76% with 4 workers (should be close to 100%)
+
+
+RECOMMENDED FIXES:
+==================
+
+FIX 1: Reduce Lock Granularity
+-------------------------------
+Instead of locking during entire selection:
+  - Only lock when selecting child from a node
+  - Release lock between node traversals
+  - Lock only for the specific operation (read UCT values, pick child)
+
+BEFORE (current):
+```python
+def wu_uct_selection(self, node, worker_id):
+    with self.global_tree_lock:  # LOCK HELD TOO LONG
+        # traverse entire path with lock held
+        while not current.state.is_terminal():
+            # ... many operations ...
+```
+
+AFTER (recommended):
+```python
+def wu_uct_selection(self, node, worker_id):
+    path = [node]
+    current = node
+    
+    while not current.state.is_terminal():
+        # Lock only for child selection
+        with self.global_tree_lock:
+            if not current.is_fully_expanded():
+                return current, path, task_id
+            
+            # Quick read of child data
+            action_idx = current.select_action_wu_uct(self.exploration_constant)
+            if action_idx is None or action_idx >= len(current.children):
+                break
+            next_node = current.children[action_idx]
+        
+        # Traverse to next node WITHOUT lock
+        current = next_node
+        path.append(current)
+```
+
+
+FIX 2: Remove or Defer Incomplete Updates
+------------------------------------------
+The incomplete updates add overhead but aren't critical during selection:
+  - Move them to a deferred batch update
+  - Or remove them if not using virtual loss
+  - Current implementation calls update_incomplete() for EVERY selection
+
+BEFORE:
+```python
+if hasattr(current, 'update_incomplete'):
+    current.update_incomplete(task_id, -1)  # EXPENSIVE IN LOCK
+```
+
+AFTER:
+```python
+# Defer these or make them atomic without lock
+# Or use virtual loss instead
+```
+
+
+FIX 3: Cache Expensive Computations
+------------------------------------
+get_available_actions() is called 4,857 times and includes BFS pathfinding:
+  - Cache available actions in each node
+  - Only recompute when state changes
+  - Compute outside critical sections
+
+Add to WUUCTNode:
+```python
+def __init__(self, state, parent=None):
+    super().__init__(state, parent)
+    self._cached_actions = None  # Cache
+    self._actions_computed = False
+
+@property
+def available_actions_cached(self):
+    if not self._actions_computed:
+        self._cached_actions = self.state.get_available_actions()
+        self._actions_computed = True
+    return self._cached_actions
+```
+
+
+FIX 4: Use Virtual Loss Instead of Complex Updates
+---------------------------------------------------
+The WU-UCT paper uses "virtual loss" to discourage workers from
+selecting same path. This is simpler than current incomplete/complete tracking:
+
+```python
+def apply_virtual_loss(self, node):
+    \"\"\"Temporarily penalize node to discourage other workers.\"\"\"
+    with self.global_tree_lock:
+        node.visits += VIRTUAL_LOSS  # e.g., 3
+        node.total_reward -= VIRTUAL_LOSS * average_reward
+
+def remove_virtual_loss(self, node, actual_reward):
+    \"\"\"Remove virtual loss and add actual result.\"\"\"
+    with self.global_tree_lock:
+        node.visits -= VIRTUAL_LOSS - 1  # Remove virtual, add 1 real
+        node.total_reward -= (VIRTUAL_LOSS * average_reward) - actual_reward
+```
+
+
+FIX 5: Batch Updates
+--------------------
+Instead of updating each node immediately during backprop:
+  - Collect path updates
+  - Acquire lock once
+  - Apply all updates in batch
+
+BEFORE:
+```python
+for node, task_id in reversed(path):
+    with self.global_tree_lock:  # LOCK PER NODE
+        node.update_complete(...)
+```
+
+AFTER:
+```python
+updates = [(node, reward) for node in reversed(path)]
+with self.global_tree_lock:  # SINGLE LOCK
+    for node, reward in updates:
+        node.visits += 1
+        node.total_reward += reward
+```
+
+
+FIX 6: Use Lock-Free Updates Where Possible
+--------------------------------------------
+For simple counters, use atomic operations:
+```python
+import threading
+
+class WUUCTNode:
+    def __init__(self, state, parent=None):
+        self.visits = 0
+        self.total_reward = 0.0
+        self._lock = threading.Lock()  # Per-node lock (lighter)
+    
+    def update_atomic(self, reward):
+        \"\"\"Fast per-node update without global lock.\"\"\"
+        with self._lock:  # Only locks THIS node
+            self.visits += 1
+            self.total_reward += reward
+```
+
+
+EXPECTED IMPROVEMENTS:
+======================
+
+With these changes, you should see:
+- 2-3x speedup with 4 workers (instead of current 0.76x slowdown)
+- Lock overhead reduced from 184% to <20%
+- Lock acquisitions reduced from ~95 per sim to ~10 per sim
+- Better solution quality (less contention = more exploration)
+
+
+PRIORITY ORDER:
+===============
+
+1. FIX 1 (Reduce lock granularity) - CRITICAL - Will give biggest improvement
+2. FIX 5 (Batch updates) - HIGH - Easy to implement, significant gains
+3. FIX 4 (Virtual loss) - MEDIUM - Simplifies code, improves correctness
+4. FIX 3 (Cache actions) - MEDIUM - Reduces computation overhead
+5. FIX 2 (Defer incomplete updates) - LOW - Minor optimization
+6. FIX 6 (Lock-free updates) - LOW - Advanced optimization
+
+
+QUICK WIN:
+==========
+
+Start with FIX 1 + FIX 5. These are the easiest to implement and will
+give you immediate 2-3x speedup with 4 workers.
+
+The main issue is that your global_tree_lock is held for too long,
+serializing what should be parallel work.
+"""
+
+if __name__ == "__main__":
+    print(open(__file__).read())

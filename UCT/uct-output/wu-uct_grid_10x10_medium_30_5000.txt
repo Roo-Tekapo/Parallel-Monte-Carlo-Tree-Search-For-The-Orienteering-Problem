@@ -1,0 +1,11 @@
+# WU-UCT Results
+# Problem: OP_Benchmark_Set\grid_sample\grid_10x10_medium_30.txt
+# Iterations: 5000
+# Exploration constant: 1.4142135623730951
+# Expansion workers: 1
+# Simulation workers: 2
+# Execution time: 21.11s
+#
+Path= 0 46 47 57 67 78 77 89 88 99 110 111 112 101 90 79 69 60 50 51 41 31
+Reward= 274
+Cost= 23.07106781186548

@@ -1,0 +1,12 @@
+# WU-UCT Results
+# Problem: OP_Benchmark_Set/set_64_1/set_64_1_80.txt
+# Iterations: 1000
+# Exploration constant: 1.4142135623730951
+# Max distance: 1.42
+# Expansion workers: 1
+# Simulation workers: 2
+# Execution time: 1.12s
+#
+Path= 0 2
+Reward= 6
+Cost= 1.4142135623730951

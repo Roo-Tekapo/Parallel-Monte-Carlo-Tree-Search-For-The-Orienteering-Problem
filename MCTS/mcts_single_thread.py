@@ -74,8 +74,14 @@ class single_thread_mcts:
 
 
     def print_results(self):
-        print("Best path:", OrienteeringState.get_path(self.root))
-        print("Total reward:", OrienteeringState.get_reward(self.root))
+        path = OrienteeringState.get_path(self.root)
+        normalized_reward = OrienteeringState.get_reward(self.root)
+        # Calculate raw reward by summing actual node scores
+        raw_reward = sum(self.problem.nodes[node_id].score for node_id in path)
+        
+        print("Best path:", path)
+        print("Normalized reward:", normalized_reward)
+        print("Raw reward:", raw_reward)
         print("Total cost:", OrienteeringState.get_cost(self.root))
 
 

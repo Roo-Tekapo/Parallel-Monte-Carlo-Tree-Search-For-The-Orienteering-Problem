@@ -1,0 +1,157 @@
+#!/usr/bin/env python3
+"""
+Main entry point for UCT algorithms.
+Supports both single-threaded UCT and parallel WU-UCT.
+"""
+
+import argparse
+import sys
+import os
+import time
+import math
+
+# Add parent directory to path to import orienteering
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from orienteering.orienteering import OrienteeringProblem
+from UCT.uct_single_thread import UCTSingleThread
+from UCT.wu_uct_coordinator import WUUCT
+
+
+def main():
+    parser = argparse.ArgumentParser(description='UCT and WU-UCT algorithms for the Orienteering Problem')
+    
+    parser.add_argument('--problem-file', type=str, required=True,
+                       help='Path to the orienteering problem file')
+    parser.add_argument('--algorithm', type=str, choices=['uct', 'wu-uct'], default='uct',
+                       help='Algorithm to use (default: wu-uct)')
+    parser.add_argument('--max-iterations', type=int, default=10000,
+                       help='Maximum number of iterations (default: 10000)')
+    parser.add_argument('--max-time', type=float, default=None,
+                       help='Maximum time in seconds (optional, overrides max-iterations if both specified)')
+    parser.add_argument('--exploration-constant', type=float, default=math.sqrt(2),
+                       help='UCT exploration constant (default: sqrt(2))')
+    parser.add_argument('--simulation-workers', type=int, default=4,
+                       help='Number of simulation workers for WU-UCT (default: 4)')
+    parser.add_argument('--expansion-workers', type=int, default=2,
+                       help='Number of expansion workers for WU-UCT (default: 2)')
+    parser.add_argument('--max-distance', type=float,
+                       help='Maximum distance limit for simulations (optional)')
+    parser.add_argument('--verbose', action='store_true',
+                       help='Enable verbose output')
+    parser.add_argument('--output-file', type=str,
+                       help='Output file to save results')
+    
+    args = parser.parse_args()
+    
+    # Load problem
+    try:
+        nodes, budget = OrienteeringProblem.load_problem(args.problem_file)
+        problem = OrienteeringProblem(nodes, budget)
+        
+        if args.verbose:
+            print(f"Loaded problem: {len(nodes)} nodes, budget: {budget}")
+            print(f"Problem file: {args.problem_file}")
+            if args.max_distance:
+                print(f"Max distance limit: {args.max_distance}")
+            if args.max_time:
+                print(f"Max time: {args.max_time} seconds")
+    except Exception as e:
+        print(f"ERROR: Failed to load problem file: {e}")
+        sys.exit(1)
+    
+    # Run algorithm
+    start_time = time.time()
+    
+    if args.algorithm == 'uct':
+        if args.verbose:
+            if args.max_time:
+                print(f"Running single-threaded UCT with max time {args.max_time}s")
+            else:
+                print(f"Running single-threaded UCT with {args.max_iterations} iterations")
+        
+        uct = UCTSingleThread(problem, 
+                             iterations=args.max_iterations,
+                             exploration_constant=args.exploration_constant,
+                             max_distance=args.max_distance)
+        best_state = uct.run(max_time=args.max_time)
+        
+        if args.verbose:
+            stats = uct.get_statistics()
+            print(f"UCT Statistics: {stats}")
+    
+    elif args.algorithm == 'wu-uct':
+        if args.verbose:
+            if args.max_time:
+                print(f"Running WU-UCT with max time {args.max_time}s")
+            else:
+                print(f"Running WU-UCT with {args.max_iterations} iterations")
+            print(f"Expansion workers: {args.expansion_workers}")
+            print(f"Simulation workers: {args.simulation_workers}")
+        
+        wu_uct = WUUCT(problem,
+                      expansion_workers=args.expansion_workers,
+                      simulation_workers=args.simulation_workers,
+                      exploration_constant=args.exploration_constant,
+                      max_distance=args.max_distance)
+        
+        best_state = wu_uct.run(max_iterations=args.max_iterations, max_time=args.max_time, verbose=args.verbose)
+        
+        if args.verbose:
+            stats = wu_uct.get_statistics()
+            print(f"WU-UCT Statistics: {stats}")
+    
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    
+    # Print results
+    print(f"\nResults:")
+    print(f"Algorithm: {args.algorithm.upper()}")
+    print(f"Best path: {best_state.get_path()}")
+    print(f"Total reward: {best_state.get_reward()}")
+    print(f"Total cost: {best_state.get_cost()}")
+    print(f"Execution time: {elapsed_time:.2f} seconds")
+    
+    # Save results to file if specified or create default filename
+    if args.output_file:
+        output_file = args.output_file
+        # If output file doesn't start with absolute path or UCT folder, put it in uct-output
+        if not os.path.isabs(output_file) and not output_file.startswith('uct-output'):
+            # Get the directory where this script is located (UCT folder)
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            uct_output_dir = os.path.join(script_dir, 'uct-output')
+            output_file = os.path.join(uct_output_dir, os.path.basename(output_file))
+    else:
+        # Create default filename in uct-output folder
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        uct_output_dir = os.path.join(script_dir, 'uct-output')
+        problem_name = os.path.splitext(os.path.basename(args.problem_file))[0]
+        output_file = os.path.join(uct_output_dir, f"{args.algorithm}_{problem_name}_{args.max_iterations}.txt")
+    
+    try:
+        os.makedirs(os.path.dirname(output_file), exist_ok=True)
+        with open(output_file, 'w') as f:
+            f.write(f"# {args.algorithm.upper()} Results\n")
+            f.write(f"# Problem: {args.problem_file}\n")
+            f.write(f"# Iterations: {args.max_iterations}\n")
+            if args.max_time:
+                f.write(f"# Max time: {args.max_time}s\n")
+            f.write(f"# Exploration constant: {args.exploration_constant}\n")
+            if args.max_distance:
+                f.write(f"# Max distance: {args.max_distance}\n")
+            if args.algorithm == 'wu-uct':
+                f.write(f"# Expansion workers: {args.expansion_workers}\n")
+                f.write(f"# Simulation workers: {args.simulation_workers}\n")
+            f.write(f"# Execution time: {elapsed_time:.2f}s\n")
+            f.write(f"#\n")
+            f.write(f"Path= {' '.join(map(str, best_state.get_path()))}\n")
+            f.write(f"Reward= {best_state.get_reward()}\n")
+            f.write(f"Cost= {best_state.get_cost()}\n")
+        
+        print(f"Results saved to: {output_file}")
+    except Exception as e:
+        print(f"ERROR: Failed to save results to file: {e}")
+
+
+if __name__ == "__main__":
+    main()

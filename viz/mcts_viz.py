@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.lines import Line2D
+import matplotlib.colors as mcolors
+import numpy as np
 from MCTS.mcts_base import MCTSSingleThread
 from orienteering.orienteering import OrienteeringProblem
 
@@ -28,11 +30,25 @@ def extract_coords(nodes):
 
 xs, ys = extract_coords(nodes)
 
+# Extract node scores for color mapping
+node_scores = [node.score for node in nodes]
+min_score = min(node_scores)
+max_score = max(node_scores)
+
+# Create color mapping - use 'Blues' colormap where darker = higher reward
+cmap = plt.cm.Blues
+norm = mcolors.Normalize(vmin=min_score, vmax=max_score)
+node_colors = [cmap(norm(score)) for score in node_scores]
+
 solver = MCTSSingleThread(problem, iterations=10000)
 
-fig, ax = plt.subplots(figsize=(8,6))
-sc = ax.scatter(xs, ys, c='gray', s=40)
-ax.set_title("MCTS Viz: space=pause, a=agg/per, r=toggle visits/avg")
+fig, ax = plt.subplots(figsize=(10,6))
+sc = ax.scatter(xs, ys, c=node_colors, s=40, edgecolors='black', linewidths=0.5)
+ax.set_title("MCTS Viz: space=pause, a=agg/per, r=toggle visits/avg (Node color = reward)")
+
+# Add colorbar to show reward scale
+cbar = plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, shrink=0.6)
+cbar.set_label('Node Reward', rotation=270, labelpad=15)
 
 # --- Highlight start & end nodes ---
 start_node = nodes[0]
@@ -52,7 +68,7 @@ def get_xy(n):
 start_x, start_y = get_xy(start_node)
 end_x, end_y     = get_xy(end_node)
 
-start_scatter = ax.scatter([start_x], [start_y], c='blue', s=120, marker='o', label="Start")
+start_scatter = ax.scatter([start_x], [start_y], c='green', s=120, marker='o', label="Start")
 end_scatter   = ax.scatter([end_x], [end_y], c='red',  s=120, marker='X', label="End")
 
 
@@ -79,6 +95,9 @@ budget_text = ax.text(
     bbox=dict(facecolor='white', alpha=0.6, edgecolor='none')
 )
 
+# Dead-end counter (global)
+dead_end_count = 0
+
 paused = False
 # Toggle whether to aggregate visits across all tree nodes ending at the same graph node
 aggregate_stats = False
@@ -102,11 +121,15 @@ for i, (x, y) in enumerate(zip(xs, ys)):
     node_texts.append(txt)
 
 def update(frame):
-    global paused, aggregate_stats
+    global paused, aggregate_stats, dead_end_count
     if paused:
         return sel_scatter, best_line, sc, current_scatter, budget_text
 
     ev = solver.step()
+    
+    # Track dead-ends
+    if ev.get("leaf") and hasattr(ev["leaf"], "is_dead_end") and ev["leaf"].is_dead_end:
+        dead_end_count += 1
 
     # highlight selection path nodes (use node.state to get path indexes)
     sel_coords_x = []
@@ -166,8 +189,13 @@ def update(frame):
             bx.append(p.x); by.append(p.y)
     best_line.set_data(bx, by)
 
+    # Check if the leaf is a dead-end for display
+    is_leaf_dead_end = hasattr(ev.get("leaf"), "is_dead_end") and ev["leaf"].is_dead_end
+    dead_end_marker = " [DEAD-END]" if is_leaf_dead_end else ""
+    
     ax.set_xlabel(
-        f"iterations: {solver.iteration}/{solver.iterations}  last_reward: {ev['reward']:.3f}  mode: {'agg' if aggregate_stats else 'per'}"
+        f"iterations: {solver.iteration}/{solver.iterations}  last_reward: {ev['reward']:.3f}  "
+        f"mode: {'agg' if aggregate_stats else 'per'}  dead-ends: {dead_end_count}{dead_end_marker}"
     )
 
     # Update node labels with either aggregated or per-tree-node stats

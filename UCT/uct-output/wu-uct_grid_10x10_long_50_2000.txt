@@ -1,0 +1,11 @@
+# WU-UCT Results
+# Problem: /Users/reubenkappely/Documents/Projects/Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem/OP_Benchmark_Set/grid_sample/grid_10x10_long_50.txt
+# Iterations: 2000
+# Exploration constant: 1.4142135623730951
+# Expansion workers: 1
+# Simulation workers: 2
+# Execution time: 10.08s
+#
+Path= 0 46 35 25 15 4
+Reward= 77
+Cost= 5.82842712474619

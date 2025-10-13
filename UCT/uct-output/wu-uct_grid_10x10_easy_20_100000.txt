@@ -1,0 +1,13 @@
+# WU-UCT Results
+# Problem: OP_Benchmark_Set/grid_sample/grid_10x10_easy_20.txt
+# Iterations: 100000
+# Max time: 1.0s
+# Exploration constant: 1.4142135623730951
+# Max distance: 1.42
+# Expansion workers: 1
+# Simulation workers: 2
+# Execution time: 1.56s
+#
+Path= 0 66 77 88 100 112
+Reward= 48
+Cost= 5.82842712474619

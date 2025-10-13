@@ -4,16 +4,18 @@ import random
 from orienteering.orienteering import OrienteeringState
 
 class MCTSNode:
-    def __init__(self, state: OrienteeringState, parent=None):
+    def __init__(self, state: OrienteeringState, parent=None, traditional_mcts: bool = False):
         self.state = state
         self.parent = parent
         self.children = []
         self.visits = 0
         self.total_reward = 0.0
         # copy actions list to avoid aliasing and randomize order
-        self.untried_actions = list(state.get_available_actions() or [])
+        self.untried_actions = list(state.get_available_actions(traditional_mcts=traditional_mcts) or [])
         if self.untried_actions:
             random.shuffle(self.untried_actions)
+        # Mark as dead-end if no actions available and not terminal
+        self.is_dead_end = (len(self.untried_actions) == 0 and not state.is_terminal())
 
     def __repr__(self):
         try:
@@ -53,16 +55,24 @@ class MCTSNode:
     #     ]
     #     return self.children[choices.index(max(choices))]
 
-    def uct_best_child(self, c_param=math.sqrt(2), epsilon: float = 0.0):
+    def uct_best_child(self, c_param, epsilon): #c_param=math.sqrt(2), epsilon: float = 0.05
         if not self.children:
             raise ValueError("No children to select from.")
 
+        # Filter out dead-end children (nodes with no actions that aren't terminal)
+        viable_children = [c for c in self.children if not c.is_dead_end]
+        
+        # If all children are dead-ends, fall back to all children
+        # (This shouldn't happen often but prevents crashes)
+        if not viable_children:
+            viable_children = self.children
+
         # epsilon-greedy occasional random pick
         if epsilon > 0.0 and random.random() < epsilon:
-            return random.choice(self.children)
+            return random.choice(viable_children)
 
         # prefer any unvisited child first
-        unvisited = [c for c in self.children if c.visits == 0]
+        unvisited = [c for c in viable_children if c.visits == 0]
         if unvisited:
             return random.choice(unvisited)
 
@@ -73,7 +83,7 @@ class MCTSNode:
         best_child = None
         
         sqrt_ln_parent = math.sqrt(ln_parent)
-        for child in self.children:
+        for child in viable_children:
             # safe since all children visited >0 here
             exploit = child.total_reward / child.visits
             explore = c_param * sqrt_ln_parent / math.sqrt(child.visits)

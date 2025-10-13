@@ -1,0 +1,10 @@
+# UCT Results
+# Problem: OP_Benchmark_Set\parallel_friendly_v2\dense_grid\dense_15x15_r0_15.txt
+# Iterations: 100000
+# Exploration constant: 1.4142135623730951
+# Max distance: 1.42
+# Execution time: 1.76s
+#
+Path= 0 16 30 45 60 75 90 91 76 61 46 31 17 1
+Reward= 226
+Cost= 14.656854249492381

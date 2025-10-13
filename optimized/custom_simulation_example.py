@@ -39,8 +39,8 @@ if __name__ == "__main__":
     # Load problem
     # Handle both running from optimized/ directory and as module from parent
     import os
-    if os.path.exists('../OP_Benchmark_Set/set_64_1/set_64_1_80.txt'):
-        problem_file = '../OP_Benchmark_Set/set_64_1/set_64_1_80.txt'
+    if os.path.exists('OP_Benchmark_Set/set_64_1/set_64_1_80.txt'):
+        problem_file = 'OP_Benchmark_Set/set_64_1/set_64_1_80.txt'
     else:
         problem_file = 'OP_Benchmark_Set/sample/sample_6_small.txt'
         print(f"Warning: Could not find set_64_1_80.txt, using {problem_file} instead")

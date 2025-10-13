@@ -1,0 +1,9 @@
+# UCT Results
+# Problem: OP_Benchmark_Set/grid_sample/grid_10x10_medium_30.txt
+# Iterations: 10000
+# Exploration constant: 1.4142135623730951
+# Execution time: 0.57s
+#
+Path= 0 66 67 57 58 68 69 60 61 51 50 49 59 70 71 81 91 92 93 83 72 73 63 54 44 55 56 1
+Reward= 364
+Cost= 29.89949493661167

@@ -1,0 +1,147 @@
+# Simple WU-UCT Batch Results
+# Date: 2025-10-13 14:57:51
+# Max iterations: 10000
+# Number of workers: 4
+# Exploration constant: 1.414
+#
+# Results:
+#
+
+## grid_corners_b30.txt
+Problem file: /Users/reubenkappely/Documents/Projects/Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem/OP_Benchmark_Set/grid_patterns/grid_corners_b30.txt
+Nodes: 100
+Budget: 30.0
+Path: 0 -> 42 -> 34 -> 23 -> 14 -> 13 -> 22 -> 12 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 18 -> 9 -> 10 -> 11 -> 21 -> 20 -> 19 -> 30 -> 31 -> 41 -> 40 -> 49 -> 50 -> 1
+Reward: 335
+Cost: 29.90
+Execution time: 0.61s
+Tree nodes: 163
+Tree depth: 27
+Tree visits: 277366
+
+
+## grid_center_b30.txt
+Problem file: /Users/reubenkappely/Documents/Projects/Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem/OP_Benchmark_Set/grid_patterns/grid_center_b30.txt
+Nodes: 100
+Budget: 30.0
+Path: 0 -> 42 -> 43 -> 54 -> 45 -> 35 -> 36 -> 44 -> 55 -> 65 -> 74 -> 64 -> 56 -> 46 -> 37 -> 28 -> 38 -> 48 -> 47 -> 57 -> 66 -> 76 -> 77 -> 67 -> 59 -> 1
+Reward: 323
+Cost: 29.56
+Execution time: 0.91s
+Tree nodes: 490
+Tree depth: 25
+Tree visits: 251901
+
+
+## grid_edges_b30.txt
+Problem file: /Users/reubenkappely/Documents/Projects/Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem/OP_Benchmark_Set/grid_patterns/grid_edges_b30.txt
+Nodes: 100
+Budget: 30.0
+Path: 0 -> 32 -> 23 -> 12 -> 13 -> 2 -> 3 -> 4 -> 14 -> 5 -> 6 -> 16 -> 17 -> 7 -> 8 -> 9 -> 10 -> 21 -> 11 -> 20 -> 31 -> 41 -> 50 -> 40 -> 49 -> 59 -> 1
+Reward: 455
+Cost: 29.31
+Execution time: 0.59s
+Tree nodes: 182
+Tree depth: 26
+Tree visits: 267494
+
+
+## grid_diagonal_b30.txt
+Problem file: /Users/reubenkappely/Documents/Projects/Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem/OP_Benchmark_Set/grid_patterns/grid_diagonal_b30.txt
+Nodes: 100
+Budget: 30.0
+Path: 0 -> 42 -> 33 -> 23 -> 22 -> 13 -> 12 -> 2 -> 3 -> 4 -> 14 -> 25 -> 26 -> 36 -> 35 -> 44 -> 45 -> 55 -> 54 -> 63 -> 64 -> 65 -> 75 -> 85 -> 86 -> 87 -> 77 -> 68 -> 1
+Reward: 458
+Cost: 29.66
+Execution time: 0.80s
+Tree nodes: 317
+Tree depth: 28
+Tree visits: 285148
+
+
+## grid_grad_horiz_b30.txt
+Problem file: /Users/reubenkappely/Documents/Projects/Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem/OP_Benchmark_Set/grid_patterns/grid_grad_horiz_b30.txt
+Nodes: 100
+Budget: 30.0
+Path: 0 -> 51 -> 61 -> 60 -> 70 -> 71 -> 80 -> 90 -> 91 -> 92 -> 82 -> 93 -> 94 -> 85 -> 86 -> 95 -> 96 -> 97 -> 98 -> 99 -> 89 -> 88 -> 87 -> 77 -> 78 -> 79 -> 68 -> 1
+Reward: 444
+Cost: 29.90
+Execution time: 0.67s
+Tree nodes: 220
+Tree depth: 27
+Tree visits: 276749
+
+
+## grid_quadrants_b30.txt
+Problem file: /Users/reubenkappely/Documents/Projects/Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem/OP_Benchmark_Set/grid_patterns/grid_quadrants_b30.txt
+Nodes: 100
+Budget: 30.0
+Path: 0 -> 33 -> 43 -> 35 -> 26 -> 17 -> 18 -> 28 -> 38 -> 29 -> 39 -> 47 -> 58 -> 59 -> 67 -> 77 -> 86 -> 96 -> 95 -> 85 -> 76 -> 87 -> 78 -> 68 -> 1
+Reward: 333
+Cost: 29.80
+Execution time: 0.81s
+Tree nodes: 473
+Tree depth: 24
+Tree visits: 243317
+
+
+## grid_checkerboard_b30.txt
+Problem file: /Users/reubenkappely/Documents/Projects/Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem/OP_Benchmark_Set/grid_patterns/grid_checkerboard_b30.txt
+Nodes: 100
+Budget: 30.0
+Path: 0 -> 33 -> 22 -> 13 -> 14 -> 24 -> 35 -> 34 -> 43 -> 42 -> 51 -> 52 -> 60 -> 70 -> 80 -> 71 -> 82 -> 92 -> 93 -> 84 -> 95 -> 86 -> 77 -> 68 -> 1
+Reward: 313
+Cost: 29.80
+Execution time: 0.95s
+Tree nodes: 445
+Tree depth: 24
+Tree visits: 243654
+
+
+## grid_ring_b30.txt
+Problem file: /Users/reubenkappely/Documents/Projects/Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem/OP_Benchmark_Set/grid_patterns/grid_ring_b30.txt
+Nodes: 100
+Budget: 30.0
+Path: 0 -> 33 -> 24 -> 23 -> 32 -> 22 -> 13 -> 4 -> 3 -> 14 -> 15 -> 6 -> 16 -> 17 -> 7 -> 8 -> 9 -> 10 -> 19 -> 29 -> 30 -> 40 -> 41 -> 50 -> 49 -> 59 -> 1
+Reward: 409
+Cost: 29.31
+Execution time: 0.82s
+Tree nodes: 309
+Tree depth: 26
+Tree visits: 264639
+
+
+## grid_clustered_b30.txt
+Problem file: /Users/reubenkappely/Documents/Projects/Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem/OP_Benchmark_Set/grid_patterns/grid_clustered_b30.txt
+Nodes: 100
+Budget: 30.0
+Path: 0 -> 32 -> 33 -> 23 -> 13 -> 2 -> 3 -> 4 -> 14 -> 15 -> 25 -> 35 -> 44 -> 43 -> 54 -> 53 -> 42 -> 52 -> 61 -> 62 -> 63 -> 64 -> 74 -> 85 -> 76 -> 77 -> 68 -> 1
+Reward: 381
+Cost: 29.90
+Execution time: 0.96s
+Tree nodes: 414
+Tree depth: 27
+Tree visits: 273428
+
+
+## grid_random_b30.txt
+Problem file: /Users/reubenkappely/Documents/Projects/Parallel-Monte-Carlo-Tree-Search-For-The-Orienteering-Problem/OP_Benchmark_Set/grid_patterns/grid_random_b30.txt
+Nodes: 100
+Budget: 30.0
+Path: 0 -> 51 -> 60 -> 71 -> 62 -> 61 -> 70 -> 80 -> 90 -> 91 -> 82 -> 92 -> 83 -> 73 -> 72 -> 63 -> 53 -> 54 -> 55 -> 64 -> 74 -> 75 -> 86 -> 77 -> 68 -> 1
+Reward: 326
+Cost: 29.56
+Execution time: 0.69s
+Tree nodes: 253
+Tree depth: 25
+Tree visits: 256551
+
+
+================================================================================
+SUMMARY
+================================================================================
+Total problems: 10
+Successful runs: 10
+Total execution time: 7.83s
+Average time per problem: 0.78s
+Total reward collected: 3777

@@ -1,0 +1,13 @@
+# WU-UCT Results
+# Problem: OP_Benchmark_Set\parallel_friendly_v2\xlarge\xlarge_40x40_r0_42.txt
+# Iterations: 100000
+# Max time: 60.0s
+# Exploration constant: 1.4142135623730951
+# Max distance: 1.42
+# Expansion workers: 2
+# Simulation workers: 4
+# Execution time: 62.10s
+#
+Path= 0 40 81 122 162 123 124 165 164
+Reward= 127
+Cost= 9.65685424949238
