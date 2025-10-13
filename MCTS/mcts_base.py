@@ -201,8 +201,8 @@ class MCTSSingleThread:
                             except ValueError:
                                 # Can't apply action, return penalized reward
                                 pass
-                    # Severe penalty for incomplete path - make it much worse than any complete path
-                    return current.get_reward() * 0.1  # 90% penalty for not reaching end
+                    # Return early for dead-end incomplete path
+                    break
             else:
                 # Use biased action selection if soft_end_bias is enabled
                 if self.soft_end_bias:
@@ -211,10 +211,29 @@ class MCTSSingleThread:
                     action = random.choice(actions)
                 current = current.apply_action(action, traditional_mcts=self.traditional_mcts)
         
-        # Add completion bonus if we reached the END_NODE
+        # Calculate final reward with appropriate bonuses/penalties
         reward = current.get_reward()
-        if current.is_terminal():
-            reward += 100  # Bonus for completing the path
+        
+        if self.problem.normalize_rewards:
+            # With improved normalization (scale by max node, not sum),
+            # average node is ~0.5, max node is 1.0
+            # Strategy: Moderate penalty for incomplete, meaningful bonus for complete
+            # This encourages longer paths while still requiring completion
+            if current.is_terminal():
+                # Meaningful bonus - 15% of typical collected reward
+                # With avg node ~0.5, this is ~30% of a typical node value
+                reward += 0.15
+            elif len(current.path) > 2:
+                # Moderate penalty - allows good incomplete exploration
+                # Still penalizes but not so harsh it discourages risk-taking
+                reward *= 0.7  # 30% penalty (was 70%)
+        else:
+            # Original bonuses for unnormalized rewards
+            if current.is_terminal():
+                reward += 100
+            elif len(current.path) > 2:
+                reward *= 0.1  # 90% penalty
+        
         return reward
 
     # Step 4: Backpropagation
@@ -325,8 +344,8 @@ class MCTSSingleThread:
 if __name__ == "__main__":
     nodes, budget = OrienteeringProblem.load_problem(
         # "OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_85.txt"
-        "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
-        # "OP_Benchmark_Set/set_1000_1/set_1000_1_30.txt"
+        # "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
+        "OP_Benchmark_Set/grid_sample/grid_10x10_medium_30.txt"
         # "OP_Benchmark_Set/grid_sample/grid_10x10_long_50.txt"
         # "OP_Benchmark_Set\grid_patterns\grid_corners_b40.txt"
         # "OP_Benchmark_Set/parallel_friendly_v2/xlarge/xlarge_50x50_r0_104.txt"
@@ -335,10 +354,10 @@ if __name__ == "__main__":
     )
 
     # Remove max_edge_distance constraint for traditional MCTS testing
-    problem = OrienteeringProblem(nodes, budget, max_edge_distance=1.42)
+    problem = OrienteeringProblem(nodes, budget, max_edge_distance=1.42, normalize_rewards=True)
 
     # Enable traditional MCTS approach
-    solver = MCTSSingleThread(problem, iterations=100000, traditional_mcts=False)
+    solver = MCTSSingleThread(problem, iterations=10000, traditional_mcts=True)
     best_state = solver.run()
 
     # Calculate raw reward by summing actual node scores
@@ -346,8 +365,12 @@ if __name__ == "__main__":
     
     print("Traditional MCTS Results:")
     print("Best path:", best_state.get_path())
-    print("Normalized reward:", best_state.get_reward())
-    print("Raw reward:", raw_reward)
+    if problem.normalize_rewards:
+        print("Normalized reward:", best_state.get_reward())
+        print("Raw reward:", raw_reward)
+    else:
+        print("Total reward:", best_state.get_reward())
+        print("  (Same as raw reward:", raw_reward, ")")
     print("Total cost:", best_state.get_cost())
     print("Valid solution:", best_state.is_terminal())
 

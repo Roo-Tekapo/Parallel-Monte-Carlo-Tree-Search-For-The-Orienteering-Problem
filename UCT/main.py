@@ -47,7 +47,7 @@ def main():
     # Load problem
     try:
         nodes, budget = OrienteeringProblem.load_problem(args.problem_file)
-        problem = OrienteeringProblem(nodes, budget)
+        problem = OrienteeringProblem(nodes, budget, normalize_rewards=True)
         
         if args.verbose:
             print(f"Loaded problem: {len(nodes)} nodes, budget: {budget}")
@@ -104,11 +104,15 @@ def main():
     end_time = time.time()
     elapsed_time = end_time - start_time
     
+    # Calculate raw reward by summing actual node scores
+    raw_reward = sum(problem.nodes[node_id].score for node_id in best_state.get_path())
+    
     # Print results
     print(f"\nResults:")
     print(f"Algorithm: {args.algorithm.upper()}")
     print(f"Best path: {best_state.get_path()}")
-    print(f"Total reward: {best_state.get_reward()}")
+    print(f"Normalized reward: {best_state.get_reward()}")
+    print(f"Raw reward: {raw_reward}")
     print(f"Total cost: {best_state.get_cost()}")
     print(f"Execution time: {elapsed_time:.2f} seconds")
     
@@ -145,7 +149,8 @@ def main():
             f.write(f"# Execution time: {elapsed_time:.2f}s\n")
             f.write(f"#\n")
             f.write(f"Path= {' '.join(map(str, best_state.get_path()))}\n")
-            f.write(f"Reward= {best_state.get_reward()}\n")
+            f.write(f"Normalized_Reward= {best_state.get_reward()}\n")
+            f.write(f"Raw_Reward= {raw_reward}\n")
             f.write(f"Cost= {best_state.get_cost()}\n")
         
         print(f"Results saved to: {output_file}")

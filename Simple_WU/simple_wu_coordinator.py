@@ -13,7 +13,7 @@ from typing import Optional, List
 
 from orienteering.orienteering import OrienteeringProblem, OrienteeringState
 from UCT.wu_uct_node import WUUCTNode
-from simple_wu_worker import SimpleWUWorker
+from Simple_WU.simple_wu_worker import SimpleWUWorker
 
 
 class SimpleWUUCT:
@@ -114,7 +114,9 @@ class SimpleWUUCT:
             self._print_final_statistics(end_time - start_time)
             
         # Extract best solution from the tree
-        return self._extract_best_solution()
+        best_solution = self._extract_best_solution()
+            
+        return best_solution
         
     def _monitor_with_time_limit(self, max_time: float, verbose: bool):
         """
@@ -154,7 +156,7 @@ class SimpleWUUCT:
         total_simulations = sum(worker.simulations_completed for worker in self.workers)
         total_sim_time = sum(worker.total_simulation_time for worker in self.workers)
         
-        print(f"\\nSimple WU-UCT completed in {total_time:.2f}s")
+        print(f"\nSimple WU-UCT completed in {total_time:.2f}s")
         print(f"Total iterations: {total_iterations}")
         print(f"Total simulations: {total_simulations}")
         print(f"Iterations per second: {total_iterations / total_time:.1f}")
@@ -163,11 +165,34 @@ class SimpleWUUCT:
         print(f"Average simulation time: {total_sim_time / total_simulations:.4f}s")
         
         # Per-worker statistics
-        print(f"\\nPer-worker statistics:")
+        print(f"\nPer-worker statistics:")
         for worker in self.workers:
             stats = worker.get_statistics()
             print(f"  Worker {stats['worker_id']}: {stats['iterations_completed']} iterations, "
                   f"{stats['simulations_completed']} simulations")
+    
+    def _print_solution_details(self, solution: OrienteeringState):
+        """
+        Print solution details with both normalized and actual rewards.
+        
+        Args:
+            solution: The best solution found
+        """
+        # Calculate actual reward from raw node scores
+        actual_reward = sum(self.problem.nodes[node_id].score for node_id in solution.path)
+        
+        print(f"\nBest solution found:")
+        print(f"  Path length: {len(solution.path)} nodes")
+        print(f"  Path: {solution.path}")
+        
+        if self.problem.normalize_rewards:
+            print(f"  Normalized reward: {solution.reward_so_far:.6f}")
+            print(f"  Actual reward: {actual_reward}")
+            print(f"  (Normalization scale: 1/{1/self.problem.reward_scale:.1f})")
+        else:
+            print(f"  Reward: {solution.reward_so_far:.2f}")
+            
+        print(f"  Cost: {solution.cost_so_far:.2f} / {self.problem.budget:.2f}")
                   
     def _count_tree_nodes(self) -> int:
         """
@@ -240,7 +265,7 @@ class SimpleWUUCT:
                 stats['total_reward'] += child_stats['total_reward']
                 
             return stats
-            
+        
         return analyze_tree(self.root)
         
     def _create_next_state(self, current_state: OrienteeringState, action: int) -> OrienteeringState:
@@ -258,10 +283,10 @@ class SimpleWUUCT:
         current_node = current_state.path[-1]
         cost_to_action = self.problem.get_distance(current_node, action)
         
-        # Create new state
+        # Create new state (use normalized score if enabled in problem)
         new_path = current_state.path + [action]
         new_cost = current_state.cost_so_far + cost_to_action
-        new_reward = current_state.reward_so_far + self.problem.nodes[action].score
+        new_reward = current_state.reward_so_far + self.problem.get_normalized_score(action)
         
         return OrienteeringState(
             self.problem, 

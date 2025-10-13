@@ -74,13 +74,15 @@ def run_wu_uct_on_file(problem_file: str,
     
     try:
         nodes, budget = OrienteeringProblem.load_problem(problem_file)
-        problem = OrienteeringProblem(nodes, budget)
+        # Enable reward normalization for better UCT performance
+        problem = OrienteeringProblem(nodes, budget, normalize_rewards=True)
     except Exception as e:
         print(f"ERROR: Failed to load problem file {problem_file}: {e}")
         return None
     
     if verbose:
         print(f"  Nodes: {problem.num_nodes}, Budget: {problem.budget}")
+        print(f"  Normalization: {problem.normalize_rewards}, Scale: {problem.reward_scale:.4f}")
     
     # Create and run Simple WU-UCT
     simple_wu_uct = SimpleWUUCT(
@@ -107,6 +109,9 @@ def run_wu_uct_on_file(problem_file: str,
     # Get tree statistics
     tree_stats = simple_wu_uct.get_tree_statistics()
     
+    # Calculate raw reward
+    raw_reward = sum(problem.nodes[node_id].score for node_id in best_state.path)
+    
     result = {
         'problem_file': problem_file,
         'problem_name': os.path.basename(problem_file),
@@ -114,6 +119,7 @@ def run_wu_uct_on_file(problem_file: str,
         'budget': problem.budget,
         'path': best_state.path,
         'reward': best_state.reward_so_far,
+        'raw_reward': raw_reward,
         'cost': best_state.cost_so_far,
         'execution_time': execution_time,
         'tree_nodes': tree_stats['nodes'],
@@ -124,7 +130,8 @@ def run_wu_uct_on_file(problem_file: str,
     }
     
     if verbose:
-        print(f"  Best reward: {result['reward']}")
+        print(f"  Normalized reward: {result['reward']}")
+        print(f"  Raw reward: {result['raw_reward']}")
         print(f"  Path length: {len(result['path'])}")
         print(f"  Cost: {result['cost']:.2f}")
         print(f"  Time: {result['execution_time']:.2f}s")
@@ -268,7 +275,8 @@ def run_batch(test_files=None,
                 f.write(f"Nodes: {result['num_nodes']}\n")
                 f.write(f"Budget: {result['budget']}\n")
                 f.write(f"Path: {' -> '.join(map(str, result['path']))}\n")
-                f.write(f"Reward: {result['reward']}\n")
+                f.write(f"Normalized reward: {result['reward']}\n")
+                f.write(f"Raw reward: {result['raw_reward']}\n")
                 f.write(f"Cost: {result['cost']:.2f}\n")
                 f.write(f"Execution time: {result['execution_time']:.2f}s\n")
                 f.write(f"Tree nodes: {result['tree_nodes']}\n")

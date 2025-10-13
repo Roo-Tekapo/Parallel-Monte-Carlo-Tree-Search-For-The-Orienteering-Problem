@@ -191,27 +191,34 @@ class UCTSingleThread:
         while not current.is_terminal():
             actions = current.get_available_actions()
             if not actions:
-                # Dead-end: try to force completion to END_NODE if possible
-                current_node = current.path[-1]
-                if current_node != END_NODE:
-                    # Check if we can reach END_NODE directly within budget
-                    cost_to_end = current.problem.get_distance(current_node, END_NODE)
-                    if current.cost_so_far + cost_to_end <= current.problem.budget:
-                        # Force move to END_NODE to complete the path
-                        try:
-                            current = current.apply_action(END_NODE)
-                            break
-                        except ValueError:
-                            # Can't apply action, return penalized reward
-                            pass
-                # Dead end - apply penalty for incomplete path
-                return current.get_reward() * 0.8  # 20% penalty
+                break
             
             # Random action selection
             action = random.choice(actions)
             current = current.apply_action(action)
         
-        return current.get_reward()
+        # Calculate final reward with completion bonus/penalty
+        reward = current.get_reward()
+        
+        if current.is_terminal():
+            # Completion bonus for finishing the path
+            if self.problem.normalize_rewards:
+                # Meaningful bonus - 15% of typical collected reward
+                # With avg node ~0.5, this is ~30% of a typical node value
+                reward += 0.15
+            else:
+                reward += 100  # Larger bonus for unnormalized rewards
+        else:
+            # Penalty for incomplete paths (only if path is non-trivial)
+            if len(current.path) > 2:
+                if self.problem.normalize_rewards:
+                    # Moderate penalty - allows good incomplete exploration
+                    # Still penalizes but not so harsh it discourages risk-taking
+                    reward *= 0.7  # 30% penalty (was 70%)
+                else:
+                    reward *= 0.1  # 90% penalty
+        
+        return reward
     
     def backpropagation(self, node: UCTNode, reward: float):
         """
@@ -282,12 +289,13 @@ class UCTSingleThread:
             'best_child': self.get_best_child(root)
         }
     
-    def run(self, max_time: Optional[float] = None) -> OrienteeringState:
+    def run(self, max_time: Optional[float] = None, verbose: bool = False) -> OrienteeringState:
         """
         Run the complete UCT algorithm for the specified number of iterations or time limit.
         
         Args:
             max_time: Maximum time in seconds (optional, overrides iterations if specified)
+            verbose: Whether to print solution details
         
         Returns the best state found.
         """
@@ -305,7 +313,37 @@ class UCTSingleThread:
             for _ in range(self.iterations):
                 self.run_iteration()
         
-        return self.get_best_path()
+        best_solution = self.get_best_path()
+        
+        # Print solution details if verbose
+        if verbose:
+            self._print_solution_details(best_solution)
+        
+        return best_solution
+    
+    def _print_solution_details(self, solution: OrienteeringState):
+        """
+        Print solution details with both normalized and actual rewards.
+        
+        Args:
+            solution: The best solution found
+        """
+        # Calculate actual reward from raw node scores
+        actual_reward = sum(self.problem.nodes[node_id].score for node_id in solution.path)
+        
+        print(f"\nBest solution found:")
+        print(f"  Path length: {len(solution.path)} nodes")
+        print(f"  Path: {solution.path}")
+        
+        if self.problem.normalize_rewards:
+            print(f"  Normalized reward: {solution.reward_so_far:.6f}")
+            print(f"  Raw reward: {actual_reward}")
+            print(f"  (Normalization scale: 1/{1/self.problem.reward_scale:.1f})")
+        else:
+            print(f"  Total reward: {solution.reward_so_far:.2f}")
+            print(f"    (Same as raw reward: {actual_reward})")
+            
+        print(f"  Cost: {solution.cost_so_far:.2f} / {self.problem.budget:.2f}")
     
     def get_statistics(self) -> dict:
         """Get statistics about the current search tree."""
@@ -329,16 +367,25 @@ class UCTSingleThread:
 if __name__ == "__main__":
     # Test the UCT implementation
     nodes, budget = OrienteeringProblem.load_problem(
-        "../OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
+        "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
     )
     
-    problem = OrienteeringProblem(nodes, budget)
+    problem = OrienteeringProblem(nodes, budget, normalize_rewards=True)
     uct = UCTSingleThread(problem, iterations=10000)
     
     print("Running UCT algorithm...")
     best_state = uct.run()
     
+    # Calculate raw reward by summing actual node scores
+    raw_reward = sum(problem.nodes[node_id].score for node_id in best_state.get_path())
+    
+    print(f"\nUCT Results:")
     print(f"Best path: {best_state.get_path()}")
-    print(f"Total reward: {best_state.get_reward()}")
+    if problem.normalize_rewards:
+        print(f"Normalized reward: {best_state.get_reward()}")
+        print(f"Raw reward: {raw_reward}")
+    else:
+        print(f"Total reward: {best_state.get_reward()}")
+        print(f"  (Same as raw reward: {raw_reward})")
     print(f"Total cost: {best_state.get_cost()}")
     print(f"Statistics: {uct.get_statistics()}")

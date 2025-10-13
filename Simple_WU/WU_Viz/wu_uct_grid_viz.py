@@ -237,14 +237,15 @@ class WUUCTGridVisualizer:
                 size = 200
                 marker = 's'  # Square
             else:  # Regular node
-                # Color based on score (higher score = more yellow/orange)
+                # Color based on score (higher score = darker)
                 if node.score == 0:
                     color = 'lightgray'
                 else:
                     # Normalize score for coloring
                     max_score = max(n.score for n in self.problem.nodes)
                     norm_score = node.score / max_score if max_score > 0 else 0
-                    color = plt.cm.viridis(norm_score)
+                    # Use reversed viridis so higher scores are darker
+                    color = plt.cm.viridis_r(norm_score)
                 size = 50 + node.score * 5  # Size based on score
                 marker = 'o'
             

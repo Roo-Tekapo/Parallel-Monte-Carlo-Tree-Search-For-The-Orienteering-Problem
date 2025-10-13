@@ -45,7 +45,7 @@ def run_simple_wu_uct(problem_file: str,
     # Load the problem
     print(f"Loading problem from: {problem_file}")
     nodes, budget = OrienteeringProblem.load_problem(problem_file)
-    problem = OrienteeringProblem(nodes, budget)
+    problem = OrienteeringProblem(nodes, budget, normalize_rewards=True)
     
     # Use provided max_distance or default to problem budget
     effective_max_distance = max_distance if max_distance is not None else problem.budget
@@ -75,7 +75,7 @@ def run_simple_wu_uct(problem_file: str,
     execution_time = time.time() - start_time
     
     if verbose:
-        print(f"\\nBest solution found:")
+        print(f"\nBest solution found:")
         print(f"  Path: {' -> '.join(map(str, best_state.path))}")
         print(f"  Reward: {best_state.reward_so_far}")
         print(f"  Distance: {best_state.cost_so_far:.2f}")
@@ -83,7 +83,7 @@ def run_simple_wu_uct(problem_file: str,
         
         # Get tree statistics
         tree_stats = simple_wu_uct.get_tree_statistics()
-        print(f"\\nTree Statistics:")
+        print(f"\nTree Statistics:")
         print(f"  Total nodes: {tree_stats['nodes']}")
         print(f"  Maximum depth: {tree_stats['max_depth']}")
         print(f"  Total visits: {tree_stats['total_visits']}")
@@ -119,7 +119,7 @@ def main():
     # Load problem
     try:
         nodes, budget = OrienteeringProblem.load_problem(args.problem_file)
-        problem = OrienteeringProblem(nodes, budget)
+        problem = OrienteeringProblem(nodes, budget, normalize_rewards=True)
         
         if args.verbose:
             print(f"Loaded problem: {len(nodes)} nodes, budget: {budget}")
@@ -164,7 +164,7 @@ def main():
     
     if args.verbose:
         tree_stats = simple_wu_uct.get_tree_statistics()
-        print(f"\\nTree Statistics:")
+        print(f"\nTree Statistics:")
         print(f"  Total nodes: {tree_stats['nodes']}")
         print(f"  Maximum depth: {tree_stats['max_depth']}")
         print(f"  Total visits: {tree_stats['total_visits']}")
@@ -173,11 +173,15 @@ def main():
     # Calculate raw reward by summing actual node scores
     raw_reward = sum(problem.nodes[node_id].score for node_id in best_state.path)
     
-    print(f"\\nResults:")
+    print(f"\nResults:")
     print(f"Algorithm: Simple WU-UCT")
     print(f"Best path: {' -> '.join(map(str, best_state.path))}")
-    print(f"Normalized reward: {best_state.reward_so_far}")
-    print(f"Raw reward: {raw_reward}")
+    if problem.normalize_rewards:
+        print(f"Normalized reward: {best_state.reward_so_far}")
+        print(f"Raw reward: {raw_reward}")
+    else:
+        print(f"Total reward: {best_state.reward_so_far}")
+        print(f"  (Same as raw reward: {raw_reward})")
     print(f"Total cost: {best_state.cost_so_far:.2f}")
     print(f"Execution time: {elapsed_time:.2f} seconds")
     
@@ -242,7 +246,7 @@ def run_benchmark_comparison():
     results = []
     
     for config in configurations:
-        print(f"\\nTesting {config['workers']} workers, {config['iterations']} iterations")
+        print(f"\nTesting {config['workers']} workers, {config['iterations']} iterations")
         print("-" * 40)
         
         best_state, execution_time = run_simple_wu_uct(
@@ -263,7 +267,7 @@ def run_benchmark_comparison():
         print(f"  Result: reward={best_state.reward_so_far}, time={execution_time:.2f}s")
     
     # Print summary
-    print(f"\\nBenchmark Results Summary")
+    print(f"\nBenchmark Results Summary")
     print("=" * 50)
     print(f"{'Workers':<8} {'Reward':<8} {'Time(s)':<8} {'Iter/s':<10}")
     print("-" * 40)

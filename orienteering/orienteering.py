@@ -10,7 +10,8 @@ Node = namedtuple('Node', ['id', 'x', 'y', 'score'])
 
 
 class OrienteeringProblem:
-    def __init__(self, nodes: List[Node], budget: float, max_edge_distance: Optional[float] = 1.42):
+    def __init__(self, nodes: List[Node], budget: float, max_edge_distance: Optional[float] = 1.42, 
+                 normalize_rewards: bool = False):
         # nodes is a list of Node namedtuples with id, x, y, and score, have removed score from init as its in namedtuple
         self.nodes = nodes
         self.budget = budget
@@ -19,6 +20,14 @@ class OrienteeringProblem:
         # If provided, only edges with distance <= max_edge_distance are allowed
         self.max_edge_distance: Optional[float] = max_edge_distance
         self._neighbors: Optional[Dict[int, List[int]]] = None
+        
+        # Reward normalization
+        self.normalize_rewards = normalize_rewards
+        if normalize_rewards:
+            self._setup_reward_normalization()
+        else:
+            self.reward_scale = 1.0
+            self.reward_offset = 0.0
         
         # Cache for distance calculations - major speed improvement
         self._distance_cache: Dict[tuple, float] = {}
@@ -34,6 +43,26 @@ class OrienteeringProblem:
     @property
     def num_nodes(self):
         return len(self.nodes)
+    
+    def _setup_reward_normalization(self):
+        """Setup reward normalization to scale rewards to a reasonable range for UCT."""
+        # Instead of dividing by sum of ALL nodes (which makes individual rewards tiny),
+        # divide by the MAXIMUM single node score to keep rewards in a better range
+        # This way, the best node has score ~1.0, and typical nodes have scores 0.1-0.5
+        max_node_score = max(node.score for node in self.nodes) if self.nodes else 1.0
+        
+        if max_node_score > 0:
+            # Scale so the highest-value node has normalized score of 1.0
+            self.reward_scale = 1.0 / max_node_score
+        else:
+            self.reward_scale = 1.0
+        
+        self.reward_offset = 0.0
+    
+    def get_normalized_score(self, node_id: int) -> float:
+        """Get the (possibly normalized) score for a node."""
+        raw_score = self.nodes[node_id].score
+        return (raw_score + self.reward_offset) * self.reward_scale
 
     # TODO: change method for new OrienteeringProblem class
     @staticmethod
@@ -120,15 +149,15 @@ class OrienteeringState:
     def __init__(self, problem: OrienteeringProblem, path=None, cost_so_far=0.0, reward_so_far=None):
         # path: list of visited node indices
         # cost_so_far: total distance travelled
-        # reward_so_far: total collected reward
+        # reward_so_far: total collected reward (uses normalized scores if enabled)
 
         self.problem = problem
         self.path = path or [START_NODE]  # Start at node 0
         self.visited = set(self.path)
         self.cost_so_far = cost_so_far
         if reward_so_far is None:
-            # TODO: do i need this score of the start node (possible cases where start node has score)
-            self.reward_so_far = self.problem.nodes[self.path[0]].score
+            # Use normalized score if enabled
+            self.reward_so_far = self.problem.get_normalized_score(self.path[0])
         else:
             self.reward_so_far = reward_so_far
         
@@ -284,7 +313,7 @@ class OrienteeringState:
                 raise ValueError(f"Cannot apply action to node {node_index}, exceeds budget.")
         
         new_path = self.path + [node_index]
-        new_reward = self.reward_so_far + self.problem.nodes[node_index].score
+        new_reward = self.reward_so_far + self.problem.get_normalized_score(node_index)
         return OrienteeringState(self.problem, new_path, new_cost, new_reward)
 
     def best_child(self):

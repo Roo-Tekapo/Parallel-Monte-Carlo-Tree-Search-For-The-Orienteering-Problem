@@ -190,6 +190,7 @@ class SimpleWUWorker(threading.Thread):
                 return child
             
             # Exploitation term: V_c = average reward (only use actual visits)
+            # Rewards are already normalized in the problem if enabled
             if N_child > 0:
                 exploitation = child.total_reward / N_child
             else:
@@ -262,8 +263,26 @@ class SimpleWUWorker(threading.Thread):
             action = random.choice(available_actions)
             simulation_state = self._create_next_state(simulation_state, action)
             
-        # Calculate final reward
+        # Calculate final reward with completion bonus/penalty
         reward = simulation_state.reward_so_far
+        
+        if simulation_state.is_terminal():
+            # Completion bonus for finishing the path
+            if self.problem.normalize_rewards:
+                # Meaningful bonus - 15% of typical collected reward
+                # With avg node ~0.5, this is ~30% of a typical node value
+                reward += 0.15
+            else:
+                reward += 100  # Larger bonus for unnormalized rewards
+        else:
+            # Penalty for incomplete paths (only if path is non-trivial)
+            if len(simulation_state.path) > 2:
+                if self.problem.normalize_rewards:
+                    # Moderate penalty - allows good incomplete exploration
+                    # Still penalizes but not so harsh it discourages risk-taking
+                    reward *= 0.7  # 30% penalty (was 70%)
+                else:
+                    reward *= 0.1  # 90% penalty
         
         # Update timing statistics
         self.total_simulation_time += time.time() - start_time
@@ -285,10 +304,10 @@ class SimpleWUWorker(threading.Thread):
         current_node = current_state.path[-1]
         cost_to_action = self.problem.get_distance(current_node, action)
         
-        # Create new state
+        # Create new state (use normalized score if enabled in problem)
         new_path = current_state.path + [action]
         new_cost = current_state.cost_so_far + cost_to_action
-        new_reward = current_state.reward_so_far + self.problem.nodes[action].score
+        new_reward = current_state.reward_so_far + self.problem.get_normalized_score(action)
         
         return OrienteeringState(
             self.problem, 

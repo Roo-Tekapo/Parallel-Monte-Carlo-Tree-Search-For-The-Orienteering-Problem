@@ -122,6 +122,7 @@ class WUUCTNode(UCTNode):
                 return child
             
             # Exploitation term: V_c = average reward (only use actual visits)
+            # Rewards are already normalized if enabled in the problem
             if N_child > 0:
                 exploitation = child.total_reward / N_child
             else:
