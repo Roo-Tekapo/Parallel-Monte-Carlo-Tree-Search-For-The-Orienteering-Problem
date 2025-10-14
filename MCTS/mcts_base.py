@@ -325,9 +325,9 @@ class MCTSSingleThread:
 if __name__ == "__main__":
     nodes, budget = OrienteeringProblem.load_problem(
         # "OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_85.txt"
-        "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
-        # "OP_Benchmark_Set/set_1000_1/set_1000_1_30.txt"
+        # "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
         # "OP_Benchmark_Set/grid_sample/grid_10x10_long_50.txt"
+        "OP_Benchmark_Set/grid_sample/grid_10x10_medium_30.txt"
         # "OP_Benchmark_Set\grid_patterns\grid_corners_b40.txt"
         # "OP_Benchmark_Set/parallel_friendly_v2/xlarge/xlarge_50x50_r0_104.txt"
         # "OP_Benchmark_Set/grid_patterns/grid_corners_b40.txt"
