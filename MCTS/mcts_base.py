@@ -1,10 +1,10 @@
 import random
 import math
 
-from orienteering.orienteering import OrienteeringProblem, OrienteeringState, END_NODE
+from orienteering.orienteering_traditional import OrienteeringProblem, OrienteeringState, END_NODE
 from .mcts_node import MCTSNode
 
-
+# TODO: tied up mcts_base
 class MCTSSingleThread:
     def __init__(self, problem: OrienteeringProblem, iterations, exploration_constant = math.sqrt(2), epsilon: float = 0.00, traditional_mcts: bool = False, soft_end_bias: bool = False, bias_decay_factor: float = 10.0):
         self.problem = problem
@@ -214,26 +214,14 @@ class MCTSSingleThread:
         # Calculate final reward with appropriate bonuses/penalties
         reward = current.get_reward()
         
-        if self.problem.normalize_rewards:
-            # With improved normalization (scale by max node, not sum),
-            # average node is ~0.5, max node is 1.0
-            # Strategy: Moderate penalty for incomplete, meaningful bonus for complete
-            # This encourages longer paths while still requiring completion
-            if current.is_terminal():
-                # Meaningful bonus - 15% of typical collected reward
-                # With avg node ~0.5, this is ~30% of a typical node value
-                reward += 0.15
-            elif len(current.path) > 2:
+        if current.is_terminal():
+                # Balanced bonus: encourages completion without discouraging exploration
+                # 0.20 provides good completion rate while allowing longer paths
+                reward += 0.20
+        elif len(current.path) > 2:
                 # Moderate penalty - allows good incomplete exploration
                 # Still penalizes but not so harsh it discourages risk-taking
-                reward *= 0.7  # 30% penalty (was 70%)
-        else:
-            # Original bonuses for unnormalized rewards
-            if current.is_terminal():
-                reward += 100
-            elif len(current.path) > 2:
-                reward *= 0.1  # 90% penalty
-        
+                reward *= 0.7  # 30% penalty
         return reward
 
     # Step 4: Backpropagation
@@ -345,8 +333,8 @@ if __name__ == "__main__":
     nodes, budget = OrienteeringProblem.load_problem(
         # "OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_85.txt"
         # "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
-        "OP_Benchmark_Set/grid_sample/grid_10x10_medium_30.txt"
-        # "OP_Benchmark_Set/grid_sample/grid_10x10_long_50.txt"
+        # "OP_Benchmark_Set/grid_sample/grid_10x10_medium_30.txt"
+        "OP_Benchmark_Set/grid_sample/grid_10x10_long_50.txt"
         # "OP_Benchmark_Set\grid_patterns\grid_corners_b40.txt"
         # "OP_Benchmark_Set/parallel_friendly_v2/xlarge/xlarge_50x50_r0_104.txt"
         # "OP_Benchmark_Set/grid_patterns/grid_corners_b40.txt"
@@ -356,8 +344,9 @@ if __name__ == "__main__":
     # Remove max_edge_distance constraint for traditional MCTS testing
     problem = OrienteeringProblem(nodes, budget, max_edge_distance=1.42, normalize_rewards=True)
 
-    # Enable traditional MCTS approach
-    solver = MCTSSingleThread(problem, iterations=10000, traditional_mcts=True)
+    # Enable traditional MCTS approach with optimized settings
+    # exploration_constant=0.5 provides greedy exploitation for better budget usage
+    solver = MCTSSingleThread(problem, iterations=10000, traditional_mcts=True, exploration_constant=1.42)
     best_state = solver.run()
 
     # Calculate raw reward by summing actual node scores
