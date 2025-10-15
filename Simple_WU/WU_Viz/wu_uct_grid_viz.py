@@ -33,7 +33,7 @@ simple_wu_dir = os.path.dirname(current_dir)
 project_root = os.path.dirname(simple_wu_dir)
 sys.path.extend([project_root, simple_wu_dir])
 
-from orienteering.orienteering import OrienteeringProblem, OrienteeringState
+from orienteering.orienteering_traditional import OrienteeringProblem, OrienteeringState
 from simple_wu_coordinator import SimpleWUUCT
 from UCT.wu_uct_node import WUUCTNode
 

@@ -1,0 +1,11 @@
+# Simple WU-UCT Results
+# Problem: ..\OP_Benchmark_Set\set_64_1\set_64_1_20.txt
+# Iterations: 10000
+# Exploration constant: 1.4142135623730951
+# Number of workers: 4
+# Max distance: 1.42
+# Execution time: 0.49s
+#
+Path= 0 2 4 7 11 16 23 31 38 30 22 29 37 44 50
+Reward= 9.14285714285714
+Cost= 19.798989873223338

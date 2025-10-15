@@ -21,7 +21,7 @@ simple_wu_dir = os.path.dirname(current_dir)
 project_root = os.path.dirname(simple_wu_dir)
 sys.path.extend([project_root, simple_wu_dir])
 
-from orienteering.orienteering import OrienteeringProblem
+from orienteering.orienteering_traditional import OrienteeringProblem
 from simple_wu_coordinator import SimpleWUUCT
 from simple_wu_worker import SimpleWUWorker
 

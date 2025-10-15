@@ -17,7 +17,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
-from orienteering.orienteering import OrienteeringProblem, START_NODE
+from orienteering.orienteering_traditional import OrienteeringProblem, START_NODE
 from Simple_WU.simple_wu_coordinator import SimpleWUUCT
 
 

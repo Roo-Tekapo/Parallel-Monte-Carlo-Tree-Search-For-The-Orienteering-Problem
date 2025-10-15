@@ -13,7 +13,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
-from orienteering.orienteering import OrienteeringProblem
+from orienteering.orienteering_traditional import OrienteeringProblem
 from Simple_WU.simple_wu_coordinator import SimpleWUUCT
 
 
@@ -110,7 +110,7 @@ def test_worker_statistics():
     try:
         from Simple_WU.simple_wu_worker import SimpleWUWorker
         from UCT.wu_uct_node import WUUCTNode
-        from orienteering.orienteering import OrienteeringState
+        from orienteering.orienteering_traditional import OrienteeringState
         
         # Create a mock root node for testing
         # This would need proper state initialization

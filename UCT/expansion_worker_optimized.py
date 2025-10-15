@@ -19,7 +19,7 @@ import math
 import time
 from typing import Optional, Dict, Any, List
 
-from orienteering.orienteering import OrienteeringProblem, OrienteeringState
+from orienteering.orienteering_traditional import OrienteeringProblem, OrienteeringState
 from UCT.wu_uct_node import WUUCTNode
 from UCT.work_units import WorkUnit, SimulationResult
 
@@ -296,14 +296,19 @@ class OptimizedWUUCTExpansionWorker(threading.Thread):
         }
     
     def get_best_path(self) -> Optional[OrienteeringState]:
-        """Get the best path found so far."""
+        """
+        Get the best path found so far by following most visited children.
+        
+        In MCTS, the best action is determined by visit count, not average reward.
+        This is because visit count represents robust evaluation through many simulations.
+        """
         if self.root is None:
             return None
         
         current = self.root
         while current.children:
             best_child = max(current.children, 
-                           key=lambda child: child.get_average_reward())
+                           key=lambda child: child.visits)
             current = best_child
         
         return current.state

@@ -17,7 +17,7 @@ from typing import Optional
 import math
 from typing import Dict, Any
 
-from orienteering.orienteering import OrienteeringProblem, OrienteeringState
+from orienteering.orienteering_traditional import OrienteeringProblem, OrienteeringState
 from .expansion_worker import WUUCTExpansionWorker
 from .simulation_worker import SimulationWorkerPool
 from .work_units import WorkUnit, SimulationResult

@@ -5,7 +5,7 @@ import matplotlib.colors as mcolors
 import numpy as np
 
 from MCTS.mcts_base import MCTSSingleThread
-from orienteering.orienteering import OrienteeringProblem
+from orienteering.orienteering_traditional import OrienteeringProblem
 
 
 # Config

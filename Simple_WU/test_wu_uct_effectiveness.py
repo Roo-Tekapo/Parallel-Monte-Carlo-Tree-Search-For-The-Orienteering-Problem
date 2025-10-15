@@ -20,7 +20,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
 sys.path.extend([project_root, current_dir])
 
-from orienteering.orienteering import OrienteeringProblem, OrienteeringState
+from orienteering.orienteering_traditional import OrienteeringProblem, OrienteeringState
 from UCT.wu_uct_node import WUUCTNode
 from simple_wu_worker import SimpleWUWorker
 

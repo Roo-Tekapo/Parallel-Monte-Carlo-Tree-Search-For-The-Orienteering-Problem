@@ -7,7 +7,7 @@ import random
 import math
 from typing import Optional, List
 
-from orienteering.orienteering import OrienteeringProblem, OrienteeringState, END_NODE
+from orienteering.orienteering_traditional import OrienteeringProblem, OrienteeringState, END_NODE
 
 
 class UCTNode:
@@ -231,15 +231,22 @@ class UCTSingleThread:
             current = current.parent
     
     def get_best_child(self, node: UCTNode) -> Optional[UCTNode]:
-        """Get the child with the highest average reward."""
+        """
+        Get the child with the highest visit count.
+        
+        In MCTS, the best action is determined by visit count, not average reward.
+        This represents the most robust choice based on many simulations.
+        """
         if not node.children:
             return None
         
-        return max(node.children, key=lambda child: child.get_average_reward())
+        return max(node.children, key=lambda child: child.visits)
     
     def get_best_path(self) -> OrienteeringState:
         """
-        Get the best path by following children with highest average rewards.
+        Get the best path by following children with highest visit counts.
+        
+        This is the standard MCTS approach - visit count represents robust evaluation.
         """
         if self.root is None:
             raise ValueError("No search has been performed yet")

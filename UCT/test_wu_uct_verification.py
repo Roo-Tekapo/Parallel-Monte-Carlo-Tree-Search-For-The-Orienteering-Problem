@@ -18,7 +18,7 @@ import queue
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from orienteering.orienteering import OrienteeringProblem, OrienteeringState
+from orienteering.orienteering_traditional import OrienteeringProblem, OrienteeringState
 from UCT.wu_uct_coordinator import WUUCT
 from UCT.expansion_worker import WUUCTExpansionWorker
 from UCT.simulation_worker import SimulationWorkerPool

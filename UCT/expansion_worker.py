@@ -17,7 +17,7 @@ import math
 import time
 from typing import Optional, Dict, Any
 
-from orienteering.orienteering import OrienteeringProblem, OrienteeringState
+from orienteering.orienteering_traditional import OrienteeringProblem, OrienteeringState
 from .wu_uct_node import WUUCTNode
 from .work_units import WorkUnit, SimulationResult
 
@@ -315,7 +315,11 @@ class WUUCTExpansionWorker(threading.Thread):
 
     def get_best_path(self) -> Optional[OrienteeringState]:
         """
-        Get the best path found so far by following highest reward children.
+        Get the best path found so far by following most visited children.
+        
+        In MCTS, the best action is determined by visit count, not average reward.
+        This is because visit count represents robust evaluation through many simulations,
+        while highest reward can be misleading (e.g., incomplete paths with high rewards).
         
         Returns:
             The best state found, or None if no search has been performed
@@ -324,11 +328,11 @@ class WUUCTExpansionWorker(threading.Thread):
             if self.root is None:
                 return None
             
-            # Follow the path of children with highest average rewards
+            # Follow the path of children with highest visit counts (most robust choice)
             current = self.root
             while current.children:
                 best_child = max(current.children, 
-                               key=lambda child: child.get_average_reward())
+                               key=lambda child: child.visits)
                 current = best_child
             
             return current.state

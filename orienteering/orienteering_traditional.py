@@ -25,7 +25,6 @@ Node = namedtuple('Node', ['id', 'x', 'y', 'score'])
 
 
 class OrienteeringProblemTraditional:
-    """Simplified OrienteeringProblem for traditional MCTS (no BFS overhead)."""
     
     def __init__(self, nodes: List[Node], budget: float, max_edge_distance: Optional[float] = 1.42, 
                  normalize_rewards: bool = False):
@@ -149,17 +148,6 @@ class OrienteeringStateTraditional:
         )
     
     def get_available_actions(self, traditional_mcts=True):
-        """
-        Get available actions from current state.
-        
-        Traditional MCTS approach:
-        - Only checks if we can afford the single move
-        - No check if END is reachable afterwards
-        - Much faster (no BFS)
-        
-        Args:
-            traditional_mcts (bool): Kept for API compatibility, always uses traditional approach
-        """
         actions = []
         current = self.path[-1]
         neighbor_ids = self.problem.get_neighbors(current)
@@ -276,12 +264,3 @@ if __name__ == "__main__":
     print(f"\nPerformance test:")
     print(f"  {test_iterations} get_available_actions() calls: {elapsed:.3f}s")
     print(f"  Average: {(elapsed / test_iterations) * 1000:.4f}ms per call")
-    
-    print("\n" + "="*70)
-    print("Key benefits of this implementation:")
-    print("  ✓ No BFS reachability checks")
-    print("  ✓ No precomputation overhead")
-    print("  ✓ No reachability caching needed")
-    print("  ✓ Maximum speed for traditional MCTS")
-    print("  ✓ Simple budget-only validation")
-    print("="*70)

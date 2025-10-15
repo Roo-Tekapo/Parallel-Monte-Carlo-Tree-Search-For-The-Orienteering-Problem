@@ -4,7 +4,7 @@ from matplotlib.lines import Line2D
 import matplotlib.colors as mcolors
 import numpy as np
 from MCTS.mcts_base import MCTSSingleThread
-from orienteering.orienteering import OrienteeringProblem
+from orienteering.orienteering_traditional import OrienteeringProblem
 
 # Load problem (adjust path as needed)
 nodes, budget = OrienteeringProblem.load_problem(

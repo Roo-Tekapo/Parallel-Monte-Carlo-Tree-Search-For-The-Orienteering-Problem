@@ -11,7 +11,7 @@ import os
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from orienteering.orienteering import OrienteeringProblem
+from orienteering.orienteering_traditional import OrienteeringProblem
 from Simple_WU.simple_wu_coordinator import SimpleWUUCT
 
 

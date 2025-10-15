@@ -4,7 +4,7 @@ import matplotlib.animation as animation
 from matplotlib.lines import Line2D
 
 from MCTS.mcts_base import MCTSSingleThread
-from orienteering.orienteering import OrienteeringProblem
+from orienteering.orienteering_traditional import OrienteeringProblem
 
 
 # ---- Config ----

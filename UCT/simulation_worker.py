@@ -16,7 +16,7 @@ import queue
 import random
 from typing import TYPE_CHECKING
 
-from orienteering.orienteering import OrienteeringState, END_NODE
+from orienteering.orienteering_traditional import OrienteeringState, END_NODE
 from .work_units import WorkUnit, SimulationResult
 
 if TYPE_CHECKING:
@@ -53,7 +53,7 @@ class WUUCTSimulationWorker:
         1. While not terminal, select a random available action
         2. Apply the action to get a new state
         3. Repeat until terminal state is reached
-        4. Return the final reward
+        4. Return the final reward with completion bonus/penalty
         
         Args:
             state: The state to simulate from
@@ -69,22 +69,8 @@ class WUUCTSimulationWorker:
             actions = current.get_available_actions()
             
             if not actions:
-                # Dead-end: try to force completion to END_NODE if possible
-                current_node = current.path[-1]
-                if current_node != END_NODE:
-                    # Check if we can reach END_NODE directly within budget
-                    cost_to_end = current.problem.get_distance(current_node, END_NODE)
-                    if current.cost_so_far + cost_to_end <= current.problem.budget:
-                        # Force move to END_NODE to complete the path
-                        try:
-                            current = current.apply_action(END_NODE)
-                            break
-                        except ValueError:
-                            # Can't apply action, return penalized reward
-                            pass
-                # Dead end - apply penalty for incomplete path
-                self.simulations_completed += 1
-                return current.get_reward() * 0.8  # 20% penalty
+                # Dead-end: no more actions available
+                break
             
             # Random action selection (pure Monte Carlo simulation)
             action = random.choice(actions)
@@ -93,12 +79,30 @@ class WUUCTSimulationWorker:
                 current = current.apply_action(action)
             except ValueError:
                 # Invalid action (shouldn't happen but be safe)
-                self.simulations_completed += 1
-                return current.get_reward() * 0.8
+                break
         
-        # Successfully reached terminal state
+        # Calculate final reward with completion bonus/penalty
         self.simulations_completed += 1
-        return current.get_reward()
+        reward = current.get_reward()
+        
+        if current.is_terminal():
+            # Completion bonus for finishing the path
+            if hasattr(current.problem, 'normalize_rewards') and current.problem.normalize_rewards:
+                # Meaningful bonus - 15% of typical collected reward
+                # With avg node ~0.5, this is ~30% of a typical node value
+                reward += 0.15
+            else:
+                reward += 100  # Larger bonus for unnormalized rewards
+        else:
+            # Penalty for incomplete paths (only if path is non-trivial)
+            if len(current.path) > 2:
+                if hasattr(current.problem, 'normalize_rewards') and current.problem.normalize_rewards:
+                    # Moderate penalty - allows good incomplete exploration
+                    reward *= 0.7  # 30% penalty
+                else:
+                    reward *= 0.1  # 90% penalty
+        
+        return reward
     
     def run(self, work_queue: queue.Queue[WorkUnit], 
             result_queue: queue.Queue[SimulationResult], 

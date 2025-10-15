@@ -13,7 +13,7 @@ import math
 # Add parent directory to path to import orienteering
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from orienteering.orienteering import OrienteeringProblem
+from orienteering.orienteering_traditional import OrienteeringProblem
 from UCT.uct_single_thread import UCTSingleThread
 from UCT.wu_uct_coordinator import WUUCT
 

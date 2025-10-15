@@ -2,10 +2,11 @@
 # Problem: OP_Benchmark_Set\grid_sample\grid_10x10_medium_30.txt
 # Iterations: 5000
 # Exploration constant: 1.4142135623730951
-# Expansion workers: 1
-# Simulation workers: 2
-# Execution time: 21.11s
+# Expansion workers: 2
+# Simulation workers: 4
+# Execution time: 1.16s
 #
-Path= 0 46 47 57 67 78 77 89 88 99 110 111 112 101 90 79 69 60 50 51 41 31
-Reward= 274
-Cost= 23.07106781186548
+Path= 0 47 58 49 50 51 61 71 60
+Normalized_Reward= 6.699999999999999
+Raw_Reward= 134
+Cost= 9.656854249492381
