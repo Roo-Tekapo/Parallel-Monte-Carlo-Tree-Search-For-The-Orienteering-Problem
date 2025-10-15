@@ -13,7 +13,7 @@ import random
 from typing import Optional
 
 from orienteering.orienteering_traditional import OrienteeringProblem, OrienteeringState, END_NODE
-from UCT.wu_uct_node import WUUCTNode
+from .wu_uct_node import WUUCTNode
 
 
 class SimpleWUWorker(threading.Thread):
@@ -315,9 +315,7 @@ class SimpleWUWorker(threading.Thread):
             cost_so_far=new_cost, 
             reward_so_far=new_reward
         )
-        
 
-                
     def get_statistics(self):
         """
         Get worker performance statistics.

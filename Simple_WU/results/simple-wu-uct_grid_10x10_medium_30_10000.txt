@@ -4,8 +4,8 @@
 # Exploration constant: 1.4142135623730951
 # Number of workers: 4
 # Max distance: 1.42
-# Execution time: 1.55s
+# Execution time: 1.42s
 #
-Path= 0 46 57 48 47 58 59 49 50 60 51 61 71 72 62 63 73 85 86 98 87 76 75 74 65 55 56 1
-Reward= 18.55
+Path= 0 67 58 59 49 39 50 51 60 61 71 72 62 63 73 85 86 98 87 76 75 74 64 54 55 56 65 1
+Reward= 18.150000000000002
 Cost= 29.899494936611667

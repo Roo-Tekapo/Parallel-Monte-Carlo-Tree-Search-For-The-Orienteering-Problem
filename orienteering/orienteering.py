@@ -264,7 +264,7 @@ class OrienteeringState:
         # Candidate neighbors: respect max_edge_distance if set
         neighbor_ids = self.problem.get_neighbors(current)
 
-        # Option to go directly to END if feasible and not already there
+        # Add END_NODE as an option if it's a neighbor and we can afford it
         if current != END_NODE and END_NODE in neighbor_ids and END_NODE not in self.visited:
             cost_to_end = self.problem.get_distance(current, END_NODE)
             if self.cost_so_far + cost_to_end <= self.problem.budget:

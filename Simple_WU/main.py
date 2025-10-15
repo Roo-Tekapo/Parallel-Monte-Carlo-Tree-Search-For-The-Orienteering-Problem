@@ -97,7 +97,7 @@ def main():
     """
     parser = argparse.ArgumentParser(description='Simple WU-UCT algorithm for the Orienteering Problem')
     
-    parser.add_argument('--problem-file', type=str, required=True,
+    parser.add_argument('--problem-file', '-p', type=str, required=True,
                        help='Path to the orienteering problem file')
     parser.add_argument('--max-iterations', type=int, default=10000,
                        help='Maximum number of iterations (default: 10000)')
@@ -105,7 +105,7 @@ def main():
                        help='Maximum time in seconds (optional, overrides max-iterations if specified)')
     parser.add_argument('--exploration-constant', type=float, default=math.sqrt(2),
                        help='UCT exploration constant (default: sqrt(2))')
-    parser.add_argument('--num-workers', type=int, default=4,
+    parser.add_argument('--num-workers', '-n', type=int, default=4,
                        help='Number of unified workers (default: 4)')
     parser.add_argument('--max-distance', type=float, default=1.42,
                        help='Maximum distance constraint (default: 1.42, overrides problem budget)')

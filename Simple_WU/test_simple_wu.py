@@ -91,7 +91,7 @@ def test_minimal_problem():
     try:
         from Simple_WU.simple_wu_coordinator import SimpleWUUCT
         from Simple_WU.simple_wu_worker import SimpleWUWorker
-        from UCT.wu_uct_node import WUUCTNode
+        from Simple_WU.wu_uct_node import WUUCTNode
         
         print("✓ All imports successful!")
         return True
@@ -109,7 +109,7 @@ def test_worker_statistics():
     
     try:
         from Simple_WU.simple_wu_worker import SimpleWUWorker
-        from UCT.wu_uct_node import WUUCTNode
+        from Simple_WU.wu_uct_node import WUUCTNode
         from orienteering.orienteering_traditional import OrienteeringState
         
         # Create a mock root node for testing

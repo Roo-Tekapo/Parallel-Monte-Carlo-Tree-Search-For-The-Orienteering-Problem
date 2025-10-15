@@ -35,7 +35,7 @@ sys.path.extend([project_root, simple_wu_dir])
 
 from orienteering.orienteering_traditional import OrienteeringProblem, OrienteeringState
 from simple_wu_coordinator import SimpleWUUCT
-from UCT.wu_uct_node import WUUCTNode
+from Simple_WU.wu_uct_node import WUUCTNode
 
 
 class WUUCTGridVisualizer:

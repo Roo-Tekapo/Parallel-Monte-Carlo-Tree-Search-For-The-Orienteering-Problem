@@ -1,11 +1,11 @@
 # Simple WU-UCT Results
 # Problem: OP_Benchmark_Set\grid_sample\grid_10x10_medium_30.txt
-# Iterations: 5000
+# Iterations: 2000
 # Exploration constant: 1.4142135623730951
 # Number of workers: 4
 # Max distance: 1.42
-# Execution time: 0.66s
+# Execution time: 0.24s
 #
-Path= 0 46 57 58 59 49 39 50 51 61 60 70 81 71 62 72 83 73 63 54 65 76 75
-Reward= 16.85
-Cost= 25.313708498984766
+Path= 0 57 58 49 59 50 60 51 61 71 70 80
+Reward= 8.5
+Cost= 12.656854249492381

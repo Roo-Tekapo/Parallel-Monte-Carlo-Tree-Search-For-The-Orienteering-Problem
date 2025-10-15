@@ -4,8 +4,8 @@ import math
 from orienteering.orienteering_traditional import OrienteeringProblem, OrienteeringState, END_NODE
 from .mcts_node import MCTSNode
 
-# TODO: tied up mcts_base
-class MCTSSingleThread:
+# MCTS with backtracking/stuck detection logic
+class MCTSBacktrack:
     def __init__(self, problem: OrienteeringProblem, iterations, exploration_constant = math.sqrt(2), soft_end_bias: bool = False, bias_decay_factor: float = 10.0):
         self.problem = problem
         self.iterations = iterations
@@ -277,14 +277,34 @@ class MCTSSingleThread:
             }
             return event
 
-    # Main MCTS run method - Traditional MCTS
+    # Main MCTS run method WITH BACKTRACKING/STUCK DETECTION
     def run(self):
         root_state = OrienteeringState(self.problem)
         root = MCTSNode(root_state)
+        
+        consecutive_stuck_iterations = 0
+        last_leaf_id = None
 
         for _ in range(self.iterations):
             # Selection and Expansion
             leaf = self.tree_policy(root)
+            
+            # Detect if we're stuck at the same node repeatedly
+            leaf_id = id(leaf)
+            if leaf_id == last_leaf_id and (leaf.is_dead_end or leaf.state.is_terminal()):
+                consecutive_stuck_iterations += 1
+            else:
+                consecutive_stuck_iterations = 0
+            last_leaf_id = leaf_id
+            
+            # If we're stuck for too many iterations, force exploration of less-visited root children
+            if consecutive_stuck_iterations > 10 and root.children:
+                # Find and expand a less-visited root child
+                least_visited_child = min(root.children, key=lambda c: c.visits)
+                # Use the least visited child's subtree for this iteration
+                leaf = self.tree_policy(least_visited_child)
+                consecutive_stuck_iterations = 0  # Reset counter
+                
             # Simulation
             reward = self.simulate(leaf.state)
             # Backpropagation
@@ -292,50 +312,3 @@ class MCTSSingleThread:
 
         best_leaf = self.best_descendant(root)
         return best_leaf.state
-
-if __name__ == "__main__":
-    nodes, budget = OrienteeringProblem.load_problem(
-        # "OP_Benchmark_Set/tsiligirides_1/tsiligirides_problem_1_budget_85.txt"
-        # "OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
-        # "OP_Benchmark_Set/grid_sample/grid_10x10_medium_30.txt"
-        # "OP_Benchmark_Set/grid_sample/grid_10x10_long_50.txt"
-        # "OP_Benchmark_Set\grid_patterns\grid_corners_b40.txt"
-        "OP_Benchmark_Set/parallel_friendly_v2/xlarge/xlarge_45x45_r15_94.txt"
-        # "OP_Benchmark_Set/grid_patterns/grid_corners_b40.txt"
-        # "OP_Benchmark_Set\parallel_friendly_v2\clustered\clustered_c4_s4_sp6_19.txt"
-    )
-
-    problem = OrienteeringProblem(nodes, budget, max_edge_distance=1.42, normalize_rewards=True)
-
-    # Enable traditional MCTS with soft_end_bias
-    # soft_end_bias: Biases simulation toward END_NODE based on remaining budget
-    # bias_decay_factor: Controls how aggressively bias increases (lower = more aggressive)
-    solver = MCTSSingleThread(
-        problem, 
-        iterations=10000, 
-        exploration_constant=1.42,
-        soft_end_bias=True,        # Enable soft bias toward end node
-        bias_decay_factor=10      # Decay factor for bias calculation
-    )
-    best_state = solver.run()
-
-    # Calculate raw reward by summing actual node scores
-    raw_reward = sum(problem.nodes[node_id].score for node_id in best_state.get_path())
-    
-    print("Traditional MCTS with Soft End Bias Results:")
-    print(f"  soft_end_bias=True, bias_decay_factor={solver.bias_decay_factor}")
-    print("Best path:", best_state.get_path())
-    if problem.normalize_rewards:
-        print("Normalized reward:", best_state.get_reward())
-        print("Raw reward:", raw_reward)
-    else:
-        print("Total reward:", best_state.get_reward())
-        print("  (Same as raw reward:", raw_reward, ")")
-    print("Total cost:", best_state.get_cost())
-    print(f"Budget usage: {(best_state.get_cost()/budget)*100:.1f}%")
-    print("Valid solution:", best_state.is_terminal())
-
-
-
-
-# python3 -m MCTS.mcts_base

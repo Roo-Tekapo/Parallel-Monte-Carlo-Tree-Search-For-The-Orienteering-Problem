@@ -12,7 +12,7 @@ import math
 from typing import Optional, List
 
 from orienteering.orienteering_traditional import OrienteeringProblem, OrienteeringState
-from UCT.wu_uct_node import WUUCTNode
+from .wu_uct_node import WUUCTNode
 from Simple_WU.simple_wu_worker import SimpleWUWorker
 
 

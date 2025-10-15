@@ -264,3 +264,38 @@ if __name__ == "__main__":
     print(f"\nPerformance test:")
     print(f"  {test_iterations} get_available_actions() calls: {elapsed:.3f}s")
     print(f"  Average: {(elapsed / test_iterations) * 1000:.4f}ms per call")
+
+
+    # def get_available_actions(self, traditional_mcts=True):
+    #     actions = []
+    #     current = self.path[-1]
+        
+    #     # If we're already at END_NODE, the path is complete - no more actions
+    #     if current == END_NODE:
+    #         return actions
+        
+    #     neighbor_ids = self.problem.get_neighbors(current)
+
+    #     # Add END_NODE as an option if it's a neighbor and we can afford it
+    #     # Note: We removed the "current != END_NODE" check because we already handle that above
+    #     if END_NODE in neighbor_ids and END_NODE not in self.visited:
+    #         cost_to_end = self.problem.get_distance(current, END_NODE)
+    #         if self.cost_so_far + cost_to_end <= self.problem.budget:
+    #             actions.append(END_NODE)
+
+    #     # Explore other unvisited neighbor nodes
+    #     # IMPORTANT: Don't skip END_NODE here - it should be treated as a normal visitable node
+    #     for i in neighbor_ids:
+    #         if i in self.visited or i == START_NODE:
+    #             continue
+    #         if i == END_NODE:
+    #             continue  # Already handled above
+            
+    #         cost_to_i = self.problem.get_distance(current, i)
+    #         new_cost = self.cost_so_far + cost_to_i
+            
+    #         # Traditional MCTS: Only check if we can afford this single move
+    #         if new_cost <= self.problem.budget:
+    #             actions.append(i)
+        
+    #     return actions

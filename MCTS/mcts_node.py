@@ -55,7 +55,7 @@ class MCTSNode:
     #     ]
     #     return self.children[choices.index(max(choices))]
 
-    def uct_best_child(self, c_param, epsilon): #c_param=math.sqrt(2), epsilon: float = 0.05
+    def uct_best_child(self, c_param, epsilon=0.0): #c_param=math.sqrt(2), epsilon: float = 0.05
         if not self.children:
             raise ValueError("No children to select from.")
 
@@ -67,7 +67,7 @@ class MCTSNode:
         if not viable_children:
             viable_children = self.children
 
-        # epsilon-greedy occasional random pick
+        # epsilon-greedy occasional random pick (disabled by default with epsilon=0.0)
         if epsilon > 0.0 and random.random() < epsilon:
             return random.choice(viable_children)
 

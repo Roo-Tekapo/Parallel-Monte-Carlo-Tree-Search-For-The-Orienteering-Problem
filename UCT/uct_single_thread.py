@@ -202,22 +202,16 @@ class UCTSingleThread:
         
         if current.is_terminal():
             # Completion bonus for finishing the path
-            if self.problem.normalize_rewards:
+    
                 # Meaningful bonus - 15% of typical collected reward
                 # With avg node ~0.5, this is ~30% of a typical node value
-                reward += 0.15
-            else:
-                reward += 100  # Larger bonus for unnormalized rewards
+            reward += 0.05
         else:
             # Penalty for incomplete paths (only if path is non-trivial)
             if len(current.path) > 2:
-                if self.problem.normalize_rewards:
                     # Moderate penalty - allows good incomplete exploration
                     # Still penalizes but not so harsh it discourages risk-taking
-                    reward *= 0.7  # 30% penalty (was 70%)
-                else:
-                    reward *= 0.1  # 90% penalty
-        
+                    reward *= 0.8  # 20% penalty (was 30%)
         return reward
     
     def backpropagation(self, node: UCTNode, reward: float):
