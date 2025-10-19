@@ -7,7 +7,7 @@ import random
 import math
 from typing import Optional, List
 
-from orienteering.orienteering_traditional import OrienteeringProblem, OrienteeringState, END_NODE
+from UCT.orienteering_adapter import OrienteeringProblem, OrienteeringState, END_NODE
 
 
 class UCTNode:

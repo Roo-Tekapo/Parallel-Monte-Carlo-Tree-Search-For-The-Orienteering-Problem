@@ -40,7 +40,7 @@ if __name__ == "__main__":
     import os
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     
-    from orienteering.orienteering_traditional import OrienteeringProblem, OrienteeringState
+    from UCT.orienteering_adapter import OrienteeringProblem, OrienteeringState
     from work_units import WorkUnit, SimulationResult
     from expansion_worker import WUUCTExpansionWorker
     from simulation_worker import WUUCTSimulationWorker, SimulationWorkerPool

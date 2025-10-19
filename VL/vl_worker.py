@@ -12,7 +12,7 @@ import time
 import random
 from typing import Optional, List
 
-from orienteering.orienteering_traditional import OrienteeringProblem, OrienteeringState, END_NODE
+from VL.orienteering_adapter import OrienteeringProblem, OrienteeringState, END_NODE
 from VL.vl_node import VLNode
 
 

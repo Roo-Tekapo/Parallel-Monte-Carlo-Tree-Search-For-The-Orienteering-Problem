@@ -12,7 +12,7 @@ import time
 import random
 from typing import Optional
 
-from orienteering.orienteering_traditional import OrienteeringProblem, OrienteeringState, END_NODE
+from Simple_WU.orienteering_adapter import OrienteeringProblem, OrienteeringState, END_NODE
 from .wu_uct_node import WUUCTNode
 
 

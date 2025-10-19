@@ -19,7 +19,7 @@ import math
 import time
 from typing import Optional, Dict, Any, List
 
-from orienteering.orienteering_traditional import OrienteeringProblem, OrienteeringState
+from UCT.orienteering_adapter import OrienteeringProblem, OrienteeringState
 from UCT.wu_uct_node import WUUCTNode
 from UCT.work_units import WorkUnit, SimulationResult
 

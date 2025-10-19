@@ -13,10 +13,6 @@ import math
 # Add parent directory to path to import orienteering
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from orienteering.orienteering_traditional import OrienteeringProblem
-from UCT.uct_single_thread import UCTSingleThread
-from UCT.wu_uct_coordinator import WUUCT
-
 
 def main():
     parser = argparse.ArgumentParser(description='UCT and WU-UCT algorithms for the Orienteering Problem')
@@ -25,6 +21,8 @@ def main():
                        help='Path to the orienteering problem file')
     parser.add_argument('--algorithm', type=str, choices=['uct', 'wu-uct'], default='uct',
                        help='Algorithm to use (default: wu-uct)')
+    parser.add_argument('--use-no-end', action='store_true',
+                       help='Use no-end orienteering variant (maximize reward without end node requirement)')
     parser.add_argument('--max-iterations', type=int, default=10000,
                        help='Maximum number of iterations (default: 10000)')
     parser.add_argument('--max-time', type=float, default=None,
@@ -44,6 +42,17 @@ def main():
     
     args = parser.parse_args()
     
+    # Set the variant BEFORE importing UCT modules
+    # This ensures all UCT modules use the correct orienteering variant
+    os.environ['UCT_USE_NO_END'] = 'true' if args.use_no_end else 'false'
+    
+    # Now import UCT modules (they will use the adapter which reads the env var)
+    from UCT.uct_single_thread import UCTSingleThread
+    from UCT.wu_uct_coordinator import WUUCT
+    from UCT.orienteering_adapter import OrienteeringProblem, get_variant
+    
+    variant_name = get_variant()
+    
     # Load problem
     try:
         nodes, budget = OrienteeringProblem.load_problem(args.problem_file)
@@ -52,6 +61,7 @@ def main():
         if args.verbose:
             print(f"Loaded problem: {len(nodes)} nodes, budget: {budget}")
             print(f"Problem file: {args.problem_file}")
+            print(f"Variant: {variant_name} Orienteering")
             if args.max_distance:
                 print(f"Max distance limit: {args.max_distance}")
             if args.max_time:

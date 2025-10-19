@@ -18,9 +18,6 @@ import os
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from orienteering.orienteering_traditional import OrienteeringProblem
-from VL.vl_coordinator import VirtualLossMCTS
-
 
 def parse_args():
     """Parse command line arguments."""
@@ -74,21 +71,30 @@ Virtual Loss Value Guidelines:
                        help='Print detailed progress information')
     parser.add_argument('--quiet', '-q', action='store_true',
                        help='Suppress most output')
+    parser.add_argument('--use-no-end', action='store_true',
+                       help='Use no-end orienteering variant (maximize reward without end node requirement)')
     
     return parser.parse_args()
 
 
-def load_problem(filepath: str, normalize: bool = True) -> OrienteeringProblem:
+def load_problem(filepath: str, normalize: bool = True, use_no_end: bool = False):
     """
     Load orienteering problem from file.
     
     Args:
         filepath: Path to problem file
         normalize: Whether to enable reward normalization
+        use_no_end: Use no-end orienteering variant
         
     Returns:
         OrienteeringProblem instance
     """
+    # Set the variant BEFORE importing
+    os.environ['VL_USE_NO_END'] = 'true' if use_no_end else 'false'
+    
+    # Import from adapter (which reads the env var)
+    from VL.orienteering_adapter import OrienteeringProblem
+    
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"Problem file not found: {filepath}")
     
@@ -101,6 +107,15 @@ def main():
     """Main execution function."""
     args = parse_args()
     
+    # Set the variant BEFORE importing VL modules
+    os.environ['VL_USE_NO_END'] = 'true' if args.use_no_end else 'false'
+    
+    # Import VL modules (they will use the adapter which reads the env var)
+    from VL.vl_coordinator import VirtualLossMCTS
+    from VL.orienteering_adapter import get_variant
+    
+    variant_name = get_variant()
+    
     if not args.quiet:
         print("="*70)
         print("Virtual Loss Parallel MCTS for Orienteering Problem")
@@ -108,11 +123,12 @@ def main():
     
     # Load problem
     try:
-        problem = load_problem(args.problem_file, args.normalize)
+        problem = load_problem(args.problem_file, args.normalize, args.use_no_end)
         if not args.quiet:
             print(f"\nProblem: {args.problem_file}")
             print(f"  Nodes: {problem.num_nodes}")
             print(f"  Budget: {problem.budget}")
+            print(f"  Variant: {variant_name} Orienteering")
             print(f"  Normalize Rewards: {args.normalize}")
     except Exception as e:
         print(f"Error loading problem: {e}", file=sys.stderr)

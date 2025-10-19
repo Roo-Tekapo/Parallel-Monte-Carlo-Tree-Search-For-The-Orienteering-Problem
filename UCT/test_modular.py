@@ -11,7 +11,7 @@ import math
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from orienteering.orienteering_traditional import OrienteeringProblem, OrienteeringState
+from UCT.orienteering_adapter import OrienteeringProblem, OrienteeringState
 from UCT.wu_uct_coordinator import WUUCT, run_wu_uct
 
 

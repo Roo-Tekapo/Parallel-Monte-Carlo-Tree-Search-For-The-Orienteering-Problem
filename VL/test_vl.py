@@ -8,7 +8,7 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from orienteering.orienteering_traditional import OrienteeringProblem
+from VL.orienteering_adapter import OrienteeringProblem
 from VL.vl_coordinator import VirtualLossMCTS
 from VL.vl_node import VLNode
 
@@ -25,7 +25,7 @@ def test_vl_node_operations():
     )
     problem = OrienteeringProblem(nodes, budget, normalize_rewards=True)
     
-    from orienteering.orienteering_traditional import OrienteeringState
+    from VL.orienteering_adapter import OrienteeringState
     initial_state = OrienteeringState(problem)
     node = VLNode(initial_state)
     

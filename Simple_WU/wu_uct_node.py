@@ -12,7 +12,7 @@ import math
 import threading
 from typing import Optional, List
 
-from orienteering.orienteering_traditional import OrienteeringState
+from Simple_WU.orienteering_adapter import OrienteeringState
 from UCT.uct_single_thread import UCTNode
 
 

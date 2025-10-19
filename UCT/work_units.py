@@ -6,7 +6,7 @@ Contains the basic data classes used for communication between workers.
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from orienteering.orienteering_traditional import OrienteeringState
+from UCT.orienteering_adapter import OrienteeringState
 
 if TYPE_CHECKING:
     from .wu_uct_node import WUUCTNode

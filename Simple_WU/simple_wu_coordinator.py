@@ -11,7 +11,7 @@ import time
 import math
 from typing import Optional, List
 
-from orienteering.orienteering_traditional import OrienteeringProblem, OrienteeringState
+from Simple_WU.orienteering_adapter import OrienteeringProblem, OrienteeringState
 from .wu_uct_node import WUUCTNode
 from Simple_WU.simple_wu_worker import SimpleWUWorker
 

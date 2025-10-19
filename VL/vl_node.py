@@ -17,7 +17,7 @@ import random
 import threading
 from typing import Optional, Dict
 
-from orienteering.orienteering_traditional import OrienteeringState
+from VL.orienteering_adapter import OrienteeringState
 from UCT.uct_single_thread import UCTNode
 
 

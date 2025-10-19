@@ -17,16 +17,14 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
-from orienteering.orienteering_traditional import OrienteeringProblem, START_NODE
-from Simple_WU.simple_wu_coordinator import SimpleWUUCT
-
 
 def run_simple_wu_uct(problem_file: str, 
                      max_iterations: int = 10000,
                      num_workers: int = 4,
                      max_distance: float = None,
                      max_time: float = None,
-                     verbose: bool = True):
+                     verbose: bool = True,
+                     use_no_end: bool = False):
     """
     Run Simple WU-UCT on a given problem file.
     
@@ -37,10 +35,20 @@ def run_simple_wu_uct(problem_file: str,
         max_distance: Maximum distance constraint (overrides problem budget if specified)
         max_time: Maximum time limit in seconds (optional)
         verbose: Whether to print detailed output
+        use_no_end: Use no-end orienteering variant
         
     Returns:
         Tuple of (best_state, execution_time)
     """
+    
+    # Set the variant BEFORE importing modules
+    os.environ['SIMPLE_WU_USE_NO_END'] = 'true' if use_no_end else 'false'
+    
+    # Import modules (they will use the adapter which reads the env var)
+    from Simple_WU.simple_wu_coordinator import SimpleWUUCT
+    from Simple_WU.orienteering_adapter import OrienteeringProblem, START_NODE, get_variant
+    
+    variant_name = get_variant()
     
     # Load the problem
     print(f"Loading problem from: {problem_file}")
@@ -54,6 +62,7 @@ def run_simple_wu_uct(problem_file: str,
         print(f"Problem: {problem.num_nodes} nodes, budget: {problem.budget}")
         if max_distance is not None:
             print(f"Using custom max distance: {max_distance} (original budget: {problem.budget})")
+        print(f"Variant: {variant_name} Orienteering")
         print(f"Initial state reward: {problem.nodes[START_NODE].score}")
     
     # Create and run Simple WU-UCT
@@ -109,12 +118,23 @@ def main():
                        help='Number of unified workers (default: 4)')
     parser.add_argument('--max-distance', type=float, default=1.42,
                        help='Maximum distance constraint (default: 1.42, overrides problem budget)')
+    parser.add_argument('--use-no-end', action='store_true',
+                       help='Use no-end orienteering variant (maximize reward without end node requirement)')
     parser.add_argument('--verbose', action='store_true',
                        help='Enable verbose output')
     parser.add_argument('--output-file', type=str,
                        help='Output file to save results')
     
     args = parser.parse_args()
+    
+    # Set the variant BEFORE importing Simple_WU modules
+    os.environ['SIMPLE_WU_USE_NO_END'] = 'true' if args.use_no_end else 'false'
+    
+    # Now import Simple_WU modules (they will use the adapter which reads the env var)
+    from Simple_WU.simple_wu_coordinator import SimpleWUUCT
+    from Simple_WU.orienteering_adapter import OrienteeringProblem, get_variant
+    
+    variant_name = get_variant()
     
     # Load problem
     try:
@@ -124,6 +144,7 @@ def main():
         if args.verbose:
             print(f"Loaded problem: {len(nodes)} nodes, budget: {budget}")
             print(f"Problem file: {args.problem_file}")
+            print(f"Variant: {variant_name} Orienteering")
             if args.max_distance:
                 print(f"Max distance limit: {args.max_distance}")
             if args.max_time:
@@ -254,7 +275,8 @@ def run_benchmark_comparison():
             max_iterations=config['iterations'],
             num_workers=config['workers'],
             max_distance=config['max_distance'],
-            verbose=False
+            verbose=False,
+            use_no_end=False  # Use traditional for benchmark
         )
         
         results.append({

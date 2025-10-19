@@ -16,7 +16,7 @@ import queue
 import random
 from typing import TYPE_CHECKING
 
-from orienteering.orienteering_traditional import OrienteeringState, END_NODE
+from UCT.orienteering_adapter import OrienteeringState, END_NODE
 from .work_units import WorkUnit, SimulationResult
 
 if TYPE_CHECKING:
