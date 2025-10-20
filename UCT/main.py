@@ -16,12 +16,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def main():
     parser = argparse.ArgumentParser(description='UCT and WU-UCT algorithms for the Orienteering Problem')
-    
-    parser.add_argument('--problem-file', type=str, required=True,
+
+    parser.add_argument('--problem-file', '-p', type=str, required=True,
                        help='Path to the orienteering problem file')
     parser.add_argument('--algorithm', type=str, choices=['uct', 'wu-uct'], default='uct',
                        help='Algorithm to use (default: wu-uct)')
-    parser.add_argument('--use-no-end', action='store_true',
+    parser.add_argument('--use-no-end', '-no-end', action='store_true',
                        help='Use no-end orienteering variant (maximize reward without end node requirement)')
     parser.add_argument('--max-iterations', type=int, default=10000,
                        help='Maximum number of iterations (default: 10000)')

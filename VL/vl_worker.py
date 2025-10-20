@@ -134,6 +134,10 @@ class VLWorker(threading.Thread):
         """
         Traverse the tree from root to a leaf node using UCT selection.
         
+        A leaf node is defined as:
+        - A terminal state, OR
+        - A node that is not fully expanded (has untried actions)
+        
         Selection uses standard UCT formula, but the exploitation term
         is affected by any virtual losses currently applied to nodes.
         
@@ -149,8 +153,9 @@ class VLWorker(threading.Thread):
         
         path.append(current_node)
         
-        # Traverse until we reach a leaf (node with no children or terminal state)
-        while current_node.children and not current_state.is_terminal():
+        # Traverse until we reach a leaf node
+        # Leaf = terminal OR not fully expanded (has untried actions)
+        while current_node.is_fully_expanded() and not current_state.is_terminal():
             # Use standard UCT selection (affected by virtual loss)
             current_node = current_node.uct_select_child(self.exploration_constant)
             path.append(current_node)

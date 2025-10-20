@@ -71,7 +71,7 @@ Virtual Loss Value Guidelines:
                        help='Print detailed progress information')
     parser.add_argument('--quiet', '-q', action='store_true',
                        help='Suppress most output')
-    parser.add_argument('--use-no-end', action='store_true',
+    parser.add_argument('--use-no-end', '-no-end', action='store_true',
                        help='Use no-end orienteering variant (maximize reward without end node requirement)')
     
     return parser.parse_args()

@@ -118,7 +118,7 @@ def main():
                        help='Number of unified workers (default: 4)')
     parser.add_argument('--max-distance', type=float, default=1.42,
                        help='Maximum distance constraint (default: 1.42, overrides problem budget)')
-    parser.add_argument('--use-no-end', action='store_true',
+    parser.add_argument('--use-no-end', '-no-end', action='store_true',
                        help='Use no-end orienteering variant (maximize reward without end node requirement)')
     parser.add_argument('--verbose', action='store_true',
                        help='Enable verbose output')
