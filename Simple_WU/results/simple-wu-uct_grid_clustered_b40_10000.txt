@@ -1,0 +1,11 @@
+# Simple WU-UCT Results
+# Problem: OP_Benchmark_Set\grid_patterns\grid_clustered_b40.txt
+# Iterations: 10000
+# Exploration constant: 1.4142135623730951
+# Number of workers: 4
+# Max distance: 1.42
+# Execution time: 1.88s
+#
+Path= 0 52 43 53 62 72 61 71 81 82 83 93 92 91 90 80 70 60 51 42 34 24 35 25 26 27 38 39 29 30 20 31 41 40 49 50 1
+Reward= 25.950000000000003
+Cost= 39.31370849898476

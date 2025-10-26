@@ -13,7 +13,7 @@ import random
 from typing import Optional
 
 from Simple_WU.orienteering_adapter import OrienteeringProblem, OrienteeringState, END_NODE
-from .wu_uct_node import WUUCTNode
+from Simple_WU.wu_uct_node import WUUCTNode
 
 
 class SimpleWUWorker(threading.Thread):
