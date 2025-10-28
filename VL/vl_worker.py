@@ -156,6 +156,11 @@ class VLWorker(threading.Thread):
         # Traverse until we reach a leaf node
         # Leaf = terminal OR not fully expanded (has untried actions)
         while current_node.is_fully_expanded() and not current_state.is_terminal():
+            # Race condition protection: Another thread might have cleared children
+            # between is_fully_expanded() check and this call
+            if not current_node.children:
+                break
+                
             # Use standard UCT selection (affected by virtual loss)
             current_node = current_node.uct_select_child(self.exploration_constant)
             path.append(current_node)

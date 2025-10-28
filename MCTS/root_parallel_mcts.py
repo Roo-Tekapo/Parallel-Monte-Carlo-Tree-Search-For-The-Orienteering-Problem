@@ -240,7 +240,8 @@ if __name__ == "__main__":
     # Load problem
     try:
         nodes, budget = OrienteeringProblem.load_problem(
-            "OP_Benchmark_Set/sample/sample_30.txt"
+            # "OP_Benchmark_Set/grid_sample/grid_10x10_medium_30.txt"
+            "OP_Benchmark_Set/grid_sample/grid_10x10_long_50.txt"
         )
         print(f"Loaded: {len(nodes)} nodes, budget: {budget}")
     except Exception as e:
@@ -252,7 +253,7 @@ if __name__ == "__main__":
     # Run solver
     solver = RootParallelMCTS(
         problem=problem,
-        iterations=1000,
+        iterations=10000,
         num_workers=4,
         exploration_constant=math.sqrt(2)
     )
