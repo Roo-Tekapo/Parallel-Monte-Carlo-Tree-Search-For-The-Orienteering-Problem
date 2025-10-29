@@ -345,7 +345,7 @@ class BenchmarkRunner:
     def run_benchmark(self, problem_files: List[Path], algorithms: List[str],
                      max_iterations: int = 10000, num_workers: int = 4,
                      max_time: Optional[float] = None, vl_value: float = 1.0,
-                     ortools_time_limit: int = 30, num_runs: int = 1, verbose: bool = True):
+                     ortools_time_limit: int = 60, num_runs: int = 1, verbose: bool = True):
         """
         Run benchmark on multiple problems and algorithms.
         
@@ -356,11 +356,15 @@ class BenchmarkRunner:
             num_workers: Number of workers for parallel algorithms
             max_time: Maximum time in seconds (optional)
             vl_value: Virtual loss value for VL algorithm
-            ortools_time_limit: Time limit for OR-Tools
-            num_runs: Number of times to run each algorithm on each problem
+            ortools_time_limit: Time limit for OR-Tools (default: 60 seconds)
+            num_runs: Number of times to run each algorithm on each problem (Note: OR-Tools runs only once per problem)
             verbose: Print progress information
         """
-        total_runs = len(problem_files) * len(algorithms) * num_runs
+        # Calculate total runs accounting for OR-Tools running only once
+        ortools_in_algos = 'ortools' in algorithms
+        ortools_runs = len(problem_files) if ortools_in_algos else 0
+        other_algo_runs = len(problem_files) * len([a for a in algorithms if a != 'ortools']) * num_runs
+        total_runs = ortools_runs + other_algo_runs
         current_run = 0
         
         if verbose:
@@ -371,19 +375,27 @@ class BenchmarkRunner:
             print(f"Algorithms: {', '.join(algorithms)}")
             if num_runs > 1:
                 print(f"Runs per algorithm: {num_runs}")
+                if ortools_in_algos:
+                    print(f"Note: OR-Tools runs only once per problem (deterministic)")
             print(f"Total runs: {total_runs}")
             print(f"{'='*80}\n")
+        
+        # Cache to store OR-Tools results for each problem
+        ortools_cache = {}
         
         for problem_file in problem_files:
             if verbose:
                 print(f"\n--- Problem: {problem_file.name} ---")
             
             for algo in algorithms:
-                for run_num in range(num_runs):
+                # OR-Tools only runs once per problem (deterministic)
+                algo_runs = 1 if algo == 'ortools' else num_runs
+                
+                for run_num in range(algo_runs):
                     current_run += 1
                     
                     if verbose:
-                        run_label = f" (run {run_num + 1}/{num_runs})" if num_runs > 1 else ""
+                        run_label = f" (run {run_num + 1}/{algo_runs})" if algo_runs > 1 else ""
                         print(f"  [{current_run}/{total_runs}] Running {algo.upper()}{run_label}...", end=' ', flush=True)
                     
                     # Run the appropriate algorithm
@@ -398,20 +410,36 @@ class BenchmarkRunner:
                                            num_workers=num_workers, vl_value=vl_value,
                                            max_time=max_time)
                     elif algo == 'ortools':
-                        result = self.run_ortools(problem_file, time_limit=ortools_time_limit)
+                        # Check cache first
+                        cache_key = str(problem_file)
+                        if cache_key in ortools_cache:
+                            result = ortools_cache[cache_key].copy()
+                            if verbose:
+                                print(f"✓ (Cached - Reward: {result.get('raw_reward', 'N/A'):.2f}, Time: {result.get('elapsed_time', 0):.2f}s)")
+                        else:
+                            result = self.run_ortools(problem_file, time_limit=ortools_time_limit)
+                            ortools_cache[cache_key] = result.copy()
+                            if verbose:
+                                if result['success']:
+                                    reward = result.get('raw_reward', result.get('normalized_reward', 'N/A'))
+                                    time_taken = result.get('elapsed_time', 0)
+                                    print(f"✓ (Reward: {reward:.2f}, Time: {time_taken:.2f}s)")
+                                else:
+                                    print(f"✗ Error: {result.get('error', 'Unknown error')}")
                     else:
                         if verbose:
                             print(f"Unknown algorithm: {algo}")
                         continue
                     
                     # Add run number to result
-                    if num_runs > 1:
+                    if num_runs > 1 and algo != 'ortools':
                         result['run_number'] = run_num + 1
                     
                     # Store result
                     self.results.append(result)
                     
-                    if verbose:
+                    # Print result if not already printed (for non-cached results)
+                    if verbose and algo != 'ortools':
                         if result['success']:
                             reward = result.get('raw_reward', result.get('normalized_reward', 'N/A'))
                             time_taken = result.get('elapsed_time', 0)
@@ -574,8 +602,8 @@ Available datasets:
                        help='Number of workers for parallel algorithms (default: 4)')
     parser.add_argument('--vl-value', type=float, default=1.0,
                        help='Virtual loss value for VL algorithm (default: 1.0)')
-    parser.add_argument('--ortools-time', type=int, default=30,
-                       help='Time limit for OR-Tools in seconds (default: 30)')
+    parser.add_argument('--ortools-time', type=int, default=60,
+                       help='Time limit for OR-Tools in seconds (default: 60)')
     parser.add_argument('--output', '-o', type=str, default=None,
                        help='Output filename (default: benchmark_results_TIMESTAMP.xlsx)')
     parser.add_argument('--output-dir', type=str, default=None,
