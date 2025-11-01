@@ -1,0 +1,14 @@
+# Tree-Parallel MCTS Results
+# Algorithm: Standard UCT (No WU-UCT modifications)
+# Problem: OP_Benchmark_Set/grid_sample/grid_10x10_medium_30.txt
+# Iterations: 10000
+# Exploration constant: 1.4142135623730951
+# Number of workers: 4
+# Variant: Optimized
+# Execution time: 1.40s
+#
+Path= 0 46 57 47 58 49 50 60 59 68 67 77 88 99 110 111 100 89 90 91 92 81 71 72 73 74 75 1
+Normalized_Reward= 18.899999999999995
+Raw_Reward= 378
+Cost= 29.899494936611667
+Valid= True
