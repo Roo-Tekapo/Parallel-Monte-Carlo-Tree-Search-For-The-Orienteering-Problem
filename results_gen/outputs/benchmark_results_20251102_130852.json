@@ -1,0 +1,23 @@
+[
+  {
+    "algorithm": "Tree",
+    "problem": "grid_10x10_easy_20.txt",
+    "problem_file": "grid_10x10_easy_20.txt",
+    "dataset": "grid_sample",
+    "num_nodes": 121,
+    "budget": 20.0,
+    "num_workers": 4,
+    "iterations": 1000,
+    "elapsed_time": 0.1100001335144043,
+    "best_path": "[0, 66, 67, 78, 79, 69, 80, 92, 93]",
+    "path_length": 9,
+    "normalized_reward": 4.95,
+    "raw_reward": 99,
+    "total_cost": 8.82842712474619,
+    "budget_used_pct": 44.14213562373095,
+    "total_collisions": 0,
+    "avg_collision_rate": 0.0,
+    "success": true,
+    "error": null
+  }
+]

@@ -163,12 +163,27 @@ class TreeParallelMCTS:
         if total_simulations > 0:
             print(f"Average simulation time: {total_sim_time / total_simulations:.4f}s")
         
+        # Lock contention / collision statistics
+        total_collisions = sum(worker.lock_contentions for worker in self.workers)
+        avg_collision_rate = sum(worker.get_statistics()['collision_rate'] for worker in self.workers) / len(self.workers)
+        
+        print(f"\nParallel Coordination (Lock Contention):")
+        print(f"  Total Lock Contentions: {total_collisions}")
+        print(f"  Avg Contention Rate: {avg_collision_rate:.2%}")
+        print(f"    (Workers competing for tree expansion rights)")
+        
         # Per-worker statistics
-        print(f"\nPer-worker statistics:")
+        print(f"\nPer-Worker Performance:")
+        print(f"  {'Worker':<8} {'Iters':<8} {'Sims':<8} {'Avg Sim(ms)':<12} {'Contentions':<12} {'Rate':<10}")
+        print(f"  {'-'*70}")
         for worker in self.workers:
             stats = worker.get_statistics()
-            print(f"  Worker {stats['worker_id']}: {stats['iterations_completed']} iterations, "
-                  f"{stats['simulations_completed']} simulations")
+            print(f"  {stats['worker_id']:<8} "
+                  f"{stats['iterations_completed']:<8} "
+                  f"{stats['simulations_completed']:<8} "
+                  f"{stats['avg_simulation_time']*1000:<12.3f} "
+                  f"{stats['lock_contentions']:<12} "
+                  f"{stats['collision_rate']:<10.2%}")
     
     def _print_solution_details(self, solution: OrienteeringState):
         """

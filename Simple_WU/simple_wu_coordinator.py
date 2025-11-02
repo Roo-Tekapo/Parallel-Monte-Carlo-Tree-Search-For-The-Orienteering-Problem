@@ -164,12 +164,27 @@ class SimpleWUUCT:
         print(f"Root visits: {self.root.visits}")
         print(f"Average simulation time: {total_sim_time / total_simulations:.4f}s")
         
+        # WU-UCT coordination statistics
+        total_collisions = sum(w.wu_uct_collisions for w in self.workers)
+        avg_collision_rate = sum(w.get_statistics()['collision_rate'] for w in self.workers) / len(self.workers)
+        
+        print(f"\nWU-UCT Coordination (Pending Simulations):")
+        print(f"  Path Overlaps: {total_collisions}")
+        print(f"  Avg Overlap Rate: {avg_collision_rate:.2%}")
+        print(f"    (Workers selecting paths with ongoing simulations - expected in parallel MCTS)")
+        
         # Per-worker statistics
-        print(f"\nPer-worker statistics:")
+        print(f"\nPer-Worker Performance:")
+        print(f"  {'Worker':<8} {'Iters':<8} {'Sims':<8} {'Avg Sim(ms)':<12} {'Overlaps':<12} {'Rate':<10}")
+        print(f"  {'-'*70}")
         for worker in self.workers:
             stats = worker.get_statistics()
-            print(f"  Worker {stats['worker_id']}: {stats['iterations_completed']} iterations, "
-                  f"{stats['simulations_completed']} simulations")
+            print(f"  {stats['worker_id']:<8} "
+                  f"{stats['iterations_completed']:<8} "
+                  f"{stats['simulations_completed']:<8} "
+                  f"{stats['avg_simulation_time']*1000:<12.3f} "
+                  f"{stats['wu_uct_collisions']:<12} "
+                  f"{stats['collision_rate']:<10.2%}")
     
     def _print_solution_details(self, solution: OrienteeringState):
         """

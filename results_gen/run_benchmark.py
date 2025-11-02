@@ -185,6 +185,12 @@ class BenchmarkRunner:
             # Calculate raw reward
             raw_reward = sum(problem.nodes[node_id].score for node_id in best_state.get_path())
             
+            # Collect collision data from workers
+            total_collisions = sum(w.wu_uct_collisions for w in simple_wu.workers)
+            total_iterations_completed = sum(w.iterations_completed for w in simple_wu.workers)
+            avg_collision_rate = (sum(w.get_statistics()['collision_rate'] for w in simple_wu.workers) / 
+                                 len(simple_wu.workers) if simple_wu.workers else 0)
+            
             return {
                 'algorithm': 'Simple_WU',
                 'problem': problem_file.name,
@@ -193,7 +199,7 @@ class BenchmarkRunner:
                 'num_nodes': len(nodes),
                 'budget': budget,
                 'num_workers': num_workers,
-                'iterations': stats.get('iterations', max_iterations),
+                'iterations': total_iterations_completed,
                 'elapsed_time': elapsed_time,
                 'best_path': str(best_state.get_path()),
                 'path_length': len(best_state.get_path()),
@@ -201,6 +207,8 @@ class BenchmarkRunner:
                 'raw_reward': raw_reward,
                 'total_cost': best_state.get_cost(),
                 'budget_used_pct': (best_state.get_cost() / budget * 100) if budget > 0 else 0,
+                'total_collisions': total_collisions,
+                'avg_collision_rate': avg_collision_rate,
                 'success': True,
                 'error': None
             }
@@ -256,6 +264,12 @@ class BenchmarkRunner:
             # Calculate raw reward
             raw_reward = sum(problem.nodes[node_id].score for node_id in best_state.get_path())
             
+            # Collect collision data from workers
+            total_collisions = sum(w.virtual_loss_collisions for w in vl_mcts.workers)
+            total_iterations_completed = sum(w.iterations_completed for w in vl_mcts.workers)
+            avg_collision_rate = (sum(w.get_statistics()['collision_rate'] for w in vl_mcts.workers) / 
+                                 len(vl_mcts.workers) if vl_mcts.workers else 0)
+            
             return {
                 'algorithm': 'VL',
                 'problem': problem_file.name,
@@ -265,7 +279,7 @@ class BenchmarkRunner:
                 'budget': budget,
                 'num_workers': num_workers,
                 'vl_value': vl_value,
-                'iterations': stats.get('iterations', max_iterations),
+                'iterations': total_iterations_completed,
                 'elapsed_time': elapsed_time,
                 'best_path': str(best_state.get_path()),
                 'path_length': len(best_state.get_path()),
@@ -273,12 +287,90 @@ class BenchmarkRunner:
                 'raw_reward': raw_reward,
                 'total_cost': best_state.get_cost(),
                 'budget_used_pct': (best_state.get_cost() / budget * 100) if budget > 0 else 0,
+                'total_collisions': total_collisions,
+                'avg_collision_rate': avg_collision_rate,
                 'success': True,
                 'error': None
             }
         except Exception as e:
             return {
                 'algorithm': 'VL',
+                'problem': problem_file.name,
+                'problem_file': problem_file.name,
+                'dataset': problem_file.parent.name,
+                'success': False,
+                'error': str(e),
+                'traceback': traceback.format_exc()
+            }
+    
+    def run_tree(self, problem_file: Path, max_iterations: int = 10000,
+                 num_workers: int = 4, max_time: Optional[float] = None, **kwargs) -> Dict:
+        """
+        Run Tree Parallel MCTS algorithm.
+        
+        Args:
+            problem_file: Path to problem file
+            max_iterations: Maximum iterations
+            num_workers: Number of workers
+            max_time: Maximum time in seconds
+            **kwargs: Additional arguments
+            
+        Returns:
+            Dictionary with results
+        """
+        try:
+            # Set environment variable
+            os.environ['TREE_USE_NO_END'] = 'false'
+            
+            from Tree.tree_parallel_coordinator import TreeParallelMCTS
+            from Tree.orienteering_adapter import OrienteeringProblem
+            
+            # Load problem
+            nodes, budget = OrienteeringProblem.load_problem(str(problem_file))
+            problem = OrienteeringProblem(nodes, budget, normalize_rewards=True)
+            
+            # Run Tree Parallel MCTS
+            start_time = time.time()
+            tree_mcts = TreeParallelMCTS(problem, num_workers=num_workers)
+            best_state = tree_mcts.run(max_iterations=max_iterations, max_time=max_time, verbose=False)
+            elapsed_time = time.time() - start_time
+            
+            # Get statistics
+            stats = tree_mcts.get_tree_statistics()
+            
+            # Calculate raw reward
+            raw_reward = sum(problem.nodes[node_id].score for node_id in best_state.get_path())
+            
+            # Collect collision data from workers
+            total_collisions = sum(w.lock_contentions for w in tree_mcts.workers)
+            total_iterations_completed = sum(w.iterations_completed for w in tree_mcts.workers)
+            avg_collision_rate = (sum(w.get_statistics()['collision_rate'] for w in tree_mcts.workers) / 
+                                 len(tree_mcts.workers) if tree_mcts.workers else 0)
+            
+            return {
+                'algorithm': 'Tree',
+                'problem': problem_file.name,
+                'problem_file': problem_file.name,
+                'dataset': problem_file.parent.name,
+                'num_nodes': len(nodes),
+                'budget': budget,
+                'num_workers': num_workers,
+                'iterations': total_iterations_completed,
+                'elapsed_time': elapsed_time,
+                'best_path': str(best_state.get_path()),
+                'path_length': len(best_state.get_path()),
+                'normalized_reward': best_state.get_reward(),
+                'raw_reward': raw_reward,
+                'total_cost': best_state.get_cost(),
+                'budget_used_pct': (best_state.get_cost() / budget * 100) if budget > 0 else 0,
+                'total_collisions': total_collisions,
+                'avg_collision_rate': avg_collision_rate,
+                'success': True,
+                'error': None
+            }
+        except Exception as e:
+            return {
+                'algorithm': 'Tree',
                 'problem': problem_file.name,
                 'problem_file': problem_file.name,
                 'dataset': problem_file.parent.name,
@@ -409,6 +501,9 @@ class BenchmarkRunner:
                         result = self.run_vl(problem_file, max_iterations=max_iterations,
                                            num_workers=num_workers, vl_value=vl_value,
                                            max_time=max_time)
+                    elif algo == 'tree':
+                        result = self.run_tree(problem_file, max_iterations=max_iterations,
+                                             num_workers=num_workers, max_time=max_time)
                     elif algo == 'ortools':
                         # Check cache first
                         cache_key = str(problem_file)
@@ -572,8 +667,11 @@ Examples:
   # Run all algorithms on grid_sample dataset
   python run_benchmark.py --dataset grid_sample --algorithms all
   
-  # Run UCT and VL on specific dataset with custom iterations
-  python run_benchmark.py --dataset set_64_1 --algorithms uct vl --iterations 20000
+  # Run UCT, VL, and Tree on specific dataset with custom iterations
+  python run_benchmark.py --dataset set_64_1 --algorithms uct vl tree --iterations 20000
+  
+  # Run parallel algorithms only (Simple_WU, VL, Tree)
+  python run_benchmark.py --dataset grid_sample --algorithms simple_wu vl tree
   
   # Run OR-Tools only on all datasets
   python run_benchmark.py --dataset all --algorithms ortools
@@ -590,8 +688,8 @@ Available datasets:
     parser.add_argument('--dataset', '-d', type=str, default='grid_sample',
                        help='Dataset name or "all" for all datasets (default: grid_sample)')
     parser.add_argument('--algorithms', '-a', nargs='+',
-                       default=['uct', 'simple_wu', 'vl', 'ortools'],
-                       help='Algorithms to run: uct, simple_wu, vl, ortools, or "all" (default: all)')
+                       default=['uct', 'simple_wu', 'vl', 'tree', 'ortools'],
+                       help='Algorithms to run: uct, simple_wu, vl, tree, ortools, or "all" (default: all)')
     parser.add_argument('--iterations', '-i', type=int, default=10000,
                        help='Maximum iterations for MCTS algorithms (default: 10000)')
     parser.add_argument('--max-time', '-t', type=float, default=None,
@@ -619,7 +717,7 @@ Available datasets:
     
     # Handle "all" shortcut for algorithms
     if 'all' in args.algorithms:
-        args.algorithms = ['uct', 'simple_wu', 'vl', 'ortools']
+        args.algorithms = ['uct', 'simple_wu', 'vl', 'tree', 'ortools']
     
     # Initialize benchmark runner
     runner = BenchmarkRunner(output_dir=args.output_dir)

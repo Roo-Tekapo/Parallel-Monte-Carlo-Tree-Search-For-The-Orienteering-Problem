@@ -59,6 +59,7 @@ class SimpleWUWorker(threading.Thread):
         self.iterations_completed = 0
         self.simulations_completed = 0
         self.total_simulation_time = 0.0
+        self.wu_uct_collisions = 0  # Times we selected a path with pending simulations
         
         # Threading
         self.daemon = True
@@ -92,6 +93,14 @@ class SimpleWUWorker(threading.Thread):
             self.last_selection_path = leaf_state.path[:]
         else:
             self.last_selection_path = []
+        
+        # Check for collisions BEFORE applying virtual loss
+        # A collision means selecting nodes that OTHER workers (not us) are processing
+        # We check if pending_simulations > 0 BEFORE we apply our own
+        # Skip first few nodes (root and near-root) as they naturally have high traffic
+        collision_count = sum(1 for i, node in enumerate(path) if i > 2 and node.pending_simulations > 0)
+        if collision_count > 0:
+            self.wu_uct_collisions += 1
         
         # Phase 2: Apply virtual loss to selected path (for coordination)
         simulation_id = self._apply_virtual_loss(path)
@@ -326,12 +335,17 @@ class SimpleWUWorker(threading.Thread):
         avg_simulation_time = (self.total_simulation_time / self.simulations_completed 
                               if self.simulations_completed > 0 else 0)
         
+        collision_rate = (self.wu_uct_collisions / self.iterations_completed
+                         if self.iterations_completed > 0 else 0)
+        
         return {
             'worker_id': self.worker_id,
             'iterations_completed': self.iterations_completed,
             'simulations_completed': self.simulations_completed,
             'total_simulation_time': self.total_simulation_time,
-            'avg_simulation_time': avg_simulation_time
+            'avg_simulation_time': avg_simulation_time,
+            'wu_uct_collisions': self.wu_uct_collisions,
+            'collision_rate': collision_rate
         }
         
     def _apply_virtual_loss(self, path):

@@ -54,6 +54,7 @@ class TreeParallelWorker(threading.Thread):
         self.iterations_completed = 0
         self.simulations_completed = 0
         self.total_simulation_time = 0.0
+        self.lock_contentions = 0  # Times we encountered lock contention (collisions)
         
         # Threading
         self.daemon = True
@@ -133,7 +134,14 @@ class TreeParallelWorker(threading.Thread):
             If expansion occurs, returns (new_child, new_state)
             If no expansion, returns (leaf_node, leaf_state)
         """
-        with self.tree_lock:
+        # Check if lock is available without blocking (fast check for collision detection)
+        lock_available = self.tree_lock.acquire(blocking=False)
+        if not lock_available:
+            # Lock contention detected - count and then wait
+            self.lock_contentions += 1
+            self.tree_lock.acquire(blocking=True)
+        
+        try:
             # Double-check untried actions under lock
             with leaf_node._node_lock:
                 if not leaf_node.untried_actions:
@@ -143,7 +151,7 @@ class TreeParallelWorker(threading.Thread):
                 # Pop an untried action
                 action_to_expand = leaf_node.untried_actions.pop()
             
-            # Create new child node
+            # Create new child node (outside inner lock)
             new_state = self._create_next_state(leaf_state, action_to_expand)
             new_child = TreeParallelNode(new_state, parent=leaf_node)
             
@@ -151,6 +159,8 @@ class TreeParallelWorker(threading.Thread):
             leaf_node.add_child(new_child)
             
             return new_child, new_state
+        finally:
+            self.tree_lock.release()
     
     def _simulate(self, state: OrienteeringState) -> float:
         """
@@ -229,10 +239,15 @@ class TreeParallelWorker(threading.Thread):
         avg_simulation_time = (self.total_simulation_time / self.simulations_completed 
                               if self.simulations_completed > 0 else 0)
         
+        collision_rate = (self.lock_contentions / self.iterations_completed
+                         if self.iterations_completed > 0 else 0)
+        
         return {
             'worker_id': self.worker_id,
             'iterations_completed': self.iterations_completed,
             'simulations_completed': self.simulations_completed,
             'total_simulation_time': self.total_simulation_time,
-            'avg_simulation_time': avg_simulation_time
+            'avg_simulation_time': avg_simulation_time,
+            'lock_contentions': self.lock_contentions,
+            'collision_rate': collision_rate
         }

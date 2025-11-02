@@ -2,10 +2,10 @@
 # Problem: OP_Benchmark_Set/grid_sample/grid_10x10_medium_30.txt
 # Iterations: 10000
 # Exploration constant: 1.4142135623730951
-# Number of workers: 2
+# Number of workers: 4
 # Max distance: 1.42
-# Execution time: 1.43s
+# Execution time: 1.63s
 #
-Path= 0 57 58 49 59 60 50 39 40 51 61 72 71 70 81 92 80 69 68 67 77 78 89 88 99 110 111 112 101
-Reward= 21.049999999999997
-Cost= 29.656854249492383
+Path= 0 47 46 57 58 59 49 39 50 51 60 61 62 72 73 63 54 43 44 45 56 55 64 75 76 65 1
+Reward= 17.799999999999997
+Cost= 29.313708498984766
