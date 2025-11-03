@@ -231,6 +231,99 @@ def commit_simulation_result(self, simulation_id, reward):
         self.total_reward += reward
 ```
 
+**Two-Phase Commit Protocol Explained:**
+
+WU-UCT uses a two-phase protocol to handle the asynchronous nature of separating tree expansion from simulation execution:
+
+**Phase 1: Update-Incomplete (Expansion Worker)**
+- **When:** Immediately after selecting a path and BEFORE simulation starts
+- **Purpose:** Notify other workers that this path is being explored
+- **Action:** Add simulation ID to `traverse_history` dictionary
+- **Effect on UCT:** Increases `O` (unobserved count) which makes the node less attractive
+- **Why it matters:** Prevents other expansion workers from immediately selecting the same path
+
+```python
+# Expansion worker execution flow:
+path = select_leaf()                    # Select using UCT with current N and O
+expand_if_possible(leaf_node)           # Add new node to tree
+simulation_id = generate_id()           
+for node in path:
+    # Phase 1: Mark as started
+    node.traverse_history[sim_id] = (action, reward, start_time)
+    # Now O = len(traverse_history) has increased by 1
+queue_work(WorkUnit(sim_id, path, ...))  # Hand off to simulation worker
+# Expansion worker continues immediately - doesn't wait!
+```
+
+**Phase 2: Update-Complete (Simulation Worker)**
+- **When:** After simulation finishes and reward is calculated
+- **Purpose:** Commit the actual simulation result to the tree
+- **Action:** Remove from `traverse_history`, update `N` (visits) and `Q` (total reward)
+- **Effect on UCT:** Decreases `O`, increases `N` and `Q` with real results
+- **Why it matters:** Transforms a pending simulation into actual statistical knowledge
+
+```python
+# Simulation worker execution flow (happens asynchronously):
+work_unit = work_queue.get()            # Get work when available
+reward = simulate(work_unit.state)      # Expensive rollout (could take 100ms+)
+for node in reversed(work_unit.path):
+    # Phase 2: Commit result
+    with node._history_lock:
+        # Remove from pending (decreases O)
+        action, imm_reward, start = node.traverse_history.pop(sim_id)
+    with node._write_lock:
+        # Update actual statistics
+        node.visits += 1                # N++ (completed visit)
+        node.total_reward += reward     # Q += reward (actual result)
+```
+
+**Timeline Example:**
+
+```
+Time    Node State                Selection Impact                      Workers
+────    ──────────                ────────────────                      ───────
+t=0     N=10, O=0, Q=50          UCT = 50/10 + c*sqrt(ln(10)/(10+0))  All workers see
+        traverse_history={}       exploitation = 5.0                    same state
+
+t=1     N=10, O=1, Q=50          UCT = 50/10 + c*sqrt(ln(10)/(10+1))  Worker 1:
+        traverse_history=        exploitation = 5.0 (unchanged)         Phase 1 done
+        {123: (...)}             exploration penalty applied            queued work
+                                  → Node less attractive!               continues...
+
+t=2     N=10, O=2, Q=50          UCT = 50/10 + c*sqrt(ln(10)/(10+2))  Worker 2:
+        traverse_history=        exploitation = 5.0                     Also selected
+        {123:(...), 456:(...)}   exploration penalty increased          this path
+                                  → Even less attractive!               (before seeing O=1)
+
+t=50    N=11, O=1, Q=55.2        UCT = 55.2/11 + c*sqrt(ln(11)/(11+1)) Sim Worker:
+        traverse_history=        exploitation = 5.02 (better!)          Committed
+        {456: (...)}             exploration denominator = 12           sim 123
+                                  → Reward improved, O decreased        
+
+t=100   N=12, O=0, Q=60.4        UCT = 60.4/12 + c*sqrt(ln(12)/(12+0)) Sim Worker:
+        traverse_history={}      exploitation = 5.03                    Committed
+                                  exploration denominator = 12           sim 456
+                                  → All simulations complete!
+```
+
+**Key Benefits of Two-Phase Protocol:**
+
+1. **Non-blocking expansion**: Expansion workers don't wait for slow simulations
+2. **Immediate coordination**: Phase 1 instantly signals "I'm exploring here"
+3. **Accurate statistics**: Phase 2 ensures real results eventually update the tree
+4. **Independent timing**: Phases can be separated by milliseconds or seconds
+5. **Lock-free reads**: Selection can read N and O without waiting for commits
+
+**Comparison to Single-Phase Updates:**
+
+| Aspect | Single-Phase (Tree-Parallel/VL) | Two-Phase (WU-UCT) |
+|--------|----------------------------------|-------------------|
+| Update timing | Synchronous (after simulation) | Asynchronous (split) |
+| Worker blocking | Worker blocked during simulation | Expansion worker freed immediately |
+| Coordination signal | Virtual loss or lock | O count (pending simulations) |
+| Statistics accuracy | Always reflects completed work | Predictive (includes pending) |
+| Scalability | Limited by simulation time | Decoupled - high scalability |
+
 ---
 
 ### **3. COORDINATOR IMPLEMENTATION**

@@ -841,8 +841,8 @@ Available datasets:
                        help='Virtual loss value for VL algorithm (default: 1.0)')
     parser.add_argument('--max-distance', '-md', type=float, default=1.42,
                        help='Maximum edge distance constraint (limits individual move distances, default: 1.42)')
-    parser.add_argument('--ortools-time', type=int, default=30,
-                       help='Time limit for OR-Tools in seconds (default: 30)')
+    parser.add_argument('--ortools-time', type=int, default=2,
+                       help='Time limit for OR-Tools in seconds (default: 2)')
     parser.add_argument('--output', '-o', type=str, default=None,
                        help='Output filename (default: benchmark_results_TIMESTAMP.xlsx)')
     parser.add_argument('--output-dir', type=str, default=None,

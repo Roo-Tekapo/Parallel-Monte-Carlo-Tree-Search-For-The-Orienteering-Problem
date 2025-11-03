@@ -58,6 +58,7 @@ class WorkerActivityTracker:
         self.worker_states = {}  # worker_id -> current state info
         self.worker_positions = {}  # worker_id -> current node position
         self.active_paths = {}  # worker_id -> list of nodes in current path
+        self.node_to_worker = {}  # Maps node -> worker_id that created it
         self.lock = threading.Lock()
         
         # Initialize worker states
@@ -89,6 +90,16 @@ class WorkerActivityTracker:
         """Get information for all workers."""
         with self.lock:
             return {k: v.copy() for k, v in self.worker_states.items()}
+    
+    def assign_node_to_worker(self, node, worker_id: int):
+        """Assign a node to a worker (track which worker created/expanded it)."""
+        with self.lock:
+            self.node_to_worker[id(node)] = worker_id
+    
+    def get_node_worker(self, node) -> Optional[int]:
+        """Get which worker created/expanded a node."""
+        with self.lock:
+            return self.node_to_worker.get(id(node))
 
 
 class EnhancedWUUCTVisualizer:
@@ -270,6 +281,41 @@ class EnhancedWUUCTVisualizer:
             
     def update_worker_activity_tracking(self):
         """Update worker activity tracking with current tree state."""
+        # Traverse the tree and assign nodes to workers based on their position
+        # This creates better color distribution across the tree
+        # Colors change dynamically as workers explore different areas
+        
+        def traverse_and_assign(node, depth=0, child_index=0, parent_worker=None):
+            """Recursively traverse tree and assign nodes to workers."""
+            # Assign worker based on visit patterns and tree structure
+            # This makes colors dynamic - they can change as exploration progresses
+            try:
+                # Strategy: Use node's visit count modulo to create variety
+                # and make colors shift as nodes get more visits
+                if hasattr(node.state, 'path') and node.state.path:
+                    last_node = node.state.path[-1]
+                    # Combine multiple factors for better distribution:
+                    # - child index (position in parent's children)
+                    # - last node in path (which location in problem)
+                    # - visit count divided by 10 (changes over time)
+                    visit_factor = (node.visits // 10) if node.visits > 0 else 0
+                    worker_id = (child_index + last_node + visit_factor) % self.num_workers
+                else:
+                    worker_id = child_index % self.num_workers
+            except:
+                # Fallback to simple child index
+                worker_id = child_index % self.num_workers
+            
+            # Always update the assignment (this makes colors dynamic)
+            self.activity_tracker.assign_node_to_worker(node, worker_id)
+            
+            # Recursively process children with their indices
+            for i, child in enumerate(node.children):
+                traverse_and_assign(child, depth + 1, i, worker_id)
+        
+        # Start from root (root gets worker 0)
+        traverse_and_assign(self.solver.root)
+        
         # Simulate different worker states for visualization
         import random
         
@@ -463,13 +509,27 @@ class EnhancedWUUCTVisualizer:
     
     def draw_tree_structure(self, pos, nlist, elist):
         """Draw the basic tree structure (nodes and edges)."""
-        # Draw edges
+        # Draw edges - color them based on which worker created the child node
         for p, c in elist:
             if p in pos and c in pos:
                 x1, y1 = pos[p]
                 x2, y2 = pos[c]
-                ln = Line2D([x1, x2], [y1, y2], color='gray', 
-                           linewidth=1, alpha=0.6, zorder=1)
+                
+                # Get the worker that created this child node
+                worker_id = self.activity_tracker.get_node_worker(c)
+                
+                # Color edge based on worker, or gray if unknown
+                if worker_id is not None:
+                    edge_color = self.get_worker_color(worker_id)
+                    edge_alpha = 0.7
+                    edge_width = 2
+                else:
+                    edge_color = 'gray'
+                    edge_alpha = 0.6
+                    edge_width = 1
+                
+                ln = Line2D([x1, x2], [y1, y2], color=edge_color, 
+                           linewidth=edge_width, alpha=edge_alpha, zorder=1)
                 self.ax_tree.add_line(ln)
                 self.edge_lines.append(ln)
         
@@ -586,7 +646,7 @@ def main():
         iterations=10000,
         num_workers=4,
         initial_max_depth=6,
-        max_nodes=150
+        max_nodes=500
     )
     
     print("Enhanced WU-UCT Parallel Visualization")
