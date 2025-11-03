@@ -1,19 +1,3 @@
-"""
-Streamlined Orienteering Problem implementation for Traditional MCTS.
-
-This version:
-- Removes all BFS reachability checking (_can_reach_end_from)
-- Removes precomputation of end reachability structures
-- Removes reachability caching
-- Only checks if a single move is within budget
-- Much simpler and faster for traditional MCTS approach
-
-Use this when you want:
-- Maximum speed
-- Simple budget checking (can afford this move?)
-- No guarantee of reaching END
-"""
-
 import math
 from collections import namedtuple
 from typing import List, Optional, Dict
@@ -166,9 +150,15 @@ class OrienteeringStateTraditional:
             cost_to_i = self.problem.get_distance(current, i)
             new_cost = self.cost_so_far + cost_to_i
             
-            # Traditional MCTS: Only check if we can afford this single move
+            # Check if we can afford this move AND still reach END from there
             if new_cost <= self.problem.budget:
-                actions.append(i)
+                # Additional check: can we reach END from node i?
+                cost_from_i_to_end = self.problem.get_distance(i, END_NODE)
+                total_cost_with_end = new_cost + cost_from_i_to_end
+                
+                # Only include this action if we can still reach END afterwards
+                if total_cost_with_end <= self.problem.budget:
+                    actions.append(i)
         
         return actions
     
@@ -264,38 +254,3 @@ if __name__ == "__main__":
     print(f"\nPerformance test:")
     print(f"  {test_iterations} get_available_actions() calls: {elapsed:.3f}s")
     print(f"  Average: {(elapsed / test_iterations) * 1000:.4f}ms per call")
-
-
-    # def get_available_actions(self, traditional_mcts=True):
-    #     actions = []
-    #     current = self.path[-1]
-        
-    #     # If we're already at END_NODE, the path is complete - no more actions
-    #     if current == END_NODE:
-    #         return actions
-        
-    #     neighbor_ids = self.problem.get_neighbors(current)
-
-    #     # Add END_NODE as an option if it's a neighbor and we can afford it
-    #     # Note: We removed the "current != END_NODE" check because we already handle that above
-    #     if END_NODE in neighbor_ids and END_NODE not in self.visited:
-    #         cost_to_end = self.problem.get_distance(current, END_NODE)
-    #         if self.cost_so_far + cost_to_end <= self.problem.budget:
-    #             actions.append(END_NODE)
-
-    #     # Explore other unvisited neighbor nodes
-    #     # IMPORTANT: Don't skip END_NODE here - it should be treated as a normal visitable node
-    #     for i in neighbor_ids:
-    #         if i in self.visited or i == START_NODE:
-    #             continue
-    #         if i == END_NODE:
-    #             continue  # Already handled above
-            
-    #         cost_to_i = self.problem.get_distance(current, i)
-    #         new_cost = self.cost_so_far + cost_to_i
-            
-    #         # Traditional MCTS: Only check if we can afford this single move
-    #         if new_cost <= self.problem.budget:
-    #             actions.append(i)
-        
-    #     return actions

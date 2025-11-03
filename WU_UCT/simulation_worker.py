@@ -1,0 +1,256 @@
+"""
+Simulation Worker for WU-UCT
+
+Receives work units from expansion workers, performs simulations,
+and asynchronously commits results back to the tree.
+"""
+
+import threading
+import time
+import random
+from typing import Optional
+from queue import Queue, Empty
+
+from WU_UCT.wu_uct_node import WUUCTNode
+from WU_UCT.expansion_worker import WorkUnit
+
+
+class SimulationWorker(threading.Thread):
+    """
+    Simulation worker for WU-UCT algorithm.
+    
+    Responsibilities:
+    1. Receive work units from queue
+    2. Perform random simulation (no tree access needed)
+    3. Asynchronously commit results via update-complete
+    4. Update all nodes in path
+    
+    Key feature: Simulations are completely independent, no locking needed!
+    Only brief atomic writes when committing results.
+    """
+    
+    def __init__(self, worker_id: int, work_queue: Queue, 
+                 stop_event: threading.Event, problem=None,
+                 timeout: float = 0.1, max_distance: float = 1.42):
+        """
+        Initialize simulation worker.
+        
+        Args:
+            worker_id: Unique identifier for this worker
+            work_queue: Queue to receive work units from expansion workers
+            stop_event: Event to signal worker to stop
+            problem: Orienteering problem instance
+            timeout: Queue timeout for checking stop event
+            max_distance: Maximum travel distance constraint (default: 1.42)
+        """
+        super().__init__()
+        self.worker_id = worker_id
+        self.work_queue = work_queue
+        self.stop_event = stop_event
+        self.problem = problem
+        self.timeout = timeout
+        self.max_distance = max_distance
+        
+        self.daemon = True
+        
+        # Statistics
+        self.simulations_completed = 0
+        self.total_simulation_time = 0.0
+        self.total_backprop_time = 0.0
+        self.total_queue_wait_time = 0.0
+        
+    def run(self):
+        """Main worker loop."""
+        while not self.stop_event.is_set():
+            try:
+                # Get work unit from queue
+                wait_start = time.time()
+                work_unit = self.work_queue.get(timeout=self.timeout)
+                self.total_queue_wait_time += time.time() - wait_start
+                
+                # Process the work unit
+                self._process_work_unit(work_unit)
+                
+                self.work_queue.task_done()
+                
+            except Empty:
+                # No work available, check if we should stop
+                continue
+            except Exception as e:
+                print(f"Simulation worker {self.worker_id} error: {e}")
+                continue
+    
+    def _process_work_unit(self, work_unit: WorkUnit):
+        """
+        Process a work unit: simulate and backpropagate.
+        
+        Args:
+            work_unit: Work unit containing simulation task
+        """
+        # Phase 1: Perform simulation (completely independent, no locks!)
+        sim_start = time.time()
+        reward = self._simulate(work_unit.state_to_simulate)
+        self.total_simulation_time += time.time() - sim_start
+        
+        # Phase 2: Asynchronous backpropagation (Algorithm 3: Update-Complete)
+        backprop_start = time.time()
+        self._backpropagate(work_unit.path, reward, work_unit.simulation_id)
+        self.total_backprop_time += time.time() - backprop_start
+        
+        self.simulations_completed += 1
+    
+    def _simulate(self, state) -> float:
+        """
+        Perform random simulation from given state.
+        
+        This is completely independent - no tree access needed!
+        
+        Args:
+            state: State to simulate from
+            
+        Returns:
+            Reward obtained from simulation
+        """
+        simulation_state = self._copy_state(state)
+        
+        # Random rollout with max distance constraint
+        while not simulation_state.is_terminal():
+            available_actions = simulation_state.get_available_actions()
+            
+            if not available_actions:
+                break
+            
+            # Filter actions by max distance constraint
+            valid_actions = []
+            for action in available_actions:
+                next_state = self._apply_action(simulation_state, action)
+                if next_state is not None:  # Check if within max distance
+                    valid_actions.append(action)
+            
+            if not valid_actions:
+                break
+            
+            # Random action selection from valid actions
+            action = random.choice(valid_actions)
+            simulation_state = self._apply_action(simulation_state, action)
+            
+            if simulation_state is None:  # Should not happen with filtering, but be safe
+                break
+        
+        # Calculate final reward
+        reward = simulation_state.reward_so_far if hasattr(simulation_state, 'reward_so_far') else 0.0
+        
+        # Add completion bonus/penalty
+        if simulation_state.is_terminal():
+            reward += 0.15  # Completion bonus
+        elif hasattr(simulation_state, 'path') and len(simulation_state.path) > 2:
+            reward *= 0.7  # Incomplete penalty
+        
+        return reward
+    
+    def _backpropagate(self, path: list, reward: float, simulation_id: str):
+        """
+        Backpropagate simulation result through the tree.
+        
+        This is Algorithm 3 (Update-Complete) from the paper.
+        Uses brief atomic writes at each node - no long locks!
+        
+        Args:
+            path: List of nodes from root to leaf
+            reward: Simulation reward to propagate
+            simulation_id: Unique identifier for this simulation
+        """
+        accumulated_reward = reward
+        
+        # Traverse path backwards (leaf to root)
+        for node in reversed(path):
+            # Asynchronous commit - brief atomic write only!
+            accumulated_reward = node.commit_simulation_result(
+                simulation_id, 
+                accumulated_reward
+            )
+    
+    def _copy_state(self, state):
+        """
+        Create a copy of state for simulation.
+        
+        Args:
+            state: State to copy
+            
+        Returns:
+            Copy of state
+        """
+        if hasattr(state, 'copy'):
+            return state.copy()
+        else:
+            # For orienteering states
+            if hasattr(state, 'path'):
+                from orienteering.orienteering_optimized import OrienteeringState
+                return OrienteeringState(
+                    self.problem,
+                    path=state.path[:],
+                    cost_so_far=state.cost_so_far,
+                    reward_so_far=state.reward_so_far
+                )
+            else:
+                raise NotImplementedError("State must have copy() method or path attribute")
+    
+    def _apply_action(self, state, action):
+        """
+        Apply action to state.
+        
+        Args:
+            state: Current state
+            action: Action to apply
+            
+        Returns:
+            New state after applying action, or None if exceeds max_distance
+        """
+        if hasattr(state, 'apply_action'):
+            return state.apply_action(action)
+        elif hasattr(state, 'path'):
+            # For orienteering-style states
+            from orienteering.orienteering_optimized import OrienteeringState
+            current_node = state.path[-1]
+            cost = self.problem.get_distance(current_node, action)
+            new_cost = state.cost_so_far + cost
+            
+            # Check max distance constraint
+            if new_cost > self.max_distance:
+                return None
+            
+            new_path = state.path + [action]
+            new_reward = state.reward_so_far + self.problem.get_normalized_score(action)
+            
+            return OrienteeringState(
+                self.problem,
+                path=new_path,
+                cost_so_far=new_cost,
+                reward_so_far=new_reward
+            )
+        else:
+            raise NotImplementedError("State must have apply_action or path attribute")
+    
+    def get_statistics(self) -> dict:
+        """
+        Get worker statistics.
+        
+        Returns:
+            Dictionary with performance metrics
+        """
+        avg_sim_time = (self.total_simulation_time / self.simulations_completed 
+                       if self.simulations_completed > 0 else 0)
+        avg_backprop_time = (self.total_backprop_time / self.simulations_completed
+                            if self.simulations_completed > 0 else 0)
+        avg_queue_wait = (self.total_queue_wait_time / self.simulations_completed
+                         if self.simulations_completed > 0 else 0)
+        
+        return {
+            'worker_id': self.worker_id,
+            'worker_type': 'simulation',
+            'simulations_completed': self.simulations_completed,
+            'avg_simulation_time': avg_sim_time,
+            'avg_backprop_time': avg_backprop_time,
+            'avg_queue_wait_time': avg_queue_wait,
+            'total_time': self.total_simulation_time + self.total_backprop_time,
+        }

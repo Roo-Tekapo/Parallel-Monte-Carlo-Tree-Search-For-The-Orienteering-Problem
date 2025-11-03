@@ -2,11 +2,11 @@
 """
 Benchmark Runner for Orienteering Problem Solvers
 
-This script runs multiple MCTS algorithms (UCT, Simple_WU, VL) and OR-Tools
+This script runs multiple MCTS algorithms (UCT, Simple_WU, VL, Tree, WU-UCT) and OR-Tools
 on a set of orienteering problems and exports results to Excel.
 
 Usage:
-    python run_benchmark.py --dataset grid_sample --algorithms uct simple_wu vl ortools --iterations 10000
+    python run_benchmark.py --dataset grid_sample --algorithms uct simple_wu vl wu_uct ortools --iterations 10000
     python run_benchmark.py --dataset all --algorithms all --output results.xlsx
 """
 
@@ -82,7 +82,8 @@ class BenchmarkRunner:
         return sorted(problem_files)
     
     def run_uct_single(self, problem_file: Path, max_iterations: int = 10000, 
-                       max_time: Optional[float] = None, **kwargs) -> Dict:
+                       max_time: Optional[float] = None, max_distance: Optional[float] = None,
+                       **kwargs) -> Dict:
         """
         Run single-threaded UCT algorithm.
         
@@ -90,6 +91,7 @@ class BenchmarkRunner:
             problem_file: Path to problem file
             max_iterations: Maximum iterations
             max_time: Maximum time in seconds
+            max_distance: Maximum edge distance constraint (default: None, no limit on edge lengths)
             **kwargs: Additional arguments
             
         Returns:
@@ -104,7 +106,7 @@ class BenchmarkRunner:
             
             # Load problem
             nodes, budget = OrienteeringProblem.load_problem(str(problem_file))
-            problem = OrienteeringProblem(nodes, budget, normalize_rewards=True)
+            problem = OrienteeringProblem(nodes, budget, max_edge_distance=max_distance, normalize_rewards=True)
             
             # Run UCT
             start_time = time.time()
@@ -118,6 +120,9 @@ class BenchmarkRunner:
             # Calculate raw reward
             raw_reward = sum(problem.nodes[node_id].score for node_id in best_state.get_path())
             
+            # Check if path ends at END node
+            ends_at_end_node = best_state.is_terminal()
+            
             return {
                 'algorithm': 'UCT',
                 'problem': problem_file.name,
@@ -125,6 +130,7 @@ class BenchmarkRunner:
                 'dataset': problem_file.parent.name,
                 'num_nodes': len(nodes),
                 'budget': budget,
+                'max_edge_distance': max_distance,
                 'iterations': stats.get('iterations', max_iterations),
                 'elapsed_time': elapsed_time,
                 'best_path': str(best_state.get_path()),
@@ -133,7 +139,8 @@ class BenchmarkRunner:
                 'raw_reward': raw_reward,
                 'total_cost': best_state.get_cost(),
                 'budget_used_pct': (best_state.get_cost() / budget * 100) if budget > 0 else 0,
-                'success': True,
+                'ends_at_end_node': ends_at_end_node,
+                'success': ends_at_end_node,  # Success = path reaches END node
                 'error': None
             }
         except Exception as e:
@@ -148,7 +155,8 @@ class BenchmarkRunner:
             }
     
     def run_simple_wu(self, problem_file: Path, max_iterations: int = 10000,
-                      num_workers: int = 4, max_time: Optional[float] = None, **kwargs) -> Dict:
+                      num_workers: int = 4, max_time: Optional[float] = None,
+                      max_distance: Optional[float] = None, **kwargs) -> Dict:
         """
         Run Simple WU-UCT algorithm.
         
@@ -157,6 +165,7 @@ class BenchmarkRunner:
             max_iterations: Maximum iterations
             num_workers: Number of workers
             max_time: Maximum time in seconds
+            max_distance: Maximum distance constraint (default: None, uses problem budget)
             **kwargs: Additional arguments
             
         Returns:
@@ -175,7 +184,7 @@ class BenchmarkRunner:
             
             # Run Simple WU-UCT
             start_time = time.time()
-            simple_wu = SimpleWUUCT(problem, num_workers=num_workers)
+            simple_wu = SimpleWUUCT(problem, num_workers=num_workers, max_distance=max_distance)
             best_state = simple_wu.run(max_iterations=max_iterations, max_time=max_time, verbose=False)
             elapsed_time = time.time() - start_time
             
@@ -184,6 +193,9 @@ class BenchmarkRunner:
             
             # Calculate raw reward
             raw_reward = sum(problem.nodes[node_id].score for node_id in best_state.get_path())
+            
+            # Check if path ends at END node
+            ends_at_end_node = best_state.is_terminal()
             
             # Collect collision data from workers
             total_collisions = sum(w.wu_uct_collisions for w in simple_wu.workers)
@@ -198,6 +210,7 @@ class BenchmarkRunner:
                 'dataset': problem_file.parent.name,
                 'num_nodes': len(nodes),
                 'budget': budget,
+                'max_edge_distance': max_distance,  # None means no edge distance limit
                 'num_workers': num_workers,
                 'iterations': total_iterations_completed,
                 'elapsed_time': elapsed_time,
@@ -207,9 +220,10 @@ class BenchmarkRunner:
                 'raw_reward': raw_reward,
                 'total_cost': best_state.get_cost(),
                 'budget_used_pct': (best_state.get_cost() / budget * 100) if budget > 0 else 0,
+                'ends_at_end_node': ends_at_end_node,
                 'total_collisions': total_collisions,
                 'avg_collision_rate': avg_collision_rate,
-                'success': True,
+                'success': ends_at_end_node,  # Success = path reaches END node
                 'error': None
             }
         except Exception as e:
@@ -225,7 +239,8 @@ class BenchmarkRunner:
     
     def run_vl(self, problem_file: Path, max_iterations: int = 10000,
                num_workers: int = 4, vl_value: float = 1.0,
-               max_time: Optional[float] = None, **kwargs) -> Dict:
+               max_time: Optional[float] = None, max_distance: Optional[float] = None,
+               **kwargs) -> Dict:
         """
         Run Virtual Loss MCTS algorithm.
         
@@ -235,6 +250,7 @@ class BenchmarkRunner:
             num_workers: Number of workers
             vl_value: Virtual loss penalty value
             max_time: Maximum time in seconds
+            max_distance: Maximum distance constraint (default: None, uses problem budget)
             **kwargs: Additional arguments
             
         Returns:
@@ -254,7 +270,7 @@ class BenchmarkRunner:
             # Run VL-MCTS
             start_time = time.time()
             vl_mcts = VirtualLossMCTS(problem, num_workers=num_workers, 
-                                     virtual_loss_value=vl_value)
+                                     virtual_loss_value=vl_value, max_distance=max_distance)
             best_state = vl_mcts.run(max_iterations=max_iterations, max_time=max_time, verbose=False)
             elapsed_time = time.time() - start_time
             
@@ -263,6 +279,9 @@ class BenchmarkRunner:
             
             # Calculate raw reward
             raw_reward = sum(problem.nodes[node_id].score for node_id in best_state.get_path())
+            
+            # Check if path ends at END node
+            ends_at_end_node = best_state.is_terminal()
             
             # Collect collision data from workers
             total_collisions = sum(w.virtual_loss_collisions for w in vl_mcts.workers)
@@ -277,6 +296,7 @@ class BenchmarkRunner:
                 'dataset': problem_file.parent.name,
                 'num_nodes': len(nodes),
                 'budget': budget,
+                'max_edge_distance': max_distance,  # None means no edge distance limit
                 'num_workers': num_workers,
                 'vl_value': vl_value,
                 'iterations': total_iterations_completed,
@@ -287,9 +307,10 @@ class BenchmarkRunner:
                 'raw_reward': raw_reward,
                 'total_cost': best_state.get_cost(),
                 'budget_used_pct': (best_state.get_cost() / budget * 100) if budget > 0 else 0,
+                'ends_at_end_node': ends_at_end_node,
                 'total_collisions': total_collisions,
                 'avg_collision_rate': avg_collision_rate,
-                'success': True,
+                'success': ends_at_end_node,  # Success = path reaches END node
                 'error': None
             }
         except Exception as e:
@@ -304,7 +325,8 @@ class BenchmarkRunner:
             }
     
     def run_tree(self, problem_file: Path, max_iterations: int = 10000,
-                 num_workers: int = 4, max_time: Optional[float] = None, **kwargs) -> Dict:
+                 num_workers: int = 4, max_time: Optional[float] = None,
+                 max_distance: Optional[float] = None, **kwargs) -> Dict:
         """
         Run Tree Parallel MCTS algorithm.
         
@@ -313,6 +335,7 @@ class BenchmarkRunner:
             max_iterations: Maximum iterations
             num_workers: Number of workers
             max_time: Maximum time in seconds
+            max_distance: Maximum edge distance constraint (default: None, no limit on edge lengths)
             **kwargs: Additional arguments
             
         Returns:
@@ -327,7 +350,7 @@ class BenchmarkRunner:
             
             # Load problem
             nodes, budget = OrienteeringProblem.load_problem(str(problem_file))
-            problem = OrienteeringProblem(nodes, budget, normalize_rewards=True)
+            problem = OrienteeringProblem(nodes, budget, max_edge_distance=max_distance, normalize_rewards=True)
             
             # Run Tree Parallel MCTS
             start_time = time.time()
@@ -340,6 +363,9 @@ class BenchmarkRunner:
             
             # Calculate raw reward
             raw_reward = sum(problem.nodes[node_id].score for node_id in best_state.get_path())
+            
+            # Check if path ends at END node
+            ends_at_end_node = best_state.is_terminal()
             
             # Collect collision data from workers
             total_collisions = sum(w.lock_contentions for w in tree_mcts.workers)
@@ -354,6 +380,7 @@ class BenchmarkRunner:
                 'dataset': problem_file.parent.name,
                 'num_nodes': len(nodes),
                 'budget': budget,
+                'max_edge_distance': max_distance,
                 'num_workers': num_workers,
                 'iterations': total_iterations_completed,
                 'elapsed_time': elapsed_time,
@@ -363,14 +390,102 @@ class BenchmarkRunner:
                 'raw_reward': raw_reward,
                 'total_cost': best_state.get_cost(),
                 'budget_used_pct': (best_state.get_cost() / budget * 100) if budget > 0 else 0,
+                'ends_at_end_node': ends_at_end_node,
                 'total_collisions': total_collisions,
                 'avg_collision_rate': avg_collision_rate,
-                'success': True,
+                'success': ends_at_end_node,  # Success = path reaches END node
                 'error': None
             }
         except Exception as e:
             return {
                 'algorithm': 'Tree',
+                'problem': problem_file.name,
+                'problem_file': problem_file.name,
+                'dataset': problem_file.parent.name,
+                'success': False,
+                'error': str(e),
+                'traceback': traceback.format_exc()
+            }
+    
+    def run_wu_uct(self, problem_file: Path, max_iterations: int = 10000,
+                   num_expansion_workers: int = 4, num_simulation_workers: int = 8,
+                   max_time: Optional[float] = None, max_distance: float = 1.42,
+                   **kwargs) -> Dict:
+        """
+        Run WU-UCT (lock-free) algorithm.
+        
+        Args:
+            problem_file: Path to problem file
+            max_iterations: Maximum iterations
+            num_expansion_workers: Number of expansion workers (tree traversal)
+            num_simulation_workers: Number of simulation workers (rollouts)
+            max_time: Maximum time in seconds
+            max_distance: Maximum edge distance constraint (default: 1.42)
+            **kwargs: Additional arguments
+            
+        Returns:
+            Dictionary with results
+        """
+        try:
+            from WU_UCT.wu_uct_coordinator import WUUCTCoordinator
+            from WU_UCT.orienteering_adapter import OrienteeringAdapter
+            
+            # Load problem
+            problem = OrienteeringAdapter.load_problem(str(problem_file), 
+                                                      normalize_rewards=True,
+                                                      max_edge_distance=max_distance)
+            
+            # Run WU-UCT
+            start_time = time.time()
+            coordinator = WUUCTCoordinator(
+                problem=problem,
+                num_expansion_workers=num_expansion_workers,
+                num_simulation_workers=num_simulation_workers
+            )
+            best_state = coordinator.run(max_iterations=max_iterations, max_time=max_time, verbose=False)
+            elapsed_time = time.time() - start_time
+            
+            # Get statistics
+            stats = coordinator.get_statistics()
+            
+            # Calculate raw reward
+            raw_reward = sum(problem.nodes[node_id].score for node_id in best_state.get_path())
+            
+            # Check if path ends at END node
+            ends_at_end_node = best_state.is_terminal()
+            
+            # Total workers
+            total_workers = num_expansion_workers + num_simulation_workers
+            
+            return {
+                'algorithm': 'WU-UCT',
+                'problem': problem_file.name,
+                'problem_file': problem_file.name,
+                'dataset': problem_file.parent.name,
+                'num_nodes': problem.num_nodes,
+                'budget': problem.budget,
+                'max_edge_distance': max_distance,
+                'num_expansion_workers': num_expansion_workers,
+                'num_simulation_workers': num_simulation_workers,
+                'num_workers': total_workers,
+                'iterations': stats.get('total_iterations', 0),
+                'expansions': stats.get('total_expansions', 0),
+                'simulations': stats.get('total_simulations', 0),
+                'elapsed_time': elapsed_time,
+                'iterations_per_second': stats.get('iterations_per_second', 0),
+                'best_path': str(best_state.get_path()),
+                'path_length': len(best_state.get_path()),
+                'normalized_reward': best_state.get_reward(),
+                'raw_reward': raw_reward,
+                'total_cost': best_state.get_cost(),
+                'budget_used_pct': (best_state.get_cost() / problem.budget * 100) if problem.budget > 0 else 0,
+                'ends_at_end_node': ends_at_end_node,
+                'success': ends_at_end_node,  # Success = path reaches END node
+                'error': None
+            }
+        except Exception as e:
+            return {
+                'algorithm': 'WU-UCT',
                 'problem': problem_file.name,
                 'problem_file': problem_file.name,
                 'dataset': problem_file.parent.name,
@@ -405,6 +520,9 @@ class BenchmarkRunner:
             path, reward, distance, stats = solver.solve(verbose=False)
             elapsed_time = time.time() - start_time
             
+            # Check if path ends at END node (node ID = 1)
+            ends_at_end_node = (len(path) > 0 and path[-1] == 1)
+            
             return {
                 'algorithm': 'OR-Tools',
                 'problem': problem_file.name,
@@ -412,6 +530,7 @@ class BenchmarkRunner:
                 'dataset': problem_file.parent.name,
                 'num_nodes': len(nodes),
                 'budget': budget,
+                'max_edge_distance': None,  # OR-Tools doesn't use edge distance constraint
                 'time_limit': time_limit,
                 'elapsed_time': elapsed_time,
                 'best_path': str(path),
@@ -419,8 +538,9 @@ class BenchmarkRunner:
                 'raw_reward': reward,
                 'total_cost': distance,
                 'budget_used_pct': (distance / budget * 100) if budget > 0 else 0,
+                'ends_at_end_node': ends_at_end_node,
                 'solver_status': stats.get('status', 'Unknown'),
-                'success': True,
+                'success': ends_at_end_node,  # Success = path reaches END node
                 'error': None
             }
         except Exception as e:
@@ -437,19 +557,21 @@ class BenchmarkRunner:
     def run_benchmark(self, problem_files: List[Path], algorithms: List[str],
                      max_iterations: int = 10000, num_workers: int = 4,
                      max_time: Optional[float] = None, vl_value: float = 1.0,
-                     ortools_time_limit: int = 60, num_runs: int = 1, verbose: bool = True):
+                     ortools_time_limit: int = 60, num_runs: int = 1,
+                     max_distance: Optional[float] = None, verbose: bool = True):
         """
         Run benchmark on multiple problems and algorithms.
         
         Args:
             problem_files: List of problem files to test
-            algorithms: List of algorithms to run ('uct', 'simple_wu', 'vl', 'ortools')
+            algorithms: List of algorithms to run ('uct', 'simple_wu', 'vl', 'tree', 'ortools')
             max_iterations: Maximum iterations for MCTS algorithms
             num_workers: Number of workers for parallel algorithms
             max_time: Maximum time in seconds (optional)
             vl_value: Virtual loss value for VL algorithm
             ortools_time_limit: Time limit for OR-Tools (default: 60 seconds)
             num_runs: Number of times to run each algorithm on each problem (Note: OR-Tools runs only once per problem)
+            max_distance: Maximum distance constraint for parallel algorithms (default: None, uses problem budget)
             verbose: Print progress information
         """
         # Calculate total runs accounting for OR-Tools running only once
@@ -493,17 +615,28 @@ class BenchmarkRunner:
                     # Run the appropriate algorithm
                     if algo == 'uct':
                         result = self.run_uct_single(problem_file, max_iterations=max_iterations,
-                                                    max_time=max_time)
+                                                    max_time=max_time, max_distance=max_distance)
                     elif algo == 'simple_wu':
                         result = self.run_simple_wu(problem_file, max_iterations=max_iterations,
-                                                  num_workers=num_workers, max_time=max_time)
+                                                  num_workers=num_workers, max_time=max_time,
+                                                  max_distance=max_distance)
                     elif algo == 'vl':
                         result = self.run_vl(problem_file, max_iterations=max_iterations,
                                            num_workers=num_workers, vl_value=vl_value,
-                                           max_time=max_time)
+                                           max_time=max_time, max_distance=max_distance)
                     elif algo == 'tree':
                         result = self.run_tree(problem_file, max_iterations=max_iterations,
-                                             num_workers=num_workers, max_time=max_time)
+                                             num_workers=num_workers, max_time=max_time,
+                                             max_distance=max_distance)
+                    elif algo == 'wu_uct':
+                        # For WU-UCT, split workers between expansion and simulation
+                        # Default: 1/3 expansion, 2/3 simulation (e.g., 4+8 for 12 workers)
+                        num_expansion = max(1, num_workers // 3)
+                        num_simulation = max(1, num_workers - num_expansion)
+                        result = self.run_wu_uct(problem_file, max_iterations=max_iterations,
+                                               num_expansion_workers=num_expansion,
+                                               num_simulation_workers=num_simulation,
+                                               max_time=max_time, max_distance=max_distance)
                     elif algo == 'ortools':
                         # Check cache first
                         cache_key = str(problem_file)
@@ -591,7 +724,7 @@ class BenchmarkRunner:
                 
                 # Algorithm Summary - Overall statistics
                 if not df_success.empty and 'algorithm' in df_success.columns:
-                    numeric_cols = ['raw_reward', 'elapsed_time', 'budget_used_pct']
+                    numeric_cols = ['raw_reward', 'elapsed_time', 'budget_used_pct', 'total_collisions', 'avg_collision_rate']
                     available_numeric_cols = [col for col in numeric_cols if col in df_success.columns]
                     
                     if available_numeric_cols:
@@ -601,7 +734,7 @@ class BenchmarkRunner:
                 
                 # Stats by Problem - Per-problem breakdown
                 if not df_success.empty and 'algorithm' in df_success.columns and 'problem' in df_success.columns:
-                    numeric_cols = ['raw_reward', 'elapsed_time', 'budget_used_pct']
+                    numeric_cols = ['raw_reward', 'elapsed_time', 'budget_used_pct', 'total_collisions', 'avg_collision_rate']
                     available_numeric_cols = [col for col in numeric_cols if col in df_success.columns]
                     
                     if available_numeric_cols:
@@ -670,8 +803,14 @@ Examples:
   # Run UCT, VL, and Tree on specific dataset with custom iterations
   python run_benchmark.py --dataset set_64_1 --algorithms uct vl tree --iterations 20000
   
-  # Run parallel algorithms only (Simple_WU, VL, Tree)
-  python run_benchmark.py --dataset grid_sample --algorithms simple_wu vl tree
+  # Run parallel algorithms only (Simple_WU, VL, Tree, WU-UCT)
+  python run_benchmark.py --dataset grid_sample --algorithms simple_wu vl tree wu_uct
+  
+  # Run WU-UCT with 12 workers (4 expansion + 8 simulation)
+  python run_benchmark.py --dataset grid_sample --algorithms wu_uct --workers 12
+  
+  # Run with custom max distance constraint
+  python run_benchmark.py --dataset grid_sample --algorithms simple_wu vl wu_uct --max-distance 15
   
   # Run OR-Tools only on all datasets
   python run_benchmark.py --dataset all --algorithms ortools
@@ -688,8 +827,8 @@ Available datasets:
     parser.add_argument('--dataset', '-d', type=str, default='grid_sample',
                        help='Dataset name or "all" for all datasets (default: grid_sample)')
     parser.add_argument('--algorithms', '-a', nargs='+',
-                       default=['uct', 'simple_wu', 'vl', 'tree', 'ortools'],
-                       help='Algorithms to run: uct, simple_wu, vl, tree, ortools, or "all" (default: all)')
+                       default=['uct', 'simple_wu', 'vl', 'tree', 'wu_uct', 'ortools'],
+                       help='Algorithms to run: uct, simple_wu, vl, tree, wu_uct, ortools, or "all" (default: all)')
     parser.add_argument('--iterations', '-i', type=int, default=10000,
                        help='Maximum iterations for MCTS algorithms (default: 10000)')
     parser.add_argument('--max-time', '-t', type=float, default=None,
@@ -700,8 +839,10 @@ Available datasets:
                        help='Number of workers for parallel algorithms (default: 4)')
     parser.add_argument('--vl-value', type=float, default=1.0,
                        help='Virtual loss value for VL algorithm (default: 1.0)')
-    parser.add_argument('--ortools-time', type=int, default=60,
-                       help='Time limit for OR-Tools in seconds (default: 60)')
+    parser.add_argument('--max-distance', '-md', type=float, default=1.42,
+                       help='Maximum edge distance constraint (limits individual move distances, default: 1.42)')
+    parser.add_argument('--ortools-time', type=int, default=30,
+                       help='Time limit for OR-Tools in seconds (default: 30)')
     parser.add_argument('--output', '-o', type=str, default=None,
                        help='Output filename (default: benchmark_results_TIMESTAMP.xlsx)')
     parser.add_argument('--output-dir', type=str, default=None,
@@ -717,7 +858,7 @@ Available datasets:
     
     # Handle "all" shortcut for algorithms
     if 'all' in args.algorithms:
-        args.algorithms = ['uct', 'simple_wu', 'vl', 'tree', 'ortools']
+        args.algorithms = ['uct', 'simple_wu', 'vl', 'tree', 'wu_uct', 'ortools']
     
     # Initialize benchmark runner
     runner = BenchmarkRunner(output_dir=args.output_dir)
@@ -747,6 +888,7 @@ Available datasets:
         num_workers=args.workers,
         max_time=args.max_time,
         vl_value=args.vl_value,
+        max_distance=args.max_distance,
         ortools_time_limit=args.ortools_time,
         num_runs=args.runs,
         verbose=not args.quiet

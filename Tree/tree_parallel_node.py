@@ -11,12 +11,14 @@ import threading
 from typing import Optional
 
 from Tree.orienteering_adapter import OrienteeringState
+from UCT.uct_single_thread import UCTNode
 
 
-class TreeParallelNode:
+class TreeParallelNode(UCTNode):
     """
     Node class for tree-parallel MCTS with standard UCT.
     
+    Extends UCTNode with thread-safety for parallel execution.
     Multiple workers share the same tree and use standard UCT formula
     for selection. Thread safety is ensured via locks, but no virtual
     loss mechanism is used (unlike WU-UCT).
@@ -30,19 +32,8 @@ class TreeParallelNode:
             state: The orienteering state at this node
             parent: Parent node in the tree (None for root)
         """
-        self.state = state
-        self.parent = parent
-        self.children = []
-        
-        # Standard MCTS statistics
-        self.visits = 0
-        self.total_reward = 0.0
-        
-        # Track untried actions for expansion
-        actions = state.get_available_actions() or []
-        self.untried_actions = list(actions)
-        if self.untried_actions:
-            random.shuffle(self.untried_actions)
+        # Call parent constructor
+        super().__init__(state, parent)
         
         # Thread safety - lock for this node's statistics
         self._node_lock = threading.Lock()
@@ -52,17 +43,16 @@ class TreeParallelNode:
             last_node = self.state.path[-1] if self.state.path else None
         except Exception:
             last_node = None
-        avg_reward = self.total_reward / self.visits if self.visits > 0 else 0.0
-        return f"<TreeParallelNode node={last_node} visits={self.visits} avg_reward={avg_reward:.2f} children={len(self.children)}>"
+        with self._node_lock:
+            avg_reward = self.total_reward / self.visits if self.visits > 0 else 0.0
+            visits = self.visits
+            num_children = len(self.children)
+        return f"<TreeParallelNode node={last_node} visits={visits} avg_reward={avg_reward:.2f} children={num_children}>"
     
     def is_fully_expanded(self) -> bool:
-        """Check if all actions have been tried."""
+        """Check if all actions have been tried (thread-safe override)."""
         with self._node_lock:
             return len(self.untried_actions) == 0
-    
-    def is_terminal(self) -> bool:
-        """Check if this node represents a terminal state."""
-        return self.state.is_terminal()
     
     def uct_select_child(self, exploration_constant: float = math.sqrt(2)) -> 'TreeParallelNode':
         """

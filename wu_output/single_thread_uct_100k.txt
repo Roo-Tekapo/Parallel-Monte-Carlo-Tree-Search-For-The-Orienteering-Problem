@@ -1,9 +1,0 @@
-# UCT Results
-# Problem: ../OP_Benchmark_Set/set_64_1/set_64_1_80.txt
-# Iterations: 100000
-# Exploration constant: 1.4142135623730951
-# Execution time: 3.27s
-#
-Path= 0 2 4 8 12 7 11 17 24 31 23 30 37 44 50 55 51 46 39 32 25 18 13 19 14 9 5 3 6 10 15 20 27 21 28 36 43 35 42 34 26 33 40 47 41 48 54 58 53 57 52 56 59 62 60 63 1
-Reward= 1140
-Cost= 79.19595949289325

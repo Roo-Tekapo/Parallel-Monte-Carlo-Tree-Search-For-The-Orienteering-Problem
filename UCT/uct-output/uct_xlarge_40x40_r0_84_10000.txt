@@ -1,0 +1,10 @@
+# UCT Results
+# Problem: OP_Benchmark_Set\parallel_friendly_v2\xlarge\xlarge_40x40_r0_84.txt
+# Iterations: 10000
+# Exploration constant: 1.4142135623730951
+# Execution time: 2.48s
+#
+Path= 0 41 2 3 4 43 82 122 81 121 161 201 241 282 323 364 404 444 405 446 447 487 528 568 609 610 650 611 652 651 691 732 692 693 653 694 695 654 614 613 612 571 572 573 574 615 656 655 696 697
+Normalized_Reward= 38.45454545454545
+Raw_Reward= 846
+Cost= 57.28427124746189

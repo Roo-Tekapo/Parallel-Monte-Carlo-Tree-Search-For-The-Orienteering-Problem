@@ -54,9 +54,10 @@ Virtual Loss Value Guidelines:
                        help='Time limit in seconds (overrides iterations)')
     
     # VL-specific parameters
-    parser.add_argument('--vl-value', '-v', type=float, default=1.0,
-                       help='Virtual loss penalty value (default: 1.0)')
-    parser.add_argument('--exploration', '-e', type=float, default=1.414,
+    parser.add_argument('--vl-value', '-v', type=float, default=None,
+                       help='Virtual loss penalty value (default: auto-scaled to ~0.2 * avg node reward). '
+                            'Use -v 1.0 to force VL=1.0 for comparison tests.')
+    parser.add_argument('--exploration', '-e', type=float, default=1.42,
                        help='UCT exploration constant (default: √2 ≈ 1.414)')
     
     # Problem settings
@@ -148,7 +149,10 @@ def main():
         print(f"  Iterations: {args.iterations}")
         if args.time_limit:
             print(f"  Time Limit: {args.time_limit}s")
-        print(f"  VL Value: {args.vl_value}")
+        if args.vl_value is None:
+            print(f"  VL Value: auto-scaled (actual: {vl_mcts.virtual_loss_value:.4f})")
+        else:
+            print(f"  VL Value: {args.vl_value}")
         print(f"  Exploration Constant: {args.exploration}")
         print()
     

@@ -37,7 +37,7 @@ class VirtualLossMCTS:
                  problem: OrienteeringProblem,
                  num_workers: int = 4,
                  exploration_constant: float = math.sqrt(2),
-                 virtual_loss_value: float = 1.0,
+                 virtual_loss_value: Optional[float] = None,
                  max_distance: Optional[float] = None):
         """
         Initialize Virtual Loss MCTS coordinator.
@@ -46,16 +46,31 @@ class VirtualLossMCTS:
             problem: Orienteering problem to solve
             num_workers: Number of parallel worker threads
             exploration_constant: UCT exploration constant (default: √2)
-            virtual_loss_value: Fixed penalty value (default: 1.0)
+            virtual_loss_value: Fixed penalty value (default: auto-scaled)
+                - If None, auto-scales to 0.2 * average normalized node reward
                 - Higher values = more aggressive thread separation
                 - Lower values = more exploitation of good paths
-                - Typical range: 0.5 - 3.0
+                - Recommended range: 0.1 - 0.5 for normalized rewards
             max_distance: Maximum distance constraint
         """
         self.problem = problem
         self.num_workers = num_workers
         self.exploration_constant = exploration_constant
-        self.virtual_loss_value = virtual_loss_value
+        
+        # Auto-scale virtual loss if not specified
+        if virtual_loss_value is None:
+            # Calculate average normalized node reward (excluding START/END)
+            valid_nodes = [node for node in problem.nodes[2:] if node.score > 0]
+            if valid_nodes:
+                avg_raw_score = sum(node.score for node in valid_nodes) / len(valid_nodes)
+                avg_normalized = avg_raw_score * problem.reward_scale
+                # Set VL to 20% of average node reward for gentle coordination
+                self.virtual_loss_value = avg_normalized * 0.2
+            else:
+                self.virtual_loss_value = 0.1
+        else:
+            self.virtual_loss_value = virtual_loss_value
+        
         self.max_distance = max_distance
         
         # Initialize search tree
@@ -139,6 +154,7 @@ class VirtualLossMCTS:
         Extract the best solution from the search tree.
         
         Follows the path with highest visit counts from root.
+        Stops when reaching a terminal state (END node) or leaf node.
         
         Returns:
             Best orienteering state found
@@ -146,6 +162,10 @@ class VirtualLossMCTS:
         current_node = self.root
         
         while current_node.children:
+            # Stop if we've reached a terminal state (END node)
+            if current_node.state.is_terminal():
+                break
+            
             # Select child with most visits
             best_child = max(current_node.children, key=lambda c: c.visits)
             current_node = best_child

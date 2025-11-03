@@ -114,11 +114,6 @@ class UCTNode:
 
 
 class UCTSingleThread:
-    """
-    Single-threaded UCT (Upper Confidence bounds applied to Trees) implementation.
-    This serves as the base for the parallel WU-UCT algorithm.
-    """
-    
     def __init__(self, problem: OrienteeringProblem, iterations: int, 
                  exploration_constant: float = math.sqrt(2),
                  max_distance: Optional[float] = None):

@@ -255,10 +255,10 @@ class VLWorker(threading.Thread):
         reward = simulation_state.reward_so_far
         
         if simulation_state.is_terminal():
-            # Bonus for completing the path
-            reward += 0.15  # 15% bonus for normalized rewards
+            # STRONG bonus for completing the path - must overcome virtual loss
+            reward += 1.0  # Significant bonus (equivalent to 2+ good nodes)
         else:
-            # Penalty for incomplete paths
+            # STRONG penalty for incomplete paths - force convergence to END
             if len(simulation_state.path) > 2:
                 reward *= 0.7  # 30% penalty
         
