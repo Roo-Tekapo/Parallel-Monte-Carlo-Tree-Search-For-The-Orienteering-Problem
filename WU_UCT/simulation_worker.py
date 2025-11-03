@@ -113,36 +113,26 @@ class SimulationWorker(threading.Thread):
         """
         simulation_state = self._copy_state(state)
         
-        # Random rollout with max distance constraint
+        # Random rollout - get_available_actions() already handles max distance
         while not simulation_state.is_terminal():
             available_actions = simulation_state.get_available_actions()
             
             if not available_actions:
                 break
             
-            # Filter actions by max distance constraint
-            valid_actions = []
-            for action in available_actions:
-                next_state = self._apply_action(simulation_state, action)
-                if next_state is not None:  # Check if within max distance
-                    valid_actions.append(action)
-            
-            if not valid_actions:
-                break
-            
-            # Random action selection from valid actions
-            action = random.choice(valid_actions)
+            # Random action selection
+            action = random.choice(available_actions)
             simulation_state = self._apply_action(simulation_state, action)
             
-            if simulation_state is None:  # Should not happen with filtering, but be safe
+            if simulation_state is None:  # Safety check
                 break
         
         # Calculate final reward
         reward = simulation_state.reward_so_far if hasattr(simulation_state, 'reward_so_far') else 0.0
         
-        # Add completion bonus/penalty
+        # Add completion bonus/penalty - STRONG bonus for completion like VL
         if simulation_state.is_terminal():
-            reward += 0.15  # Completion bonus
+            reward += 1.0  # STRONG completion bonus (matches VL)
         elif hasattr(simulation_state, 'path') and len(simulation_state.path) > 2:
             reward *= 0.7  # Incomplete penalty
         
@@ -204,32 +194,14 @@ class SimulationWorker(threading.Thread):
             action: Action to apply
             
         Returns:
-            New state after applying action, or None if exceeds max_distance
+            New state after applying action
         """
+        # Simply use the state's built-in apply_action which already handles
+        # all constraints (budget, reachability to END, etc.)
         if hasattr(state, 'apply_action'):
             return state.apply_action(action)
-        elif hasattr(state, 'path'):
-            # For orienteering-style states
-            from orienteering.orienteering_optimized import OrienteeringState
-            current_node = state.path[-1]
-            cost = self.problem.get_distance(current_node, action)
-            new_cost = state.cost_so_far + cost
-            
-            # Check max distance constraint
-            if new_cost > self.max_distance:
-                return None
-            
-            new_path = state.path + [action]
-            new_reward = state.reward_so_far + self.problem.get_normalized_score(action)
-            
-            return OrienteeringState(
-                self.problem,
-                path=new_path,
-                cost_so_far=new_cost,
-                reward_so_far=new_reward
-            )
         else:
-            raise NotImplementedError("State must have apply_action or path attribute")
+            raise NotImplementedError("State must have apply_action method")
     
     def get_statistics(self) -> dict:
         """

@@ -236,32 +236,14 @@ class ExpansionWorker(threading.Thread):
             action: Action to apply
             
         Returns:
-            New state after applying action, or None if exceeds max_distance
+            New state after applying action
         """
+        # Simply use the state's built-in apply_action which already handles
+        # all constraints (budget, reachability to END, etc.)
         if hasattr(current_state, 'apply_action'):
             return current_state.apply_action(action)
-        elif hasattr(current_state, 'path'):
-            # For orienteering-style states
-            from orienteering.orienteering_optimized import OrienteeringState
-            current_node = current_state.path[-1]
-            cost = self.problem.get_distance(current_node, action)
-            new_cost = current_state.cost_so_far + cost
-            
-            # Check max distance constraint
-            if new_cost > self.max_distance:
-                return None
-            
-            new_path = current_state.path + [action]
-            new_reward = current_state.reward_so_far + self.problem.get_normalized_score(action)
-            
-            return OrienteeringState(
-                self.problem,
-                path=new_path,
-                cost_so_far=new_cost,
-                reward_so_far=new_reward
-            )
         else:
-            raise NotImplementedError("State must have apply_action or path attribute")
+            raise NotImplementedError("State must have apply_action method")
     
     def _generate_simulation_id(self) -> str:
         """
