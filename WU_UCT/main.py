@@ -25,6 +25,7 @@ def run_wu_uct(problem_file: str,
                num_simulation_workers: int = 8,
                max_time: float = None,
                max_distance: float = 1.42,
+               use_no_end: bool = False,
                verbose: bool = True):
     """
     Run true WU-UCT on an orienteering problem.
@@ -36,6 +37,7 @@ def run_wu_uct(problem_file: str,
         num_simulation_workers: Number of simulation workers
         max_time: Optional time limit in seconds
         max_distance: Maximum travel distance constraint (default: 1.42)
+        use_no_end: If True, path can end anywhere. If False, must end at END node.
         verbose: Whether to print detailed output
         
     Returns:
@@ -43,12 +45,15 @@ def run_wu_uct(problem_file: str,
     """
     # Load problem
     print(f"Loading problem from: {problem_file}")
-    problem = OrienteeringAdapter.load_problem(problem_file, normalize_rewards=True)
+    problem = OrienteeringAdapter.load_problem(problem_file, normalize_rewards=True,
+                                               max_edge_distance=max_distance,
+                                               use_no_end=use_no_end)
     
     if verbose:
         print(f"Problem: {problem.num_nodes} nodes, budget: {problem.budget}")
         print(f"Reward normalization: {problem.normalize_rewards}")
         print(f"Max distance constraint: {max_distance}")
+        print(f"Orienteering variant: {'No-end' if use_no_end else 'Traditional'}")
     
     # Create coordinator
     coordinator = WUUCTCoordinator(
@@ -109,6 +114,8 @@ def main():
                        help='Number of simulation workers')
     parser.add_argument('--max-distance', '-d', type=float, default=1.42,
                        help='Maximum travel distance constraint')
+    parser.add_argument('--no-end-node', action='store_true',
+                       help='Allow paths to end at any node (not required to return to END node)')
     parser.add_argument('--verbose', '-v', action='store_true',
                        help='Enable verbose output')
     parser.add_argument('--output-file', '-o', type=str, default=None,
@@ -125,6 +132,7 @@ def main():
             num_simulation_workers=args.simulation_workers,
             max_time=args.max_time,
             max_distance=args.max_distance,
+            use_no_end=args.no_end_node,
             verbose=args.verbose
         )
         
@@ -137,6 +145,7 @@ def main():
                 f.write(f"# Expansion workers: {args.expansion_workers}\n")
                 f.write(f"# Simulation workers: {args.simulation_workers}\n")
                 f.write(f"# Max distance: {args.max_distance}\n")
+                f.write(f"# No-end mode: {args.no_end_node}\n")
                 f.write(f"# Execution time: {execution_time:.2f}s\n")
                 f.write(f"#\n")
                 if hasattr(best_state, 'path'):

@@ -47,6 +47,9 @@ class OrienteeringProblemNoEnd:
         self.max_edge_distance: Optional[float] = max_edge_distance
         self._neighbors: Optional[Dict[int, List[int]]] = None
         
+        # Mark as no-end variant for OR-Tools compatibility
+        self.is_no_end_variant = True
+        
         # Reward normalization
         self.normalize_rewards = normalize_rewards
         if normalize_rewards:

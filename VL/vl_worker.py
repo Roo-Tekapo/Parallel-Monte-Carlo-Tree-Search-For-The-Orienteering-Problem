@@ -240,27 +240,44 @@ class VLWorker(threading.Thread):
         
         simulation_state = state.copy()
         
-        # Random rollout until terminal or no actions
-        while not simulation_state.is_terminal():
+        # Random rollout - continue until truly terminal
+        # For no-end mode: terminal = no available actions (budget exhausted or dead-end)
+        # For traditional mode: terminal = reached END node or no available actions
+        max_steps = 1000  # Safety limit to prevent infinite loops
+        steps = 0
+        
+        while not simulation_state.is_terminal() and steps < max_steps:
             available_actions = simulation_state.get_available_actions()
             
             if not available_actions:
+                # No actions means terminal - let loop condition handle it
                 break
             
             # Random action
             action = random.choice(available_actions)
             simulation_state = self._create_next_state(simulation_state, action)
+            steps += 1
         
         # Calculate final reward with bonuses/penalties
         reward = simulation_state.reward_so_far
         
-        if simulation_state.is_terminal():
-            # STRONG bonus for completing the path - must overcome virtual loss
-            reward += 1.0  # Significant bonus (equivalent to 2+ good nodes)
+        # Add completion bonus/penalty - behavior depends on variant
+        # Check if this is no-end variant (no required END node)
+        is_no_end = hasattr(simulation_state.problem, 'is_no_end_variant') and simulation_state.problem.is_no_end_variant
+        
+        if is_no_end:
+            # No-end mode: Only reward terminal states (budget exhausted or dead-end)
+            # No penalty for non-terminal since there's no required destination
+            if simulation_state.is_terminal():
+                reward += 0.1  # Stronger bonus for exhausting budget
         else:
-            # STRONG penalty for incomplete paths - force convergence to END
-            if len(simulation_state.path) > 2:
-                reward *= 0.7  # 30% penalty
+            # Traditional mode: Reward reaching END node, penalize incomplete paths
+            if simulation_state.is_terminal():
+                reward += 0.05  # Completion bonus (standardized)
+            else:
+                # Penalty for incomplete paths (only if path is non-trivial)
+                if len(simulation_state.path) > 2:
+                    reward *= 0.8  # 20% penalty (standardized)
         
         self.total_simulation_time += time.time() - start_time
         

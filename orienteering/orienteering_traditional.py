@@ -19,6 +19,9 @@ class OrienteeringProblemTraditional:
         self.max_edge_distance: Optional[float] = max_edge_distance
         self._neighbors: Optional[Dict[int, List[int]]] = None
         
+        # Mark as traditional variant (requires end node)
+        self.is_no_end_variant = False
+        
         # Reward normalization
         self.normalize_rewards = normalize_rewards
         if normalize_rewards:

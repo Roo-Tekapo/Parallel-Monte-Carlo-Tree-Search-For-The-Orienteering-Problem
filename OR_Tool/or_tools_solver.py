@@ -85,15 +85,31 @@ class ORToolsOrienteeringSolver:
             print("Setting up OR-Tools routing model...")
         
         # Create the routing index manager
-        # Orienteering problem: Start at node 0, end at node 1
+        # Orienteering problem: Start at node 0
+        # Traditional: end at node 1
+        # No-end variant: can end at any node (use node 0 as end for routing purposes)
         # (as per problem specification: first point is start, second is end)
         # Use the multi-depot API with lists of start/end nodes
-        self.manager = pywrapcp.RoutingIndexManager(
-            self.num_nodes,  # number of nodes
-            1,               # number of vehicles (tours)
-            [0],             # start depots (list with node 0)
-            [1]              # end depots (list with node 1)
-        )
+        
+        # Check if problem supports is_no_end_variant (for no-end problems)
+        is_no_end = hasattr(self.problem, 'is_no_end_variant') and self.problem.is_no_end_variant
+        
+        if is_no_end:
+            # No-end variant: can end anywhere, use node 0 as dummy end
+            self.manager = pywrapcp.RoutingIndexManager(
+                self.num_nodes,  # number of nodes
+                1,               # number of vehicles (tours)
+                [0],             # start depots (list with node 0)
+                [0]              # end depots (same as start for open tour)
+            )
+        else:
+            # Traditional: must end at node 1
+            self.manager = pywrapcp.RoutingIndexManager(
+                self.num_nodes,  # number of nodes
+                1,               # number of vehicles (tours)
+                [0],             # start depots (list with node 0)
+                [1]              # end depots (list with node 1)
+            )
         
         # Create routing model
         routing = pywrapcp.RoutingModel(self.manager)
@@ -114,14 +130,21 @@ class ORToolsOrienteeringSolver:
         )
         
         # Make all intermediate nodes optional (can skip nodes)
-        # Nodes 0 and 1 are start/end and must be visited
+        # Traditional: Nodes 0 and 1 are start/end and must be visited
+        # No-end: Only node 0 is start and must be visited
         # CRITICAL: OR-Tools MINIMIZES cost. To maximize rewards:
         # - Give HIGH penalties for skipping HIGH-reward nodes
         # - Give LOW penalties for skipping LOW-reward nodes
         max_reward = max(self.rewards) if self.rewards else 0
         penalty_multiplier = 1000000  # Large multiplier to prioritize rewards over distance
         
-        for node in range(2, self.num_nodes):  # Skip start (0) and end (1) depots
+        # Determine which nodes to skip based on variant
+        if is_no_end:
+            skip_start = 2  # Skip start (0) and dummy node (1) if exists
+        else:
+            skip_start = 2  # Skip start (0) and end (1) depots
+        
+        for node in range(skip_start, self.num_nodes):
             # Penalty for NOT visiting this node = reward * multiplier
             # High-reward nodes have high penalty for skipping (expensive to skip)
             # Low-reward nodes have low penalty for skipping (cheap to skip)
@@ -249,17 +272,24 @@ class ORToolsOrienteeringSolver:
             print(f"✓ Budget satisfied: {distance:.4f} <= {self.problem.budget:.4f}")
         
         # Check start/end at correct nodes
+        is_no_end = hasattr(self.problem, 'is_no_end_variant') and self.problem.is_no_end_variant
+        
         if path[0] != 0:
             print(f"❌ Path doesn't start at node 0 (start depot)")
             is_valid = False
         else:
             print(f"✓ Path starts at node 0 (start depot)")
         
-        if path[-1] != 1:
-            print(f"❌ Path doesn't end at node 1 (end depot)")
-            is_valid = False
+        if is_no_end:
+            # No-end variant: path can end anywhere
+            print(f"✓ Path ends at node {path[-1]} (no-end variant allows any ending)")
         else:
-            print(f"✓ Path ends at node 1 (end depot)")
+            # Traditional variant: must end at node 1
+            if path[-1] != 1:
+                print(f"❌ Path doesn't end at node 1 (end depot)")
+                is_valid = False
+            else:
+                print(f"✓ Path ends at node 1 (end depot)")
         
         # Check no duplicate nodes (start and end are different, so all should be unique)
         if len(path) != len(set(path)):

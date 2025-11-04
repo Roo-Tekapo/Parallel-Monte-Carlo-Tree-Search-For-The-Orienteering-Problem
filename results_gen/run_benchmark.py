@@ -83,7 +83,7 @@ class BenchmarkRunner:
     
     def run_uct_single(self, problem_file: Path, max_iterations: int = 10000, 
                        max_time: Optional[float] = None, max_distance: Optional[float] = None,
-                       **kwargs) -> Dict:
+                       require_end_node: bool = True, **kwargs) -> Dict:
         """
         Run single-threaded UCT algorithm.
         
@@ -92,6 +92,7 @@ class BenchmarkRunner:
             max_iterations: Maximum iterations
             max_time: Maximum time in seconds
             max_distance: Maximum edge distance constraint (default: None, no limit on edge lengths)
+            require_end_node: If True, path must end at END node. If False, can end anywhere.
             **kwargs: Additional arguments
             
         Returns:
@@ -99,7 +100,7 @@ class BenchmarkRunner:
         """
         try:
             # Set environment variable
-            os.environ['UCT_USE_NO_END'] = 'false'
+            os.environ['UCT_USE_NO_END'] = 'false' if require_end_node else 'true'
             
             from UCT.uct_single_thread import UCTSingleThread
             from UCT.orienteering_adapter import OrienteeringProblem
@@ -156,7 +157,8 @@ class BenchmarkRunner:
     
     def run_simple_wu(self, problem_file: Path, max_iterations: int = 10000,
                       num_workers: int = 4, max_time: Optional[float] = None,
-                      max_distance: Optional[float] = None, **kwargs) -> Dict:
+                      max_distance: Optional[float] = None, require_end_node: bool = True,
+                      **kwargs) -> Dict:
         """
         Run Simple WU-UCT algorithm.
         
@@ -166,6 +168,7 @@ class BenchmarkRunner:
             num_workers: Number of workers
             max_time: Maximum time in seconds
             max_distance: Maximum distance constraint (default: None, uses problem budget)
+            require_end_node: If True, path must end at END node. If False, can end anywhere.
             **kwargs: Additional arguments
             
         Returns:
@@ -173,7 +176,7 @@ class BenchmarkRunner:
         """
         try:
             # Set environment variable
-            os.environ['SIMPLE_WU_USE_NO_END'] = 'false'
+            os.environ['SIMPLE_WU_USE_NO_END'] = 'false' if require_end_node else 'true'
             
             from Simple_WU.simple_wu_coordinator import SimpleWUUCT
             from Simple_WU.orienteering_adapter import OrienteeringProblem
@@ -240,7 +243,7 @@ class BenchmarkRunner:
     def run_vl(self, problem_file: Path, max_iterations: int = 10000,
                num_workers: int = 4, vl_value: float = 1.0,
                max_time: Optional[float] = None, max_distance: Optional[float] = None,
-               **kwargs) -> Dict:
+               require_end_node: bool = True, **kwargs) -> Dict:
         """
         Run Virtual Loss MCTS algorithm.
         
@@ -251,6 +254,7 @@ class BenchmarkRunner:
             vl_value: Virtual loss penalty value
             max_time: Maximum time in seconds
             max_distance: Maximum distance constraint (default: None, uses problem budget)
+            require_end_node: If True, path must end at END node. If False, can end anywhere.
             **kwargs: Additional arguments
             
         Returns:
@@ -258,7 +262,7 @@ class BenchmarkRunner:
         """
         try:
             # Set environment variable
-            os.environ['VL_USE_NO_END'] = 'false'
+            os.environ['VL_USE_NO_END'] = 'false' if require_end_node else 'true'
             
             from VL.vl_coordinator import VirtualLossMCTS
             from VL.orienteering_adapter import OrienteeringProblem
@@ -326,7 +330,8 @@ class BenchmarkRunner:
     
     def run_tree(self, problem_file: Path, max_iterations: int = 10000,
                  num_workers: int = 4, max_time: Optional[float] = None,
-                 max_distance: Optional[float] = None, **kwargs) -> Dict:
+                 max_distance: Optional[float] = None, require_end_node: bool = True,
+                 **kwargs) -> Dict:
         """
         Run Tree Parallel MCTS algorithm.
         
@@ -336,6 +341,7 @@ class BenchmarkRunner:
             num_workers: Number of workers
             max_time: Maximum time in seconds
             max_distance: Maximum edge distance constraint (default: None, no limit on edge lengths)
+            require_end_node: If True, path must end at END node. If False, can end anywhere.
             **kwargs: Additional arguments
             
         Returns:
@@ -343,7 +349,7 @@ class BenchmarkRunner:
         """
         try:
             # Set environment variable
-            os.environ['TREE_USE_NO_END'] = 'false'
+            os.environ['TREE_USE_NO_END'] = 'false' if require_end_node else 'true'
             
             from Tree.tree_parallel_coordinator import TreeParallelMCTS
             from Tree.orienteering_adapter import OrienteeringProblem
@@ -410,7 +416,7 @@ class BenchmarkRunner:
     def run_wu_uct(self, problem_file: Path, max_iterations: int = 10000,
                    num_expansion_workers: int = 4, num_simulation_workers: int = 8,
                    max_time: Optional[float] = None, max_distance: float = 1.42,
-                   **kwargs) -> Dict:
+                   require_end_node: bool = True, **kwargs) -> Dict:
         """
         Run WU-UCT (lock-free) algorithm.
         
@@ -421,19 +427,24 @@ class BenchmarkRunner:
             num_simulation_workers: Number of simulation workers (rollouts)
             max_time: Maximum time in seconds
             max_distance: Maximum edge distance constraint (default: 1.42)
+            require_end_node: If True, path must end at END node. If False, can end anywhere.
             **kwargs: Additional arguments
             
         Returns:
             Dictionary with results
         """
         try:
+            # Set environment variable
+            os.environ['WU_UCT_USE_NO_END'] = 'false' if require_end_node else 'true'
+            
             from WU_UCT.wu_uct_coordinator import WUUCTCoordinator
             from WU_UCT.orienteering_adapter import OrienteeringAdapter
             
             # Load problem
             problem = OrienteeringAdapter.load_problem(str(problem_file), 
                                                       normalize_rewards=True,
-                                                      max_edge_distance=max_distance)
+                                                      max_edge_distance=max_distance,
+                                                      use_no_end=not require_end_node)
             
             # Run WU-UCT
             start_time = time.time()
@@ -494,13 +505,15 @@ class BenchmarkRunner:
                 'traceback': traceback.format_exc()
             }
     
-    def run_ortools(self, problem_file: Path, time_limit: int = 30, **kwargs) -> Dict:
+    def run_ortools(self, problem_file: Path, time_limit: int = 30, 
+                    require_end_node: bool = True, **kwargs) -> Dict:
         """
         Run OR-Tools solver.
         
         Args:
             problem_file: Path to problem file
             time_limit: Time limit in seconds
+            require_end_node: If True, path must end at END node. If False, can end anywhere.
             **kwargs: Additional arguments
             
         Returns:
@@ -508,7 +521,11 @@ class BenchmarkRunner:
         """
         try:
             from OR_Tool.or_tools_solver import ORToolsOrienteeringSolver
-            from orienteering.orienteering import OrienteeringProblem
+            
+            if require_end_node:
+                from orienteering.orienteering import OrienteeringProblem
+            else:
+                from orienteering.orienteering_no_end import OrienteeringProblemNoEnd as OrienteeringProblem
             
             # Load problem
             nodes, budget = OrienteeringProblem.load_problem(str(problem_file))
@@ -520,8 +537,12 @@ class BenchmarkRunner:
             path, reward, distance, stats = solver.solve(verbose=False)
             elapsed_time = time.time() - start_time
             
-            # Check if path ends at END node (node ID = 1)
-            ends_at_end_node = (len(path) > 0 and path[-1] == 1)
+            # Check if path ends at END node (depends on require_end_node setting)
+            if require_end_node:
+                ends_at_end_node = (len(path) > 0 and path[-1] == 1)
+            else:
+                # No-end mode: path is valid if it exists
+                ends_at_end_node = (len(path) > 0)
             
             return {
                 'algorithm': 'OR-Tools',
@@ -558,7 +579,8 @@ class BenchmarkRunner:
                      max_iterations: int = 10000, num_workers: int = 4,
                      max_time: Optional[float] = None, vl_value: float = 1.0,
                      ortools_time_limit: int = 60, num_runs: int = 1,
-                     max_distance: Optional[float] = None, verbose: bool = True):
+                     max_distance: Optional[float] = None, require_end_node: bool = True,
+                     verbose: bool = True):
         """
         Run benchmark on multiple problems and algorithms.
         
@@ -572,6 +594,7 @@ class BenchmarkRunner:
             ortools_time_limit: Time limit for OR-Tools (default: 60 seconds)
             num_runs: Number of times to run each algorithm on each problem (Note: OR-Tools runs only once per problem)
             max_distance: Maximum distance constraint for parallel algorithms (default: None, uses problem budget)
+            require_end_node: If True, paths must end at END node. If False, can end anywhere.
             verbose: Print progress information
         """
         # Calculate total runs accounting for OR-Tools running only once
@@ -615,19 +638,23 @@ class BenchmarkRunner:
                     # Run the appropriate algorithm
                     if algo == 'uct':
                         result = self.run_uct_single(problem_file, max_iterations=max_iterations,
-                                                    max_time=max_time, max_distance=max_distance)
+                                                    max_time=max_time, max_distance=max_distance,
+                                                    require_end_node=require_end_node)
                     elif algo == 'simple_wu':
                         result = self.run_simple_wu(problem_file, max_iterations=max_iterations,
                                                   num_workers=num_workers, max_time=max_time,
-                                                  max_distance=max_distance)
+                                                  max_distance=max_distance,
+                                                  require_end_node=require_end_node)
                     elif algo == 'vl':
                         result = self.run_vl(problem_file, max_iterations=max_iterations,
                                            num_workers=num_workers, vl_value=vl_value,
-                                           max_time=max_time, max_distance=max_distance)
+                                           max_time=max_time, max_distance=max_distance,
+                                           require_end_node=require_end_node)
                     elif algo == 'tree':
                         result = self.run_tree(problem_file, max_iterations=max_iterations,
                                              num_workers=num_workers, max_time=max_time,
-                                             max_distance=max_distance)
+                                             max_distance=max_distance,
+                                             require_end_node=require_end_node)
                     elif algo == 'wu_uct':
                         # For WU-UCT, split workers between expansion and simulation
                         # Default: 1/3 expansion, 2/3 simulation (e.g., 4+8 for 12 workers)
@@ -636,16 +663,18 @@ class BenchmarkRunner:
                         result = self.run_wu_uct(problem_file, max_iterations=max_iterations,
                                                num_expansion_workers=num_expansion,
                                                num_simulation_workers=num_simulation,
-                                               max_time=max_time, max_distance=max_distance)
+                                               max_time=max_time, max_distance=max_distance,
+                                               require_end_node=require_end_node)
                     elif algo == 'ortools':
-                        # Check cache first
-                        cache_key = str(problem_file)
+                        # Check cache first (include require_end_node in cache key)
+                        cache_key = f"{problem_file}_end_{require_end_node}"
                         if cache_key in ortools_cache:
                             result = ortools_cache[cache_key].copy()
                             if verbose:
                                 print(f"✓ (Cached - Reward: {result.get('raw_reward', 'N/A'):.2f}, Time: {result.get('elapsed_time', 0):.2f}s)")
                         else:
-                            result = self.run_ortools(problem_file, time_limit=ortools_time_limit)
+                            result = self.run_ortools(problem_file, time_limit=ortools_time_limit,
+                                                    require_end_node=require_end_node)
                             ortools_cache[cache_key] = result.copy()
                             if verbose:
                                 if result['success']:
@@ -812,6 +841,9 @@ Examples:
   # Run with custom max distance constraint
   python run_benchmark.py --dataset grid_sample --algorithms simple_wu vl wu_uct --max-distance 15
   
+  # Run without requiring return to END node (no-end orienteering variant)
+  python run_benchmark.py --dataset grid_sample --algorithms all --no-end-node
+  
   # Run OR-Tools only on all datasets
   python run_benchmark.py --dataset all --algorithms ortools
   
@@ -843,6 +875,8 @@ Available datasets:
                        help='Maximum edge distance constraint (limits individual move distances, default: 1.42)')
     parser.add_argument('--ortools-time', type=int, default=2,
                        help='Time limit for OR-Tools in seconds (default: 2)')
+    parser.add_argument('--no-end-node', action='store_true',
+                       help='Allow paths to end at any node (not required to return to END node)')
     parser.add_argument('--output', '-o', type=str, default=None,
                        help='Output filename (default: benchmark_results_TIMESTAMP.xlsx)')
     parser.add_argument('--output-dir', type=str, default=None,
@@ -891,6 +925,7 @@ Available datasets:
         max_distance=args.max_distance,
         ortools_time_limit=args.ortools_time,
         num_runs=args.runs,
+        require_end_node=not args.no_end_node,
         verbose=not args.quiet
     )
     

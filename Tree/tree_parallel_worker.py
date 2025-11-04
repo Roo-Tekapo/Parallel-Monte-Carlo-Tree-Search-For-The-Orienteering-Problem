@@ -192,13 +192,22 @@ class TreeParallelWorker(threading.Thread):
         # Calculate final reward
         reward = simulation_state.get_reward()
         
-        # Add completion bonus/penalty
-        if simulation_state.is_terminal():
-            # Small bonus for completing the path
-            reward += 0.05
-        elif len(simulation_state.path) > 2:
-            # Penalty for incomplete paths
-            reward *= 0.9
+        # Add completion bonus/penalty - behavior depends on variant
+        # Check if this is no-end variant (no required END node)
+        is_no_end = hasattr(simulation_state.problem, 'is_no_end_variant') and simulation_state.problem.is_no_end_variant
+        
+        if is_no_end:
+            # No-end mode: Only reward terminal states (budget exhausted or dead-end)
+            # No penalty for non-terminal since there's no required destination
+            if simulation_state.is_terminal():
+                reward += 0.1  # Stronger bonus for exhausting budget
+        else:
+            # Traditional mode: Reward reaching END node, penalize incomplete paths
+            if simulation_state.is_terminal():
+                reward += 0.05  # Completion bonus for finishing the path
+            elif len(simulation_state.path) > 2:
+                # Penalty for incomplete paths
+                reward *= 0.8  # 20% penalty (standardized)
         
         # Update timing statistics
         self.total_simulation_time += time.time() - start_time
