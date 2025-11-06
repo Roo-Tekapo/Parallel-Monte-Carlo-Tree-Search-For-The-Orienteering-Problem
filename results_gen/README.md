@@ -54,7 +54,7 @@ The benchmark runner can test on the following datasets from `OP_Benchmark_Set/`
 ## Command Line Options
 
 ```
---dataset, -d           Dataset name or 'all' (default: sample)
+--dataset, -d           Dataset name or 'all' (default: grid_sample)
 --algorithms, -a        Algorithms to run (default: all)
 --iterations, -i        Max iterations for MCTS (default: 10000)
 --max-time, -t          Max time in seconds (overrides iterations)
