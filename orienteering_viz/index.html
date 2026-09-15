@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parallel MCTS Interactive Visualizer - The Orienteering Problem</title>
+  <meta name="description" content="State-of-the-art interactive visualizer for Parallel Monte Carlo Tree Search (Single UCT, Tree-Parallel, Virtual Loss, WU-UCT, Root Parallel) on the Orienteering Problem.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="dark-theme">
+  <!-- Top Navigation / Header -->
+  <header class="app-header">
+    <div class="logo-badge">
+      <span class="logo-icon">🧭</span>
+      <div>
+        <h1 class="logo-title">Parallel MCTS Orienteering Visualizer</h1>
+        <span class="logo-sub">Interactive Parallel Tree Search on Benchmark Topologies</span>
+      </div>
+    </div>
+
+    <!-- Algorithm Selector Group -->
+    <div class="algo-btn-group" id="algoButtonGroup">
+      <button class="algo-btn active" data-algo="uct" id="btnAlgoUCT" title="Single-threaded classic UCT">Single UCT</button>
+      <button class="algo-btn" data-algo="non_uct" id="btnAlgoNonUCT" title="Non-UCT Tree Search (Pure MC / Greedy without UCB1 bounds)">Non-UCT (Pure MC)</button>
+      <button class="algo-btn" data-algo="tree" id="btnAlgoTree" title="Shared tree with lock contention emulation">Tree-Parallel</button>
+      <button class="algo-btn" data-algo="vl" id="btnAlgoVL" title="Virtual Loss (VL-UCT) with path penalty">Virtual Loss (VL-UCT)</button>
+      <button class="algo-btn" data-algo="wu" id="btnAlgoWU" title="WU-UCT with WorkUnit queue & unobserved counts">WU-UCT (Queue)</button>
+      <button class="algo-btn" data-algo="root" id="btnAlgoRoot" title="Root Parallel ensemble">Root Parallel</button>
+      <button class="algo-btn" data-algo="ortools" id="btnAlgoORTools" title="Google OR-Tools solver (Exact / Constraint Routing Optimization)">OR-Tools Solver</button>
+    </div>
+
+    <div class="header-right">
+      <button class="btn btn-outline" id="btnOpenGuide">📖 Repo Guide & Math</button>
+      <button class="btn btn-outline" id="btnOpenCustomModal">📂 Custom Benchmark</button>
+      <button class="btn btn-outline" id="btnResetSearch">↺ Reset Search</button>
+    </div>
+  </header>
+
+  <!-- Top Metrics Strip -->
+  <section class="top-metrics-strip">
+    <div class="top-metric-card">
+      <span class="metric-label">Benchmark Problem</span>
+      <span class="metric-value font-mono" id="problemTitle" style="font-size: 13px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">Sample 6 Small</span>
+    </div>
+    <div class="top-metric-card">
+      <span class="metric-label">Budget ($T_{max}$)</span>
+      <span class="metric-value font-mono cyan" id="metricBudget">20.0</span>
+    </div>
+    <div class="top-metric-card">
+      <span class="metric-label">Graph Nodes</span>
+      <span class="metric-value font-mono" id="metricNodes">6</span>
+    </div>
+    <div class="top-metric-card">
+      <span class="metric-label">Max Node Score</span>
+      <span class="metric-value font-mono" id="metricMaxScore">8</span>
+    </div>
+    <div class="top-metric-card">
+      <span class="metric-label">Current Best Score</span>
+      <span class="metric-value font-mono amber" id="bestScoreValue">0.0</span>
+    </div>
+    <div class="top-metric-card">
+      <span class="metric-label">Best Tour Distance</span>
+      <span class="metric-value font-mono emerald" id="bestCostValue">0.0 / 20.0</span>
+    </div>
+  </section>
+
+  <!-- Main 3-Column Grid -->
+  <main class="app-main">
+    <!-- Left Column: Benchmark, Worker Coordination & Parameters -->
+    <section class="panel panel-left">
+      <!-- Benchmark Selection Card -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">📦 Benchmark Problem</h2>
+          <span class="badge badge-idle" id="problemBadge">sample_6_small.txt</span>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label" for="benchmarkSelect">Select Benchmark Instance:</label>
+            <select id="benchmarkSelect" class="form-select">
+              <!-- Dynamically populated from PRESET_BENCHMARKS -->
+            </select>
+          </div>
+
+          <div style="display: flex; gap: 6px; margin-top: 8px;">
+            <button class="btn btn-secondary" style="flex: 1;" id="btnQuickUpload">📂 Upload File</button>
+            <button class="btn btn-secondary" style="flex: 1;" id="btnQuickPaste">📋 Paste Text</button>
+            <button class="btn btn-secondary" style="flex: 1;" id="btnQuickSynthetic">🎲 Synthetic</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search Parameters Card -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">⚙️ MCTS Hyperparameters</h2>
+        </div>
+        <div class="card-body">
+          <!-- Exploration Constant C -->
+          <div class="form-group">
+            <div class="form-label">
+              <span>Exploration Constant ($c$):</span>
+              <strong id="cValue" class="font-mono text-cyan">1.414</strong>
+            </div>
+            <input type="range" id="cSlider" min="0.1" max="3.0" step="0.05" value="1.414" class="range-slider">
+          </div>
+
+          <!-- Virtual Loss Penalty L (for VL mode) -->
+          <div class="form-group" id="vlPenaltyGroup">
+            <div class="form-label">
+              <span>Virtual Loss Penalty ($L$):</span>
+              <strong id="vlPenaltyValue" class="font-mono text-purple">0.20</strong>
+            </div>
+            <input type="range" id="vlSlider" min="0.05" max="1.0" step="0.05" value="0.20" class="range-slider">
+          </div>
+
+          <!-- Non-UCT Selection Mode (Active when Non-UCT algorithm is selected) -->
+          <div class="form-group" id="nonUctSelectionGroup" style="display: none;">
+            <div class="form-label">
+              <span title="Controls how the tree traverses child nodes without the UCT Upper Confidence Bound formula">🔬 Non-UCT Selection Policy:</span>
+            </div>
+            <select id="nonUctPolicySelect" class="form-select">
+              <option value="greedy" selected>Pure Exploitation (c = 0, Max Q/N)</option>
+              <option value="random">Pure Monte Carlo (Uniform Random Selection)</option>
+              <option value="egreedy">ε-Greedy (80% Best Q/N, 20% Random)</option>
+            </select>
+            <div id="nonUctExplanation" style="font-size: 10px; color: var(--text-muted); margin-top: 5px; line-height: 1.4; background: var(--bg-base); padding: 5px 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+              <strong>Pure Exploitation (c = 0):</strong> Completely ignores exploration bounds. Only picks the highest average reward Q/N, causing early lock-in and premature convergence to suboptimal tours.
+            </div>
+          </div>
+
+          <!-- Rollout Policy -->
+          <!-- Rollout Policy -->
+          <div class="form-group">
+            <div class="form-label">
+              <span title="The simulation policy drives the random rollout phase from the newly expanded node to the terminal END node to estimate that branch's potential reward.">🎲 Rollout (Simulation) Policy:</span>
+              <span style="font-size: 10px; color: var(--accent-cyan); cursor: help;" title="During MCTS Phase 3 (Simulation), the algorithm takes fast exploratory steps to estimate branch reward. Greedy selects high score-to-distance ratios; Biased weighs by score; Random picks uniformly.">ℹ️ What is this?</span>
+            </div>
+            <select id="rolloutPolicySelect" class="form-select">
+              <option value="greedy" selected>Greedy Score / Distance Ratio (Heuristic)</option>
+              <option value="biased">Score-Biased Weighted Rollout</option>
+              <option value="random">Pure Uniform Random Rollout</option>
+            </select>
+            <div id="policyExplanation" style="font-size: 10px; color: var(--text-muted); margin-top: 5px; line-height: 1.4; background: var(--bg-base); padding: 5px 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+              <strong>Greedy Heuristic:</strong> Hops to neighbors with the highest Score / Distance ratio while preserving budget to return to End. Yields fastest convergence to high-scoring tours.
+            </div>
+          </div>
+
+          <!-- Max Edge Distance Constraint -->
+          <div class="form-group">
+            <div class="form-label">
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="checkbox" id="chkMaxEdge"> Max Edge Distance Constraint:
+              </label>
+              <strong id="maxEdgeVal" class="font-mono">1.42</strong>
+            </div>
+            <input type="number" id="inputMaxEdge" class="form-input" value="1.42" step="0.1" min="0.5" max="50" style="display: none;">
+          </div>
+
+          <!-- Reward Normalization -->
+          <div class="form-group">
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 11px; color: var(--text-muted);">
+              <input type="checkbox" id="chkNormalize"> Reward Normalization ($1 / \max(S)$)
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Parallel Workers Coordination Card -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">⚡ Worker Threads</h2>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span id="workerModeBadge" class="badge badge-idle">1 Thread (Serial)</span>
+            <select id="workerCountSelect" class="form-select" style="padding: 2px 6px; width: auto;" disabled title="Single UCT is strictly single-threaded (1 worker only). Switch to a parallel algorithm to enable multiple workers.">
+              <option value="1" selected>1 Worker</option>
+              <option value="2">2 Workers</option>
+              <option value="4">4 Workers</option>
+              <option value="8">8 Workers</option>
+              <option value="12">12 Workers</option>
+              <option value="16">16 Workers</option>
+            </select>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="workers-grid" id="workersGrid">
+            <!-- Dynamically populated worker cards -->
+          </div>
+
+          <!-- WU-UCT Queue Visualizer (Visible in WU-UCT mode) -->
+          <div id="wuQueueContainer" style="display: none; margin-top: 10px;">
+            <div style="display: flex; justify-content: space-between; font-size: 10px; font-weight: 700; color: var(--text-muted);">
+              <span>📬 WorkUnit Queue (Expansion → Simulation)</span>
+              <span class="badge badge-expanding" id="queueCountBadge">0 pending</span>
+            </div>
+            <div class="queue-track" id="wuQueueTrack">
+              <span class="text-muted" style="font-size: 11px;">Queue empty — ready for WorkUnits</span>
+            </div>
+          </div>
+
+          <!-- Virtual Loss Metrics (Visible in VL mode) -->
+          <div id="vlMetricsContainer" style="display: none; margin-top: 10px; font-size: 11px;">
+            <div style="display: flex; justify-content: space-between; padding: 2px 0;">
+              <span>Active Virtual Losses ($L$):</span>
+              <strong class="font-mono text-purple" id="metricActiveVL">0</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 2px 0;">
+              <span>Collisions Diverted:</span>
+              <strong class="font-mono text-cyan" id="metricCollisionsAvoided">0</strong>
+            </div>
+          </div>
+
+          <!-- Lock Contention Metrics (Visible in Tree-Parallel mode) -->
+          <div id="lockContentionContainer" style="display: none; margin-top: 10px; font-size: 11px;">
+            <div style="display: flex; justify-content: space-between; padding: 2px 0;">
+              <span>Lock Contentions:</span>
+              <strong class="font-mono text-rose" id="metricLockContentions">0</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Center Column: Controls, Dual Views (Map & Tree) -->
+    <section class="panel panel-center">
+      <!-- Search & Execution Control Bar -->
+      <div class="controls-bar">
+        <div class="control-group">
+          <button class="btn btn-success" id="btnPlayPause">▶ Run</button>
+          <button class="btn btn-secondary" id="btnStepPhase" title="Executes 1 of the 4 MCTS phases (Selection -> Expansion -> Simulation -> Backpropagation)">⏭ Step Phase</button>
+          <button class="btn btn-secondary" id="btnStepIter" title="Executes 1 complete iteration across all active workers">⏩ Step Iteration</button>
+          <button class="btn btn-secondary" id="btnStep10">⏩ Step 10</button>
+          <button class="btn btn-outline" id="btnClearTree">↺ Clear Tree</button>
+        </div>
+
+        <div class="control-group">
+          <label class="form-label" style="margin: 0;" for="speedSlider">Speed:</label>
+          <input type="range" id="speedSlider" min="1" max="100" value="25" class="range-slider" style="width: 80px;">
+          <span class="font-mono" id="speedValue" style="font-size: 11px; min-width: 45px;">25 it/s</span>
+        </div>
+
+        <div class="control-group">
+          <label class="form-label" style="margin: 0;" for="targetIterSelect">Limit:</label>
+          <select id="targetIterSelect" class="form-select" style="padding: 3px 6px; width: auto;">
+            <option value="50">50 iters</option>
+            <option value="100">100 iters</option>
+            <option value="250">250 iters</option>
+            <option value="500" selected>500 iters</option>
+            <option value="1000">1000 iters</option>
+            <option value="0">Unlimited</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <select id="viewModeSelect" class="form-select" style="padding: 3px 8px; width: auto; font-weight: 600;">
+            <option value="all" selected>All Views (Stacked)</option>
+            <option value="map">2D Map Focus</option>
+            <option value="tree">Search Tree Focus</option>
+            <option value="formula">Formula Inspector Focus</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Current Phase Status Banner -->
+      <div class="phase-banner">
+        <div class="phase-steps">
+          <div class="phase-step active" id="stepSelect">
+            <span class="step-num">1</span>
+            <span>Selection</span>
+          </div>
+          <div class="phase-connector"></div>
+          <div class="phase-step" id="stepExpand">
+            <span class="step-num">2</span>
+            <span>Expansion</span>
+          </div>
+          <div class="phase-connector"></div>
+          <div class="phase-step" id="stepSim">
+            <span class="step-num">3</span>
+            <span>Simulation</span>
+          </div>
+          <div class="phase-connector"></div>
+          <div class="phase-step" id="stepBackprop">
+            <span class="step-num">4</span>
+            <span>Backpropagation</span>
+          </div>
+        </div>
+        <div class="phase-desc" id="phaseDescription">
+          Ready. Click 'Step Phase' to observe step-by-step traversal or 'Run' for continuous search.
+        </div>
+      </div>
+
+      <!-- 1. 2D Problem Map Card (Full Width) -->
+      <div class="card view-card" id="mapCard">
+        <div class="card-header">
+          <h2 class="card-title">🗺️ 2D Problem Map & Active Worker Trails</h2>
+          <div class="view-controls">
+            <button class="btn-icon" id="btnFitMap" title="Fit Map in Viewport">⛶</button>
+            <button class="btn-icon" id="btnZoomInMap" title="Zoom In">+</button>
+            <button class="btn-icon" id="btnZoomOutMap" title="Zoom Out">-</button>
+            <button class="btn-icon" id="btnResetMap" title="Reset Map View">1:1</button>
+          </div>
+        </div>
+        <div class="map-viewport" id="mapViewport">
+          <canvas id="mapCanvas"></canvas>
+        </div>
+      </div>
+
+      <!-- 2. MCTS Search Tree Card (Full Width, Below 2D Map) -->
+      <div class="card view-card" id="treeCard">
+        <div class="card-header">
+          <h2 class="card-title">🌳 MCTS Search Tree</h2>
+          <div class="view-controls">
+            <span class="tree-hint-badge" title="Drag to move the tree canvas. Normal wheel scrolls the page; hold Ctrl+Scroll to zoom.">🖐️ Drag Tree • ↕ Scroll Page</span>
+            <label style="font-size: 10px; color: var(--text-muted); margin-right: 4px;">Max Depth:</label>
+            <select id="treeDepthSelect" class="form-select" style="padding: 1px 6px; font-size: 10px; width: auto;">
+              <option value="2">Depth 2</option>
+              <option value="3">Depth 3</option>
+              <option value="4" selected>Depth 4</option>
+              <option value="5">Depth 5</option>
+              <option value="6">Depth 6</option>
+            </select>
+            <button class="btn-icon" id="btnZoomInTree" title="Zoom In Tree">+</button>
+            <button class="btn-icon" id="btnZoomOutTree" title="Zoom Out Tree">-</button>
+            <button class="btn-icon" id="btnResetTree" title="Reset Scale (1:1)">1:1</button>
+            <button class="btn-icon" id="btnFitTree" title="Center & Fit Tree">🎯</button>
+            <button class="btn-icon" id="btnExpandTree" title="Expand / Shrink Height">⤢</button>
+          </div>
+        </div>
+        <div class="tree-viewport" id="treeViewport">
+          <svg id="treeSvg">
+            <g id="treeGroup" transform="translate(450, 45) scale(1)"></g>
+          </svg>
+          <div class="tree-empty-state" id="treeEmptyState">
+            <span>🌱 Tree is empty. Click <strong>Step Phase</strong> or <strong>Run</strong> to begin search.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. UCT Formula Inspector Card (Full Width, Below Search Tree) -->
+      <div class="card" id="formulaCard">
+        <div class="card-header">
+          <h2 class="card-title">🔬 UCT Formula Inspector (Live Mathematical Breakdown)</h2>
+          <span class="badge badge-selecting" id="inspectorNodeBadge">Root Node (0)</span>
+        </div>
+        <div class="card-body">
+          <div class="formula-display">
+            <div class="formula-math-box">
+              <div class="formula-part">
+                <span class="formula-part-label">Exploitation Term ($Q/N$)</span>
+                <span class="formula-part-value text-cyan" id="formulaExploit">0.000</span>
+              </div>
+              <span style="color: var(--text-sub); font-size: 18px; font-weight: bold;">+</span>
+              <div class="formula-part">
+                <span class="formula-part-label">Exploration Term ($c \cdot \sqrt{\ln N_p / N}$)</span>
+                <span class="formula-part-value text-amber" id="formulaExplore">0.000</span>
+              </div>
+              <span style="color: var(--text-sub); font-size: 18px; font-weight: bold;">+</span>
+              <div class="formula-part">
+                <span class="formula-part-label">Correction Term (VL penalty / WU unobserved)</span>
+                <span class="formula-part-value text-purple" id="formulaPenalty">0.000</span>
+              </div>
+            </div>
+            <div class="formula-total-box">
+              <span style="color: var(--text-muted); font-size: 12px;">Total Computed Node UCT Value:</span>
+              <strong class="font-mono text-cyan" style="font-size: 16px;" id="formulaTotal">0.000</strong>
+            </div>
+          </div>
+
+          <!-- Notice banner shown when Non-UCT is active -->
+          <div id="nonUctNoticeBox" style="display: none; margin-bottom: 12px; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; padding: 8px 12px; font-size: 11px; line-height: 1.4; color: #fde68a;">
+            <strong>⚠️ Non-UCT Baseline Mode Active:</strong> The Upper Confidence Bound exploration term $c \cdot \sqrt{\ln N_p / N}$ is set to <strong>0</strong>. Notice how branches sampled poorly early on never get visited again (starvation) or visits spread blindly without focus, clearly showing why UCT's exploration term is mathematically essential!
+          </div>
+
+          <div id="formulaDetails" class="formula-details-grid">
+            <!-- Live node breakdown details populated in wide grid -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column: Best Tour Route, Convergence & Log -->
+    <section class="panel panel-right">
+
+      <!-- Current Best Tour Route Card -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">🏆 Best Discovered Tour</h2>
+        </div>
+        <div class="card-body">
+          <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Budget Utilization:</div>
+          <div class="progress-container">
+            <div class="progress-bar bg-primary" id="budgetProgressBar" style="width: 0%;"></div>
+          </div>
+
+          <div style="margin-top: 8px;">
+            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Sequence of Visited Nodes:</div>
+            <div class="route-chips-container" id="bestRouteChips">
+              <span class="route-chip chip-start">S (0)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Baseline Benchmark Comparison Card (UCT vs Non-UCT, Greedy & OR-Tools) -->
+      <div class="card" id="baselineCard">
+        <div class="card-header">
+          <h2 class="card-title">⚖️ Baselines (OR-Tools & Greedy)</h2>
+          <div style="display: flex; gap: 4px;">
+            <button class="btn btn-secondary" id="btnRunGreedyBaseline" style="padding: 2px 7px; font-size: 10px;" title="Run Greedy Nearest-Neighbor heuristic baseline">⚡ Greedy</button>
+            <button class="btn btn-secondary" id="btnRunORToolsBaseline" style="padding: 2px 7px; font-size: 10px; background: rgba(168, 85, 247, 0.15); border-color: rgba(168, 85, 247, 0.4); color: #c084fc;" title="Run Google OR-Tools constraint routing optimization solver">⚡ OR-Tools</button>
+          </div>
+        </div>
+        <div class="card-body" style="padding: 10px;">
+          <!-- 3-box comparison: Greedy, OR-Tools, MCTS Best -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 8px;">
+            <div style="background: var(--bg-base); padding: 6px 4px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center;">
+              <div style="font-size: 9px; color: var(--text-muted); margin-bottom: 2px;">Greedy Baseline</div>
+              <div class="font-mono text-amber" id="greedyScoreText" style="font-size: 14px; font-weight: 700;">--</div>
+              <div style="font-size: 8px; color: var(--text-sub);" id="greedyCostText">Cost: --</div>
+            </div>
+            <div style="background: var(--bg-base); padding: 6px 4px; border-radius: 6px; border: 1px solid rgba(168, 85, 247, 0.3); text-align: center;">
+              <div style="font-size: 9px; color: #c084fc; margin-bottom: 2px;">Google OR-Tools</div>
+              <div class="font-mono text-purple" id="orToolsScoreText" style="font-size: 14px; font-weight: 700;">--</div>
+              <div style="font-size: 8px; color: var(--text-sub);" id="orToolsCostText">Cost: --</div>
+            </div>
+            <div style="background: var(--bg-base); padding: 6px 4px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center;">
+              <div style="font-size: 9px; color: var(--text-muted); margin-bottom: 2px;">MCTS Best</div>
+              <div class="font-mono text-emerald" id="compareMctsScore" style="font-size: 14px; font-weight: 700;">0.0</div>
+              <div style="font-size: 8px; color: var(--accent-cyan);" id="mctsAdvantageBadge">vs Baselines</div>
+            </div>
+          </div>
+
+          <div id="orToolsStatusText" style="font-size: 10px; color: var(--text-muted); margin-bottom: 8px; display: none; background: rgba(168, 85, 247, 0.08); padding: 5px 8px; border-radius: 4px; border: 1px solid rgba(168, 85, 247, 0.2); line-height: 1.3;">
+            <!-- OR-Tools execution info -->
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 5px; font-size: 11px;">
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-muted);" title="Toggle dashed line overlay of Greedy Baseline tour on 2D map">
+              <input type="checkbox" id="chkShowGreedyTour" checked> <span style="display: inline-block; width: 12px; height: 2px; background: #38bdf8; border-top: 2px dashed #38bdf8;"></span> Overlay Greedy Route (Cyan)
+            </label>
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-muted);" title="Toggle dashed line overlay of Google OR-Tools optimal tour on 2D map">
+              <input type="checkbox" id="chkShowORToolsTour" checked> <span style="display: inline-block; width: 12px; height: 2px; background: #a855f7; border-top: 2px dashed #a855f7;"></span> Overlay OR-Tools Route (Purple)
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Convergence Plot Card -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">📈 Convergence (Score vs Iterations)</h2>
+        </div>
+        <div class="card-body" style="padding: 6px;">
+          <canvas id="convergenceChart" style="width: 100%; height: 110px; display: block;"></canvas>
+        </div>
+      </div>
+
+      <!-- Real-time Audit & Event Log -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">📜 Search Event Log</h2>
+        </div>
+        <div class="card-body" style="padding: 8px;">
+          <div class="event-log-feed" id="eventLogFeed">
+            <div class="log-entry log-system">
+              <span class="log-time">--:--:--</span>
+              <span class="log-msg">Visualizer initialized. Select benchmark and start search.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL 1: Custom Benchmark File Upload -->
+  <div class="modal-overlay" id="uploadModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">📂 Load Benchmark File</h3>
+        <button class="btn-icon" id="btnCloseUpload">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="drop-zone" id="dropZone">
+          <div style="font-size: 32px; margin-bottom: 8px;">📄</div>
+          <p style="font-weight: 600; margin-bottom: 4px;">Drag and drop any OP benchmark file (.txt) here</p>
+          <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">Or browse files from your computer or OP_Benchmark_Set</p>
+          <input type="file" id="fileInput" accept=".txt" style="display: none;">
+          <button class="btn btn-primary" id="btnBrowseFile">Select File</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Paste Benchmark Text -->
+  <div class="modal-overlay" id="pasteModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">📋 Paste Benchmark Text</h3>
+        <button class="btn-icon" id="btnClosePaste">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
+          Format: First line is <code>Tmax P</code>, followed by lines of <code>x y score</code>.
+        </p>
+        <textarea id="pasteTextarea" rows="12" class="form-input" style="font-family: var(--font-mono); font-size: 11px;" placeholder="20.0 1&#10;0 0 0&#10;12 8 0&#10;3 2 5&#10;4 1 7&#10;..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCancelPaste">Cancel</button>
+        <button class="btn btn-primary" id="btnSubmitPaste">Parse & Load Problem</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: Synthetic Problem Generator -->
+  <div class="modal-overlay" id="syntheticModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">🎲 Generate Synthetic Problem</h3>
+        <button class="btn-icon" id="btnCloseSynthetic">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="synType">Topology Style:</label>
+          <select id="synType" class="form-select">
+            <option value="clusters">Clustered High-Score Hubs</option>
+            <option value="corridor">Serpentine Corridor</option>
+            <option value="random">Uniform Random Distribution</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="synNodes">Number of Nodes:</label>
+          <input type="number" id="synNodes" class="form-input" value="25" min="6" max="150">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="synBudget">Travel Budget ($T_{max}$):</label>
+          <input type="number" id="synBudget" class="form-input" value="35.0" min="5" max="200">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCancelSynthetic">Cancel</button>
+        <button class="btn btn-primary" id="btnGenerateSynthetic">Generate & Load</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: Comprehensive Guide & Theory -->
+  <div class="modal-overlay" id="guideModal">
+    <div class="modal-content" style="width: 760px;">
+      <div class="modal-header">
+        <h3 class="modal-title">📖 Parallel MCTS for the Orienteering Problem — Guide & Theory</h3>
+        <button class="btn-icon" id="btnCloseGuide">✕</button>
+      </div>
+      <div class="modal-body" style="font-size: 12px; line-height: 1.6; color: var(--text-muted);">
+        <h4 style="color: var(--text-main); margin-bottom: 6px;">1. The Orienteering Problem (OP)</h4>
+        <p style="margin-bottom: 12px;">
+          The Orienteering Problem is an NP-hard combinatorial optimization problem combining aspects of the Knapsack Problem and the Traveling Salesperson Problem (TSP). Given a set of $N$ locations where node $0$ is the <strong>Start</strong>, node $1$ is the <strong>End</strong>, and each node has coordinates $(x_i, y_i)$ and score $S_i$, the objective is to find a route from Start to End that maximizes total collected score without exceeding budget $T_{max}$:
+        </p>
+        <pre style="background: var(--bg-base); padding: 8px; border-radius: 4px; font-family: var(--font-mono); color: var(--accent-cyan); margin-bottom: 12px;">Maximize sum(S_i) subject to Distance(Tour) &lt;= T_max</pre>
+
+        <h4 style="color: var(--text-main); margin-bottom: 6px;">2. Monte Carlo Tree Search (MCTS) Phases</h4>
+        <ul style="margin-left: 20px; margin-bottom: 12px;">
+          <li><strong>Selection:</strong> Traverse tree from root using UCT until reaching a node with unexpanded actions.</li>
+          <li><strong>Expansion:</strong> Add a feasible next node to the tree that still reserves budget to return to End.</li>
+          <li><strong>Simulation (Rollout):</strong> Complete random or heuristic route to End, collecting total tour score.</li>
+          <li><strong>Backpropagation:</strong> Update visit counts $N$ and total reward $Q$ back to root.</li>
+        </ul>
+
+        <h4 style="color: var(--text-main); margin-bottom: 6px;">3. Parallel Coordination Strategies</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+          <div style="background: var(--bg-card); padding: 10px; border-radius: 6px;">
+            <strong style="color: var(--accent-cyan);">Tree-Parallel (Standard UCT)</strong>
+            <p style="font-size: 11px; margin-top: 4px;">Workers share a single tree with lock emulation. Best for small numbers of threads before lock contention increases.</p>
+          </div>
+          <div style="background: var(--bg-card); padding: 10px; border-radius: 6px;">
+            <strong style="color: var(--accent-purple);">Virtual Loss (VL-UCT)</strong>
+            <p style="font-size: 11px; margin-top: 4px;">Workers temporarily subtract penalty $L$ from nodes along their path during selection, discouraging other workers from duplicate exploration.</p>
+          </div>
+          <div style="background: var(--bg-card); padding: 10px; border-radius: 6px;">
+            <strong style="color: var(--accent-amber);">WU-UCT (Weighted Update)</strong>
+            <p style="font-size: 11px; margin-top: 4px;">Separates Expansion and Simulation workers via a WorkUnit queue. Incorporates unobserved simulation counts $O$ directly into the exploration term.</p>
+          </div>
+          <div style="background: var(--bg-card); padding: 10px; border-radius: 6px;">
+            <strong style="color: var(--accent-emerald);">Root Parallel</strong>
+            <p style="font-size: 11px; margin-top: 4px;">Each worker maintains an independent search tree without lock contention, aggregating statistics at the root for decision making.</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="btnDismissGuide">Close Guide</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="benchmarks.js"></script>
+  <script src="app.js"></script>
+  <script>
+    // Initialize UI Event Listeners and Dropdown Population
+    document.addEventListener('DOMContentLoaded', () => {
+      const app = window.OrienteeringApp;
+
+      // Populate Benchmark Dropdown
+      const select = document.getElementById('benchmarkSelect');
+      if (select && window.BenchmarkParser) {
+        const presets = window.BenchmarkParser.PRESET_BENCHMARKS;
+        const categories = {};
+
+        presets.forEach((p, idx) => {
+          if (!categories[p.category]) categories[p.category] = [];
+          categories[p.category].push({ preset: p, index: idx });
+        });
+
+        select.innerHTML = '';
+        for (const [catName, list] of Object.entries(categories)) {
+          const optgroup = document.createElement('optgroup');
+          optgroup.label = catName;
+          list.forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = item.index;
+            opt.textContent = `${item.preset.name} (B: ${item.preset.budget})`;
+            optgroup.appendChild(opt);
+          });
+          select.appendChild(optgroup);
+        }
+
+        // Load initial benchmark (Sample 6 Small)
+        app.loadBenchmark(presets[0]);
+
+        select.addEventListener('change', (e) => {
+          const idx = parseInt(e.target.value, 10);
+          app.loadBenchmark(presets[idx]);
+        });
+      }
+
+      // Algorithm Buttons
+      const algoBtns = document.querySelectorAll('.algo-btn');
+      algoBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const algo = btn.getAttribute('data-algo');
+          app.setAlgorithm(algo);
+        });
+      });
+
+      // Controls
+      document.getElementById('btnPlayPause')?.addEventListener('click', () => app.togglePlayPause());
+      document.getElementById('btnStepPhase')?.addEventListener('click', () => app.stepSinglePhase());
+      document.getElementById('btnStepIter')?.addEventListener('click', () => app.stepFullIteration());
+      document.getElementById('btnStep10')?.addEventListener('click', () => app.stepMultipleIterations(10));
+      document.getElementById('btnClearTree')?.addEventListener('click', () => app.resetSearch());
+      document.getElementById('btnResetSearch')?.addEventListener('click', () => app.resetSearch());
+
+      // Worker Count
+      document.getElementById('workerCountSelect')?.addEventListener('change', (e) => {
+        app.setNumWorkers(e.target.value);
+      });
+
+      // Speed Slider
+      document.getElementById('speedSlider')?.addEventListener('input', (e) => {
+        app.setSpeed(e.target.value);
+      });
+
+      // Target Iterations
+      document.getElementById('targetIterSelect')?.addEventListener('change', (e) => {
+        app.targetIterations = parseInt(e.target.value, 10);
+      });
+
+      // Hyperparameters
+      document.getElementById('cSlider')?.addEventListener('input', (e) => {
+        app.explorationConstant = parseFloat(e.target.value);
+        document.getElementById('cValue').textContent = app.explorationConstant.toFixed(2);
+        app.renderFormulaInspector();
+      });
+
+      document.getElementById('vlSlider')?.addEventListener('input', (e) => {
+        app.vlPenaltyValue = parseFloat(e.target.value);
+        document.getElementById('vlPenaltyValue').textContent = app.vlPenaltyValue.toFixed(2);
+        app.renderFormulaInspector();
+      });
+
+      document.getElementById('rolloutPolicySelect')?.addEventListener('change', (e) => {
+        app.rolloutPolicy = e.target.value;
+        const exp = document.getElementById('policyExplanation');
+        if (exp) {
+          if (e.target.value === 'greedy') {
+            exp.innerHTML = '<strong>Greedy Heuristic:</strong> Hops to neighbors with highest Score / Distance ratio while reserving budget to return to End. Yields fastest convergence to high-scoring tours.';
+          } else if (e.target.value === 'biased') {
+            exp.innerHTML = '<strong>Score-Biased:</strong> Selects candidate moves with probability proportional to node score. Naturally targets high-reward hubs with stochastic diversity.';
+          } else {
+            exp.innerHTML = '<strong>Uniform Random:</strong> Classic textbook MCTS rollout: every feasible next move has equal probability (1/K). Fully unbiased but higher variance on large graphs.';
+          }
+        }
+      });
+
+      // Non-UCT policy select
+      document.getElementById('nonUctPolicySelect')?.addEventListener('change', (e) => {
+        app.nonUctPolicy = e.target.value;
+        const exp = document.getElementById('nonUctExplanation');
+        if (exp) {
+          if (e.target.value === 'greedy') {
+            exp.innerHTML = '<strong>Pure Exploitation (c = 0):</strong> Completely ignores exploration bounds. Only picks highest average reward Q/N, causing premature convergence to suboptimal tours.';
+          } else if (e.target.value === 'random') {
+            exp.innerHTML = '<strong>Pure Monte Carlo (Uniform Random):</strong> Selects randomly among children with no exploration-exploitation balance. Visits diffuse blindly across all branches.';
+          } else {
+            exp.innerHTML = '<strong>ε-Greedy (80/20):</strong> Explores randomly 20% of the time, otherwise exploits best Q/N. Classic RL heuristic before UCB1 bounds were invented.';
+          }
+        }
+        app.renderFormulaInspector();
+      });
+
+      // Baseline comparison controls
+      document.getElementById('btnRunGreedyBaseline')?.addEventListener('click', () => {
+        app.computeGreedyBaseline();
+        app.updateBaselineUI();
+        app.renderMap();
+      });
+
+      document.getElementById('btnRunORToolsBaseline')?.addEventListener('click', () => {
+        app.runORToolsSolver();
+      });
+
+      document.getElementById('chkShowGreedyTour')?.addEventListener('change', (e) => {
+        app.showGreedyTour = e.target.checked;
+        app.renderMap();
+      });
+
+      document.getElementById('chkShowORToolsTour')?.addEventListener('change', (e) => {
+        app.showORToolsTour = e.target.checked;
+        app.renderMap();
+      });
+
+      // Max edge distance toggle
+      const chkMaxEdge = document.getElementById('chkMaxEdge');
+      const inputMaxEdge = document.getElementById('inputMaxEdge');
+      chkMaxEdge?.addEventListener('change', (e) => {
+        if (e.target.checked) {
+          inputMaxEdge.style.display = 'block';
+          app.maxEdgeConstraint = parseFloat(inputMaxEdge.value);
+        } else {
+          inputMaxEdge.style.display = 'none';
+          app.maxEdgeConstraint = null;
+        }
+        if (app.currentBenchmarkMeta) app.loadBenchmark(app.currentBenchmarkMeta);
+      });
+
+      inputMaxEdge?.addEventListener('change', (e) => {
+        if (chkMaxEdge.checked) {
+          app.maxEdgeConstraint = parseFloat(e.target.value);
+          if (app.currentBenchmarkMeta) app.loadBenchmark(app.currentBenchmarkMeta);
+        }
+      });
+
+      // Reward normalization toggle
+      document.getElementById('chkNormalize')?.addEventListener('change', (e) => {
+        app.normalizeRewards = e.target.checked;
+        if (app.currentBenchmarkMeta) app.loadBenchmark(app.currentBenchmarkMeta);
+      });
+
+      // View Mode Toggle
+      const viewSelect = document.getElementById('viewModeSelect');
+      const mapCard = document.getElementById('mapCard');
+      const treeCard = document.getElementById('treeCard');
+      const formulaCard = document.getElementById('formulaCard');
+
+      viewSelect?.addEventListener('change', (e) => {
+        const mode = e.target.value;
+        if (mode === 'map') {
+          if (mapCard) mapCard.style.display = 'flex';
+          if (treeCard) treeCard.style.display = 'none';
+          if (formulaCard) formulaCard.style.display = 'none';
+        } else if (mode === 'tree') {
+          if (mapCard) mapCard.style.display = 'none';
+          if (treeCard) treeCard.style.display = 'flex';
+          if (formulaCard) formulaCard.style.display = 'none';
+        } else if (mode === 'formula') {
+          if (mapCard) mapCard.style.display = 'none';
+          if (treeCard) treeCard.style.display = 'none';
+          if (formulaCard) formulaCard.style.display = 'block';
+        } else {
+          if (mapCard) mapCard.style.display = 'flex';
+          if (treeCard) treeCard.style.display = 'flex';
+          if (formulaCard) formulaCard.style.display = 'block';
+        }
+        app.fitMapView();
+        app.renderMap();
+        app.renderTree();
+      });
+
+      // Tree View Controls
+      document.getElementById('btnFitTree')?.addEventListener('click', () => {
+        app.fitTree();
+        app.renderTree();
+      });
+
+      document.getElementById('btnResetTree')?.addEventListener('click', () => {
+        app.resetTree();
+        app.renderTree();
+      });
+
+      document.getElementById('btnZoomInTree')?.addEventListener('click', () => {
+        app.zoomTree(1.25);
+      });
+
+      document.getElementById('btnZoomOutTree')?.addEventListener('click', () => {
+        app.zoomTree(0.8);
+      });
+
+      document.getElementById('btnExpandTree')?.addEventListener('click', () => {
+        const treeCard = document.getElementById('treeCard');
+        if (treeCard) {
+          treeCard.classList.toggle('expanded');
+          const btn = document.getElementById('btnExpandTree');
+          if (btn) btn.title = treeCard.classList.contains('expanded') ? 'Shrink Height' : 'Expand Height';
+        }
+      });
+
+      document.getElementById('treeDepthSelect')?.addEventListener('change', (e) => {
+        app.treeDepthLimit = parseInt(e.target.value, 10);
+        app.renderTree();
+      });
+
+      // Interactive Tree Drag & Pan
+      const treeViewport = document.getElementById('treeViewport');
+      if (treeViewport) {
+        let isDraggingTree = false;
+        let lastTreeX = 0, lastTreeY = 0;
+
+        treeViewport.addEventListener('mousedown', (e) => {
+          if (e.button !== 0) return;
+          isDraggingTree = true;
+          lastTreeX = e.clientX;
+          lastTreeY = e.clientY;
+          app.wasDraggingTree = false;
+          treeViewport.classList.add('is-dragging');
+        });
+
+        window.addEventListener('mousemove', (e) => {
+          if (!isDraggingTree) return;
+          const dx = e.clientX - lastTreeX;
+          const dy = e.clientY - lastTreeY;
+          if (Math.hypot(dx, dy) > 3) {
+            app.wasDraggingTree = true;
+          }
+          lastTreeX = e.clientX;
+          lastTreeY = e.clientY;
+          app.treeTransform.x += dx;
+          app.treeTransform.y += dy;
+          app.applyTreeTransform();
+        });
+
+        window.addEventListener('mouseup', () => {
+          if (isDraggingTree) {
+            isDraggingTree = false;
+            treeViewport.classList.remove('is-dragging');
+            setTimeout(() => {
+              app.wasDraggingTree = false;
+            }, 60);
+          }
+        });
+
+        // Mousewheel on tree: zoom when holding Ctrl, otherwise let the webpage scroll naturally!
+        treeViewport.addEventListener('wheel', (e) => {
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
+            app.zoomTree(zoomFactor, e.clientX, e.clientY);
+          }
+        }, { passive: false });
+      }
+
+      // Map View Controls
+      document.getElementById('btnFitMap')?.addEventListener('click', () => {
+        app.fitMapView();
+        app.renderMap();
+      });
+      document.getElementById('btnResetMap')?.addEventListener('click', () => {
+        app.fitMapView();
+        app.renderMap();
+      });
+      document.getElementById('btnZoomInMap')?.addEventListener('click', () => {
+        app.mapTransform.scale *= 1.2;
+        app.renderMap();
+      });
+      document.getElementById('btnZoomOutMap')?.addEventListener('click', () => {
+        app.mapTransform.scale /= 1.2;
+        app.renderMap();
+      });
+
+      // Interactive Map Drag & Pan
+      const canvas = document.getElementById('mapCanvas');
+      if (canvas) {
+        let isDragging = false;
+        let lastX = 0, lastY = 0;
+
+        canvas.addEventListener('mousedown', (e) => {
+          isDragging = true;
+          lastX = e.clientX;
+          lastY = e.clientY;
+        });
+        window.addEventListener('mousemove', (e) => {
+          if (!isDragging) return;
+          const dx = e.clientX - lastX;
+          const dy = e.clientY - lastY;
+          lastX = e.clientX;
+          lastY = e.clientY;
+          app.mapTransform.x += dx;
+          app.mapTransform.y += dy;
+          app.renderMap();
+        });
+        window.addEventListener('mouseup', () => {
+          isDragging = false;
+        });
+
+        // Mousewheel zoom: zoom when holding Ctrl, otherwise let the webpage scroll naturally!
+        canvas.addEventListener('wheel', (e) => {
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            const zoomFactor = e.deltaY < 0 ? 1.12 : 0.88;
+            app.mapTransform.scale = Math.max(0.2, Math.min(10, app.mapTransform.scale * zoomFactor));
+            app.renderMap();
+          }
+        }, { passive: false });
+
+        // Hover tooltip
+        canvas.addEventListener('mousemove', (e) => {
+          if (!app.problem) return;
+          const rect = canvas.getBoundingClientRect();
+          const mouseX = (e.clientX - rect.left - app.mapTransform.x) / app.mapTransform.scale;
+          const mouseY = (e.clientY - rect.top - app.mapTransform.y) / app.mapTransform.scale;
+
+          let found = null;
+          for (const node of app.problem.nodes) {
+            const dist = Math.hypot(node.screenX - mouseX, node.screenY - mouseY);
+            if (dist < 14) {
+              found = node.id;
+              break;
+            }
+          }
+          if (found !== app.hoveredMapNode) {
+            app.hoveredMapNode = found;
+            app.renderMap();
+          }
+        });
+      }
+
+      // Modals Handling
+      const uploadModal = document.getElementById('uploadModal');
+      const pasteModal = document.getElementById('pasteModal');
+      const syntheticModal = document.getElementById('syntheticModal');
+      const guideModal = document.getElementById('guideModal');
+
+      const openModal = (m) => { if (m) m.style.display = 'flex'; };
+      const closeModal = (m) => { if (m) m.style.display = 'none'; };
+
+      document.getElementById('btnOpenCustomModal')?.addEventListener('click', () => openModal(uploadModal));
+      document.getElementById('btnQuickUpload')?.addEventListener('click', () => openModal(uploadModal));
+      document.getElementById('btnCloseUpload')?.addEventListener('click', () => closeModal(uploadModal));
+
+      document.getElementById('btnQuickPaste')?.addEventListener('click', () => openModal(pasteModal));
+      document.getElementById('btnClosePaste')?.addEventListener('click', () => closeModal(pasteModal));
+      document.getElementById('btnCancelPaste')?.addEventListener('click', () => closeModal(pasteModal));
+
+      document.getElementById('btnQuickSynthetic')?.addEventListener('click', () => openModal(syntheticModal));
+      document.getElementById('btnCloseSynthetic')?.addEventListener('click', () => closeModal(syntheticModal));
+      document.getElementById('btnCancelSynthetic')?.addEventListener('click', () => closeModal(syntheticModal));
+
+      document.getElementById('btnOpenGuide')?.addEventListener('click', () => openModal(guideModal));
+      document.getElementById('btnCloseGuide')?.addEventListener('click', () => closeModal(guideModal));
+      document.getElementById('btnDismissGuide')?.addEventListener('click', () => closeModal(guideModal));
+
+      // File Browser & Drag/Drop
+      const dropZone = document.getElementById('dropZone');
+      const fileInput = document.getElementById('fileInput');
+
+      document.getElementById('btnBrowseFile')?.addEventListener('click', () => fileInput?.click());
+
+      const handleFile = (file) => {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const parsed = window.BenchmarkParser.parseBenchmarkText(e.target.result, file.name);
+            app.loadBenchmark(parsed);
+            closeModal(uploadModal);
+            app.logEvent("system", `Custom benchmark "${file.name}" loaded successfully.`);
+          } catch (err) {
+            alert(`Error parsing benchmark file: ${err.message}`);
+          }
+        };
+        reader.readAsText(file);
+      };
+
+      fileInput?.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) handleFile(e.target.files[0]);
+      });
+
+      if (dropZone) {
+        dropZone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          dropZone.classList.add('drag-over');
+        });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+        dropZone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          dropZone.classList.remove('drag-over');
+          if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            handleFile(e.dataTransfer.files[0]);
+          }
+        });
+      }
+
+      // Paste text submit
+      document.getElementById('btnSubmitPaste')?.addEventListener('click', () => {
+        const text = document.getElementById('pasteTextarea')?.value;
+        if (!text || text.trim().length === 0) {
+          alert('Please enter or paste valid benchmark text.');
+          return;
+        }
+        try {
+          const parsed = window.BenchmarkParser.parseBenchmarkText(text, "pasted_problem.txt");
+          app.loadBenchmark(parsed);
+          closeModal(pasteModal);
+          app.logEvent("system", "Pasted benchmark instance loaded successfully.");
+        } catch (err) {
+          alert(`Error parsing text: ${err.message}`);
+        }
+      });
+
+      // Synthetic Generator submit
+      document.getElementById('btnGenerateSynthetic')?.addEventListener('click', () => {
+        const type = document.getElementById('synType')?.value || 'clusters';
+        const nodes = parseInt(document.getElementById('synNodes')?.value, 10) || 25;
+        const budget = parseFloat(document.getElementById('synBudget')?.value) || 35.0;
+
+        const synthetic = window.BenchmarkParser.generateSyntheticProblem(type, nodes, budget);
+        app.loadBenchmark(synthetic);
+        closeModal(syntheticModal);
+        app.logEvent("system", `Generated synthetic ${type} problem with ${nodes} nodes.`);
+      });
+
+      // Window resize listener
+      window.addEventListener('resize', () => {
+        app.fitMapView();
+        app.renderMap();
+        app.renderTree();
+      });
+    });
+  </script>
+</body>
+</html>
