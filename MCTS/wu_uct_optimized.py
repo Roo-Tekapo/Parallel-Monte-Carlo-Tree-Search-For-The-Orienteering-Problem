@@ -37,23 +37,26 @@ class OptimizedWUUCTNode(MCTSNode):
         with self._node_lock:
             best_score = float('-inf')
             best_actions = []
+            unvisited_actions = []
+            
+            real_parent_visits = max(self.visits - self.virtual_losses, 1)
+            log_parent = math.log(real_parent_visits)
             
             for i, child in enumerate(self.children):
                 if child is None:
                     continue
                 
                 with child._node_lock:
-                    # Account for virtual losses
-                    effective_visits = max(child.visits - child.virtual_losses, 1)
+                    real_child_visits = child.visits - child.virtual_losses
+                    if real_child_visits == 0 and child.virtual_losses == 0:
+                        unvisited_actions.append(i)
+                        continue
                     
-                    if child.visits == 0:
-                        return i  # Prioritize unvisited
-                    
+                    effective_visits = max(child.visits, 1)
                     exploitation = child.total_reward / effective_visits
                     exploration = exploration_constant * math.sqrt(
-                        math.log(max(self.visits, 1)) / effective_visits
+                        log_parent / effective_visits
                     )
-                    
                     score = exploitation + exploration
                     
                     if score > best_score:
@@ -62,6 +65,8 @@ class OptimizedWUUCTNode(MCTSNode):
                     elif abs(score - best_score) < 1e-10:
                         best_actions.append(i)
             
+            if unvisited_actions:
+                return random.choice(unvisited_actions)
             return random.choice(best_actions) if best_actions else 0
     
     def apply_virtual_loss(self, loss_value: int = 3):

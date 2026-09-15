@@ -186,6 +186,8 @@ class RootParallelMCTS:
         # Follow path of most-visited children
         current = root
         while current.children:
+            if current.state.is_terminal():
+                break
             current = max(current.children, key=lambda c: c.visits)
         
         return current.state
@@ -215,8 +217,12 @@ class RootParallelMCTS:
         
         elapsed = time.time() - start_time
         
-        # Find best solution across all workers
-        best_solution = max(self.worker_results, key=lambda s: s.get_reward())
+        # Find best solution across all workers, prioritizing completed terminal paths
+        terminal_results = [s for s in self.worker_results if s.is_terminal()]
+        if terminal_results:
+            best_solution = max(terminal_results, key=lambda s: s.get_reward())
+        else:
+            best_solution = max(self.worker_results, key=lambda s: s.get_reward())
         
         # Print statistics
         print(f"\nRoot Parallel MCTS completed in {elapsed:.2f} seconds")

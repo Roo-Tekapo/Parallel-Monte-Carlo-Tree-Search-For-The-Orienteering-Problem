@@ -11,12 +11,12 @@ from collections import defaultdict
 
 # Add parent directories to Python path
 current_dir = os.path.dirname(os.path.abspath(__file__))
-simple_wu_dir = os.path.dirname(current_dir)
-project_root = os.path.dirname(simple_wu_dir)
-sys.path.extend([project_root, simple_wu_dir])
+project_root = os.path.dirname(current_dir)
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from Simple_WU.orienteering_adapter import OrienteeringProblem
-from simple_wu_coordinator import SimpleWUUCT
+from Simple_WU.simple_wu_coordinator import SimpleWUUCT
 
 
 def analyze_tree_diversity(node, depth=0, stats=None):
@@ -52,7 +52,7 @@ def test_exploration_diversity():
     print("=" * 60)
     
     # Load the long grid problem
-    problem_path = "../OP_Benchmark_Set/grid_sample/grid_10x10_long_50.txt"
+    problem_path = os.path.join(project_root, "OP_Benchmark_Set", "grid_sample", "grid_10x10_long_50.txt")
     nodes, budget = OrienteeringProblem.load_problem(problem_path)
     problem = OrienteeringProblem(nodes, budget, max_edge_distance=1.42)
     

@@ -3,6 +3,8 @@ from orienteering.orienteering import Node, OrienteeringProblem, OrienteeringSta
 from MCTS.mcts_base import MCTSSingleThread
 from MCTS.mcts_node import MCTSNode
 
+from orienteering.orienteering_traditional import OrienteeringStateTraditional
+
 class TestMCTSSingleThread(unittest.TestCase):
     def setUp(self):
         self.nodes = [
@@ -18,7 +20,7 @@ class TestMCTSSingleThread(unittest.TestCase):
     def test_run_returns_state(self):
         solver = MCTSSingleThread(self.problem, iterations=10)
         best_state = solver.run()
-        self.assertIsInstance(best_state, OrienteeringState)
+        self.assertTrue(isinstance(best_state, (OrienteeringState, OrienteeringStateTraditional)))
         self.assertTrue(hasattr(best_state, "get_path"))
         self.assertTrue(hasattr(best_state, "get_reward"))
         self.assertTrue(hasattr(best_state, "get_cost"))

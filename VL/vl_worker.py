@@ -107,12 +107,12 @@ class VLWorker(threading.Thread):
         # Phase 2: Apply Virtual Loss to selected path
         self._apply_virtual_loss(path)
         
+        final_path = path
         try:
             # Phase 3: Expansion
             expanded_node, expanded_state = self._expand_leaf(leaf_node, leaf_state)
             
             # Update path if expansion occurred
-            final_path = path
             if expanded_node != leaf_node:
                 final_path = path + [expanded_node]
                 # Apply virtual loss to expanded node too
@@ -127,7 +127,7 @@ class VLWorker(threading.Thread):
             
         except Exception as e:
             # Ensure virtual loss is removed even if error occurs
-            self._remove_virtual_loss(path)
+            self._remove_virtual_loss(final_path)
             raise e
     
     def _select_leaf(self):

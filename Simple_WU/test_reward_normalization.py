@@ -19,20 +19,25 @@ def run_comparison_test():
     """Run a comparison test with and without normalization."""
     
     # Load a test problem
-    problem_file = "OP_Benchmark_Set/sample/p1.2.a.txt"
-    
-    if not os.path.exists(problem_file):
-        print(f"Error: Problem file {problem_file} not found")
+    candidate_files = [
+        "OP_Benchmark_Set/sample/sample_30.txt",
+        "OP_Benchmark_Set/grid_sample/grid_sample_30.txt",
+        "OP_Benchmark_Set/sample/p1.2.a.txt"
+    ]
+    problem_file = next((f for f in candidate_files if os.path.exists(f)), None)
+    if not problem_file:
+        print("Error: No test problem file found")
         return
     
-    problem = OrienteeringProblem.from_file(problem_file)
+    nodes, budget = OrienteeringProblem.load_problem(problem_file)
+    problem = OrienteeringProblem(nodes, budget, max_edge_distance=None)
     
     print("=" * 80)
     print("Testing Simple WU-UCT with Reward Normalization")
     print("=" * 80)
     print(f"\nProblem: {problem_file}")
     print(f"Number of nodes: {len(problem.nodes)}")
-    print(f"Maximum distance: {problem.max_distance}")
+    print(f"Maximum distance (budget): {problem.budget}")
     
     # Calculate total possible reward
     total_reward = sum(node.score for node in problem.nodes)
@@ -60,7 +65,7 @@ def run_comparison_test():
     print(f"\nSolution without normalization:")
     print(f"  Path: {solution_no_norm.path}")
     print(f"  Reward: {solution_no_norm.reward_so_far}")
-    print(f"  Cost: {solution_no_norm.cost_so_far:.2f} / {problem.max_distance:.2f}")
+    print(f"  Cost: {solution_no_norm.cost_so_far:.2f} / {problem.budget:.2f}")
     print(f"  Tree nodes created: {stats_no_norm['nodes']}")
     print(f"  Max tree depth: {stats_no_norm['max_depth']}")
     
@@ -81,7 +86,7 @@ def run_comparison_test():
     print(f"\nSolution with normalization (discovered bounds):")
     print(f"  Path: {solution_norm_discovered.path}")
     print(f"  Reward: {solution_norm_discovered.reward_so_far}")
-    print(f"  Cost: {solution_norm_discovered.cost_so_far:.2f} / {problem.max_distance:.2f}")
+    print(f"  Cost: {solution_norm_discovered.cost_so_far:.2f} / {problem.budget:.2f}")
     print(f"  Tree nodes created: {stats_norm_discovered['nodes']}")
     print(f"  Max tree depth: {stats_norm_discovered['max_depth']}")
     
@@ -110,7 +115,7 @@ def run_comparison_test():
     print(f"\nSolution with normalization (estimated bounds):")
     print(f"  Path: {solution_norm_estimated.path}")
     print(f"  Reward: {solution_norm_estimated.reward_so_far}")
-    print(f"  Cost: {solution_norm_estimated.cost_so_far:.2f} / {problem.max_distance:.2f}")
+    print(f"  Cost: {solution_norm_estimated.cost_so_far:.2f} / {problem.budget:.2f}")
     print(f"  Tree nodes created: {stats_norm_estimated['nodes']}")
     print(f"  Max tree depth: {stats_norm_estimated['max_depth']}")
     

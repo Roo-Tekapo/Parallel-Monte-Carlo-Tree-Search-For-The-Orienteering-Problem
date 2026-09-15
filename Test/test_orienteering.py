@@ -12,7 +12,7 @@ class TestOrienteering(unittest.TestCase):
             Node(4, 1.0, 1.0, 25)
         ]
         self.budget = 5.0
-        self.problem = OrienteeringProblem(self.nodes, self.budget)
+        self.problem = OrienteeringProblem(self.nodes, self.budget, max_edge_distance=None)
         self.state = OrienteeringState(self.problem)
         # print("Initial state:", self.state)
 
@@ -56,8 +56,8 @@ class TestOrienteering(unittest.TestCase):
     def test_get_available_actions(self):
         actions = self.state.get_available_actions()
         self.assertTrue(len(actions) > 0)
-        for child in actions:
-            self.assertIsInstance(child, OrienteeringState)
+        for action in actions:
+            self.assertIsInstance(action, int)
 
     def test_apply_action_node_0_to_1(self):
         # Move from node 0 to node 1
