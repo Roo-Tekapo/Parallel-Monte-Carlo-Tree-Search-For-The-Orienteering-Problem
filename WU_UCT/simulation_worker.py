@@ -193,7 +193,7 @@ class SimulationWorker(threading.Thread):
         else:
             # For orienteering states
             if hasattr(state, 'path'):
-                from orienteering.orienteering_optimized import OrienteeringState
+                from WU_UCT.orienteering_adapter import OrienteeringState
                 return OrienteeringState(
                     self.problem,
                     path=state.path[:],

@@ -24,6 +24,9 @@ import traceback
 # Add parent directory to path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
+venv_site = project_root / ".venv" / "Lib" / "site-packages"
+if venv_site.exists():
+    sys.path.insert(0, str(venv_site))
 
 # Excel writing support
 try:
@@ -413,6 +416,60 @@ class BenchmarkRunner:
                 'traceback': traceback.format_exc()
             }
     
+    def run_root(self, problem_file: Path, max_iterations: int = 10000,
+                 num_workers: int = 4, max_time: Optional[float] = None,
+                 max_distance: Optional[float] = None,
+                 require_end_node: bool = True, **kwargs) -> Dict:
+        """Run Root Parallel MCTS algorithm."""
+        try:
+            from MCTS.root_parallel_mcts import RootParallelMCTS
+            from orienteering.orienteering import OrienteeringProblem
+            
+            nodes, budget = OrienteeringProblem.load_problem(str(problem_file))
+            problem = OrienteeringProblem(nodes, budget, max_edge_distance=max_distance, normalize_rewards=True)
+            
+            start_time = time.time()
+            root_mcts = RootParallelMCTS(problem, iterations=max_iterations, num_workers=num_workers)
+            best_state = root_mcts.run()
+            elapsed_time = time.time() - start_time
+            
+            raw_reward = sum(problem.nodes[node_id].score for node_id in best_state.get_path())
+            ends_at_end_node = best_state.is_terminal()
+            
+            return {
+                'algorithm': 'Root_Parallel',
+                'problem': problem_file.name,
+                'problem_file': problem_file.name,
+                'dataset': problem_file.parent.name,
+                'num_nodes': len(nodes),
+                'budget': budget,
+                'max_edge_distance': max_distance,
+                'num_workers': num_workers,
+                'iterations': max_iterations,
+                'elapsed_time': elapsed_time,
+                'best_path': str(best_state.get_path()),
+                'path_length': len(best_state.get_path()),
+                'normalized_reward': best_state.get_reward(),
+                'raw_reward': raw_reward,
+                'total_cost': best_state.get_cost(),
+                'budget_used_pct': (best_state.get_cost() / budget * 100) if budget > 0 else 0,
+                'ends_at_end_node': ends_at_end_node,
+                'total_collisions': 0,
+                'avg_collision_rate': 0.0,
+                'success': ends_at_end_node,
+                'error': None
+            }
+        except Exception as e:
+            return {
+                'algorithm': 'Root_Parallel',
+                'problem': problem_file.name,
+                'problem_file': problem_file.name,
+                'dataset': problem_file.parent.name,
+                'success': False,
+                'error': str(e),
+                'traceback': traceback.format_exc()
+            }
+    
     def run_wu_uct(self, problem_file: Path, max_iterations: int = 10000,
                    num_expansion_workers: int = 4, num_simulation_workers: int = 8,
                    max_time: Optional[float] = None, max_distance: float = 1.42,
@@ -655,6 +712,11 @@ class BenchmarkRunner:
                                              num_workers=num_workers, max_time=max_time,
                                              max_distance=max_distance,
                                              require_end_node=require_end_node)
+                    elif algo in ('root', 'root_parallel'):
+                        result = self.run_root(problem_file, max_iterations=max_iterations,
+                                             num_workers=num_workers, max_time=max_time,
+                                             max_distance=max_distance,
+                                             require_end_node=require_end_node)
                     elif algo == 'wu_uct':
                         # For WU-UCT, split workers between expansion and simulation
                         # Default: 1/3 expansion, 2/3 simulation (e.g., 4+8 for 12 workers)
@@ -702,7 +764,8 @@ class BenchmarkRunner:
                             time_taken = result.get('elapsed_time', 0)
                             print(f"✓ (Reward: {reward:.2f}, Time: {time_taken:.2f}s)")
                         else:
-                            print(f"✗ Error: {result.get('error', 'Unknown error')}")
+                            err = result.get('error') or ('Did not reach END node' if not result.get('ends_at_end_node') else 'Unknown error')
+                            print(f"✗ ({err})")
         
         if verbose:
             print(f"\n{'='*80}")
@@ -859,8 +922,8 @@ Available datasets:
     parser.add_argument('--dataset', '-d', type=str, default='grid_sample',
                        help='Dataset name or "all" for all datasets (default: grid_sample)')
     parser.add_argument('--algorithms', '-a', nargs='+',
-                       default=['uct', 'simple_wu', 'vl', 'tree', 'wu_uct', 'ortools'],
-                       help='Algorithms to run: uct, simple_wu, vl, tree, wu_uct, ortools, or "all" (default: all)')
+                       default=['uct', 'simple_wu', 'vl', 'tree', 'wu_uct', 'root', 'ortools'],
+                       help='Algorithms to run: uct, simple_wu, vl, tree, wu_uct, root, ortools, or "all" (default: all)')
     parser.add_argument('--iterations', '-i', type=int, default=10000,
                        help='Maximum iterations for MCTS algorithms (default: 10000)')
     parser.add_argument('--max-time', '-t', type=float, default=None,
@@ -881,8 +944,8 @@ Available datasets:
                        help='Output filename (default: benchmark_results_TIMESTAMP.xlsx)')
     parser.add_argument('--output-dir', type=str, default=None,
                        help='Output directory (default: results_gen/outputs)')
-    parser.add_argument('--format', type=str, choices=['excel', 'json', 'both'], default='excel',
-                       help='Output format (default: excel)')
+    parser.add_argument('--format', type=str, choices=['excel', 'json', 'both'], default='both',
+                       help='Output format (default: both)')
     parser.add_argument('--quiet', '-q', action='store_true',
                        help='Suppress progress output')
     parser.add_argument('--limit', type=int, default=None,
@@ -892,7 +955,7 @@ Available datasets:
     
     # Handle "all" shortcut for algorithms
     if 'all' in args.algorithms:
-        args.algorithms = ['uct', 'simple_wu', 'vl', 'tree', 'wu_uct', 'ortools']
+        args.algorithms = ['uct', 'simple_wu', 'vl', 'tree', 'wu_uct', 'root', 'ortools']
     
     # Initialize benchmark runner
     runner = BenchmarkRunner(output_dir=args.output_dir)

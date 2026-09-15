@@ -172,22 +172,26 @@ class VLNode(UCTNode):
         Returns:
             Selected child node
         """
-        if not self.children:
-            raise ValueError("Cannot select child from node with no children")
+        with self._vl_lock:
+            if not self.children:
+                raise ValueError("Cannot select child from node with no children")
+            children = list(self.children)
+            parent_visits = self.visits
         
         # Handle unvisited children (N_i = 0, V_i may be > 0)
         # If a child has virtual visits but no real visits, treat it as visited
-        unvisited = [child for child in self.children if child.get_effective_visits() == 0]
+        unvisited = [child for child in children if child.get_effective_visits() == 0]
         if unvisited:
             return random.choice(unvisited)
         
         # VL-UCT formula with both virtual loss and virtual visits
-        log_parent = math.log(self.visits)
+        # Protect against self.visits == 0 (e.g. at root before first simulation finishes)
+        log_parent = math.log(max(1, parent_visits))
         
         best_child = None
         best_uct_value = float('-inf')
         
-        for child in self.children:
+        for child in children:
             # Get effective values (including virtual penalties)
             effective_reward = child.get_effective_reward()  # Q_i - L_i
             effective_visits = child.get_effective_visits()  # N_i + V_i

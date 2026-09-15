@@ -73,30 +73,36 @@ class TreeParallelNode(UCTNode):
         Returns:
             Selected child node
         """
-        if not self.children:
-            raise ValueError("Cannot select child from node with no children")
-        
         with self._node_lock:
+            if not self.children:
+                raise ValueError("Cannot select child from node with no children")
+            children = list(self.children)
             parent_visits = self.visits
         
         # If parent hasn't been visited yet, select randomly
         if parent_visits == 0:
-            return random.choice(self.children)
+            return random.choice(children)
+        
+        # Check for unvisited children across all children and choose randomly among them
+        unvisited = []
+        child_stats = []
+        for child in children:
+            with child._node_lock:
+                c_visits = child.visits
+                c_reward = child.total_reward
+            if c_visits == 0:
+                unvisited.append(child)
+            else:
+                child_stats.append((child, c_visits, c_reward))
+        
+        if unvisited:
+            return random.choice(unvisited)
         
         log_parent = math.log(parent_visits)
-        
         best_child = None
         best_value = float('-inf')
         
-        for child in self.children:
-            with child._node_lock:
-                child_visits = child.visits
-                child_reward = child.total_reward
-            
-            # Unvisited children get infinite priority
-            if child_visits == 0:
-                return child
-            
+        for child, child_visits, child_reward in child_stats:
             # Standard UCT formula
             exploitation = child_reward / child_visits
             exploration = exploration_constant * math.sqrt(log_parent / child_visits)

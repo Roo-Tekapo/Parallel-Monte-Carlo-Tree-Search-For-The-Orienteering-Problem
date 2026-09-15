@@ -328,5 +328,5 @@ class WUUCTCoordinator:
             return self.problem.create_initial_state()
         else:
             # For orienteering problems
-            from orienteering.orienteering_optimized import OrienteeringState
+            from WU_UCT.orienteering_adapter import OrienteeringState
             return OrienteeringState(self.problem)

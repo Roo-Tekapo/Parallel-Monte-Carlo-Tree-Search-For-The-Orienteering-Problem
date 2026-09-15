@@ -38,9 +38,9 @@ def validate_wu_uct_formula():
     print("=" * 50)
     
     # Load a simple problem for testing
-    problem_file = "../../OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
+    problem_file = str(project_root / "OP_Benchmark_Set" / "set_64_1" / "set_64_1_80.txt")
     if not os.path.exists(problem_file):
-        print("❌ Test problem file not found")
+        print(f"❌ Test problem file not found: {problem_file}")
         return False
         
     try:
@@ -104,9 +104,9 @@ def compare_wu_vs_standard_uct():
     print("\n🆚 Comparing WU-UCT Worker Scaling")
     print("=" * 50)
     
-    problem_file = "../../OP_Benchmark_Set/set_64_1/set_64_1_80.txt"
+    problem_file = str(project_root / "OP_Benchmark_Set" / "set_64_1" / "set_64_1_80.txt")
     if not os.path.exists(problem_file):
-        print("❌ Test problem file not found")
+        print(f"❌ Test problem file not found: {problem_file}")
         return False
     
     try:

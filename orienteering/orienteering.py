@@ -318,9 +318,10 @@ class OrienteeringState:
 
     def best_child(self):
         # Returns the child with the highest score (reward)
-        children = self.get_available_actions()
-        if not children:
+        actions = self.get_available_actions()
+        if not actions:
             return None
+        children = [self.apply_action(action) for action in actions]
         return max(children, key=lambda child: child.reward_so_far)
 
     def get_reward(self):

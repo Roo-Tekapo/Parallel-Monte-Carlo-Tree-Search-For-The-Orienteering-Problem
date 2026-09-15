@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parallel MCTS Interactive Visualizer - Tic-Tac-Toe</title>
+  <meta name="description" content="Interactive visualization of Single-Threaded, Virtual Loss (VL-UCT), WU-UCT, and Root Parallel Monte Carlo Tree Search on Tic-Tac-Toe.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="dark-theme">
+  <!-- Top Navigation / Header -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo-badge">
+        <span class="logo-icon">🌳</span>
+        <div>
+          <h1 class="logo-title">Parallel MCTS Visualizer</h1>
+          <span class="logo-sub">Demonstrating UCT, Virtual Loss & WU-UCT on Tic-Tac-Toe</span>
+        </div>
+      </div>
+    </div>
+    <div class="header-center">
+      <div class="algorithm-selector-group">
+        <label class="selector-label">Algorithm:</label>
+        <div class="btn-group" role="group" id="algoButtonGroup">
+          <button class="algo-btn active" data-algo="uct" id="btnAlgoUCT">Single UCT</button>
+          <button class="algo-btn" data-algo="vl" id="btnAlgoVL">Virtual Loss (VL-UCT)</button>
+          <button class="algo-btn" data-algo="wu" id="btnAlgoWU">WU-UCT (Queue)</button>
+          <button class="algo-btn" data-algo="root" id="btnAlgoRoot">Root Parallel</button>
+        </div>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="btn btn-outline" id="btnHelpModal">📖 Repo Guide & Math</button>
+      <button class="btn btn-outline" id="btnResetBoard">↺ Reset Board</button>
+    </div>
+  </header>
+
+  <!-- Main Container Grid -->
+  <main class="app-main">
+    <!-- Left Column: Board & Worker State -->
+    <section class="panel panel-left">
+      <!-- Game Board Card -->
+      <div class="card board-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h2 class="card-title">Current Game Board</h2>
+            <span class="badge" id="turnBadge">Turn: X (Algorithm)</span>
+          </div>
+          <div class="board-mode-toggle">
+            <button class="pill-btn active" id="modePlay">Play Mode</button>
+            <button class="pill-btn" id="modeSetup">Custom Setup</button>
+          </div>
+        </div>
+
+        <div class="card-body board-body">
+          <div class="board-container">
+            <div class="tictactoe-grid" id="tictactoeGrid">
+              <!-- 9 cells generated dynamically -->
+            </div>
+          </div>
+          
+          <div class="board-status-strip" id="boardStatusStrip">
+            Select a cell to play or run MCTS to find the optimal move.
+          </div>
+
+          <div class="board-actions">
+            <button class="btn btn-primary" id="btnAIMove">🤖 Algorithm Choose Best Move</button>
+            <button class="btn btn-secondary" id="btnClearBoard">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Parallel Workers & Queue Status Card -->
+      <div class="card workers-card" id="workersCard">
+        <div class="card-header">
+          <h2 class="card-title" id="workersCardTitle">Worker Threads Coordination</h2>
+          <div class="worker-controls-right" style="display: flex; align-items: center; gap: 6px;">
+            <select id="workerCountSelect" class="pill-select" title="Number of parallel worker threads">
+              <option value="1">1 Thread</option>
+              <option value="2">2 Threads</option>
+              <option value="4" selected>4 Threads</option>
+              <option value="8">8 Threads</option>
+            </select>
+            <span class="badge badge-info" id="workerCountBadge">4 Active</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <!-- Worker Indicators -->
+          <div class="workers-grid" id="workersGrid">
+            <!-- Dynamic worker status cards -->
+          </div>
+
+          <!-- WU-UCT Queue Visualizer (Visible in WU-UCT mode) -->
+          <div class="queue-container hidden" id="queueContainer">
+            <div class="queue-header">
+              <span class="queue-title">📬 Work Queue (Expansion → Simulation)</span>
+              <span class="queue-count" id="queueCount">0 pending</span>
+            </div>
+            <div class="queue-track" id="queueTrack">
+              <span class="queue-empty">Queue empty - ready for WorkUnits</span>
+            </div>
+          </div>
+
+          <!-- Virtual Loss Metrics (Visible in VL mode) -->
+          <div class="vl-metrics-container hidden" id="vlMetricsContainer">
+            <div class="metric-row">
+              <span class="metric-label">Active Virtual Losses (L):</span>
+              <span class="metric-value font-mono text-purple" id="metricActiveVL">0</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Collisions Avoided:</span>
+              <span class="metric-value font-mono text-cyan" id="metricCollisionsAvoided">0</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Virtual Penalty Value:</span>
+              <span class="metric-value font-mono" id="metricVLPenalty">0.20</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rollout Simulation Preview Card -->
+      <div class="card rollout-card">
+        <div class="card-header">
+          <h2 class="card-title">Rollout Simulation Preview</h2>
+          <span class="badge" id="rolloutResultBadge">Idle</span>
+        </div>
+        <div class="card-body rollout-body">
+          <div class="rollout-container">
+            <div class="rollout-grid" id="rolloutGrid"></div>
+            <div class="rollout-info">
+              <div class="rollout-meta" id="rolloutMeta">
+                Rollout path and result will display during the Simulation phase.
+              </div>
+              <div class="rollout-reward" id="rolloutReward"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Center Column: Tree Visualizer & Interactive Controls -->
+    <section class="panel panel-center">
+      <!-- Search Tree Control Bar -->
+      <div class="tree-controls-bar">
+        <div class="control-group">
+          <button class="btn btn-success" id="btnPlayPause">▶ Run</button>
+          <button class="btn btn-secondary" id="btnStepPhase" title="Executes 1 of the 4 MCTS phases (Selection -> Expansion -> Simulation -> Backpropagation)">⏭ Step Phase</button>
+          <button class="btn btn-secondary" id="btnStepIter" title="Executes all 4 MCTS phases in one complete iteration">⏩ Step Iteration</button>
+          <button class="btn btn-danger-outline" id="btnResetTree" title="Clear search tree">↺ Clear Tree</button>
+        </div>
+
+        <div class="control-group">
+          <label class="slider-label" for="speedSlider">Speed:</label>
+          <input type="range" id="speedSlider" min="1" max="100" value="25" class="range-slider">
+          <span class="slider-value font-mono" id="speedValue">25 it/s</span>
+        </div>
+
+        <div class="control-group">
+          <label class="slider-label" for="depthFilter">Depth:</label>
+          <select id="depthFilter" class="pill-select" title="Tree depth view">
+            <option value="all" selected>All (Full Tree to Terminal)</option>
+            <option value="6">Up to Depth 6</option>
+            <option value="4">Up to Depth 4</option>
+            <option value="2">Up to Depth 2</option>
+          </select>
+        </div>
+
+        <div class="control-group tree-zoom-group">
+          <button class="btn-icon" id="btnCenterRoot" title="Center on Root Node">🎯</button>
+          <button class="btn-icon" id="btnFitTree" title="Fit Entire Tree in Viewport">⛶</button>
+          <button class="btn-icon" id="btnZoomIn" title="Zoom In">+</button>
+          <button class="btn-icon" id="btnZoomOut" title="Zoom Out">-</button>
+          <button class="btn-icon" id="btnZoomReset" title="Reset Zoom">1:1</button>
+        </div>
+      </div>
+
+      <!-- Current Phase Status Banner -->
+      <div class="phase-banner" id="phaseBanner">
+        <div class="phase-steps">
+          <div class="phase-step active" id="phaseStepSelect">
+            <span class="step-num">1</span>
+            <span class="step-name">Selection</span>
+          </div>
+          <div class="phase-connector"></div>
+          <div class="phase-step" id="phaseStepExpand">
+            <span class="step-num">2</span>
+            <span class="step-name">Expansion</span>
+          </div>
+          <div class="phase-connector"></div>
+          <div class="phase-step" id="phaseStepSim">
+            <span class="step-num">3</span>
+            <span class="step-name">Simulation</span>
+          </div>
+          <div class="phase-connector"></div>
+          <div class="phase-step" id="phaseStepBackprop">
+            <span class="step-num">4</span>
+            <span class="step-name">Backprop</span>
+          </div>
+        </div>
+        <div class="phase-description" id="phaseDesc">
+          Ready. Click 'Step Phase' to observe Selection or 'Run' for continuous tree search.
+        </div>
+      </div>
+
+      <!-- Tree Visualization Canvas / SVG Area -->
+      <div class="tree-viewport" id="treeViewport">
+        <svg id="treeSvg" class="tree-svg">
+          <defs>
+            <linearGradient id="gradPath" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#3b82f6" />
+              <stop offset="100%" stop-color="#8b5cf6" />
+            </linearGradient>
+            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="3" result="glow" />
+              <feComposite in="SourceGraphic" in2="glow" operator="over" />
+            </filter>
+          </defs>
+          <g id="treeRootGroup"></g>
+        </svg>
+
+        <!-- Tree Overlay Legend -->
+        <div class="tree-legend">
+          <div class="legend-item"><span class="legend-color node-color-win"></span> High Win% (Algorithm Favored)</div>
+          <div class="legend-item"><span class="legend-color node-color-mid"></span> Balanced / Draws</div>
+          <div class="legend-item"><span class="legend-color node-color-loss"></span> Low Win% (Unfavored)</div>
+          <div class="legend-item"><span class="legend-color node-color-vl"></span> Virtual Loss Applied</div>
+          <div class="legend-item"><span class="legend-color node-color-active"></span> Active Worker Path</div>
+        </div>
+
+        <!-- Empty state placeholder -->
+        <div class="tree-empty-state" id="treeEmptyState">
+          <span class="empty-icon">🌱</span>
+          <p>Tree is empty. Click <strong>Step Phase</strong> or <strong>Run</strong> to begin Monte Carlo Tree Search.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column: Formula Inspector, Tree Stats & Live Event Log -->
+    <section class="panel panel-right">
+      <!-- Node Formula Inspector Card -->
+      <div class="card formula-card">
+        <div class="card-header">
+          <h2 class="card-title">UCT Formula Inspector</h2>
+          <span class="badge badge-accent" id="selectedNodeBadge">Root</span>
+        </div>
+        <div class="card-body">
+          <!-- Active Formula Display based on Algorithm -->
+          <div class="formula-box" id="formulaEquationBox">
+            <!-- Dynamic formula math display -->
+          </div>
+
+          <div class="formula-breakdown" id="formulaBreakdown">
+            <div class="formula-row">
+              <span class="formula-term">Exploitation (Q / N):</span>
+              <span class="formula-val font-mono" id="valExploit">-</span>
+            </div>
+            <div class="formula-row">
+              <span class="formula-term">Exploration Term:</span>
+              <span class="formula-val font-mono" id="valExplore">-</span>
+            </div>
+            <div class="formula-row" id="rowVLTerm" style="display: none;">
+              <span class="formula-term">Virtual Loss Penalty (L / (N+V)):</span>
+              <span class="formula-val font-mono text-purple" id="valVL">-</span>
+            </div>
+            <div class="formula-row" id="rowWUTerm" style="display: none;">
+              <span class="formula-term">Unobserved Bonus (O):</span>
+              <span class="formula-val font-mono text-cyan" id="valWU">-</span>
+            </div>
+            <div class="formula-divider"></div>
+            <div class="formula-row formula-total">
+              <span class="formula-term font-bold">Total UCT Score:</span>
+              <span class="formula-val font-mono font-bold text-accent" id="valTotalUCT">-</span>
+            </div>
+          </div>
+
+          <!-- Parameter Sliders -->
+          <div class="param-tuning">
+            <div class="param-slider-row">
+              <label for="sliderExploration" class="param-label">Exploration Constant (c):</label>
+              <input type="range" id="sliderExploration" min="0.1" max="3.0" step="0.05" value="1.414" class="range-slider">
+              <span class="param-val font-mono" id="valExplorationConst">1.41</span>
+            </div>
+            <div class="param-slider-row" id="rowVLTune" style="display: none;">
+              <label for="sliderVLValue" class="param-label">VL Penalty Value (L):</label>
+              <input type="range" id="sliderVLValue" min="0.05" max="1.0" step="0.05" value="0.20" class="range-slider">
+              <span class="param-val font-mono" id="valVLSetting">0.20</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search Statistics Card -->
+      <div class="card stats-card">
+        <div class="card-header">
+          <h2 class="card-title">Search Statistics</h2>
+        </div>
+        <div class="card-body">
+          <div class="stats-grid">
+            <div class="stat-box">
+              <span class="stat-num font-mono" id="statIterations">0</span>
+              <span class="stat-lbl">Iterations</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-num font-mono" id="statNodes">1</span>
+              <span class="stat-lbl">Tree Nodes</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-num font-mono" id="statDepth">0</span>
+              <span class="stat-lbl">Max Depth</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-num font-mono" id="statThroughput">0/s</span>
+              <span class="stat-lbl">Speed</span>
+            </div>
+          </div>
+
+          <!-- Move Recommendation Probabilities Bar -->
+          <div class="recommendation-box">
+            <div class="rec-title">Legal Move Evaluation from Root:</div>
+            <div class="rec-bars" id="recBars">
+              <div class="rec-empty">Run iterations to see move probabilities.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-Time Activity Log Card -->
+      <div class="card log-card">
+        <div class="card-header">
+          <h2 class="card-title">Execution Log</h2>
+          <button class="pill-btn" id="btnClearLog">Clear</button>
+        </div>
+        <div class="card-body log-body">
+          <div class="log-stream" id="logStream">
+            <div class="log-entry log-info"><span class="log-time">[00:00]</span> Visualizer initialized. Select an algorithm to begin.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Repo Knowledge & Math Modal -->
+  <div class="modal-overlay hidden" id="helpModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">Parallel MCTS & Capstone Research Guide</h2>
+        <button class="modal-close-btn" id="btnCloseModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-tabs">
+          <button class="modal-tab active" data-tab="tabMCTS">MCTS Core</button>
+          <button class="modal-tab" data-tab="tabParallel">Parallel Strategies</button>
+          <button class="modal-tab" data-tab="tabFormulas">Formulas</button>
+          <button class="modal-tab" data-tab="tabFindings">Capstone Findings</button>
+        </div>
+
+        <div class="tab-content active" id="tabMCTS">
+          <h3>The 4 Phases of Monte Carlo Tree Search</h3>
+          <ol class="guide-list">
+            <li><strong>Selection:</strong> Starting at the root, traverse down the tree using the <em>Upper Confidence Bound applied to Trees (UCT)</em> until a leaf node or an unexpanded node is reached. UCT balances exploiting high-win branches and exploring less-visited moves.</li>
+            <li><strong>Expansion:</strong> If the selected leaf is not terminal and has legal moves not yet in the tree, create one or more child nodes.</li>
+            <li><strong>Simulation (Rollout):</strong> From the newly expanded node, simulate the remainder of the game to completion using rapid, random moves (or domain heuristics).</li>
+            <li><strong>Backpropagation:</strong> Propagate the outcome of the rollout (+1 for win, 0.5 for draw, 0 for loss) backwards up the entire ancestral path, incrementing visit counts $N$ and accumulating total reward $Q$.</li>
+          </ol>
+        </div>
+
+        <div class="tab-content" id="tabParallel">
+          <h3>Shared Tree Parallelization Strategies</h3>
+          <div class="guide-comparison-card">
+            <h4>1. Tree-Parallel (Standard UCT with Mutexes)</h4>
+            <p>Multiple workers traverse one shared tree. Coarse locks protect tree expansion and node statistics. Under many threads, workers queue on locks (lock contention), and workers often select identical paths concurrently before rollouts finish.</p>
+          </div>
+          <div class="guide-comparison-card">
+            <h4>2. Virtual Loss (VL-UCT)</h4>
+            <p>When a worker selects a path, it temporarily applies a <strong>Virtual Loss</strong> penalty ($L$) and increments virtual visits ($V$). This artifically reduces the UCT score of that branch for other workers, nudging concurrent workers to explore alternative branches without blocking! When the rollout completes, the virtual loss is removed and real reward is backpropagated.</p>
+          </div>
+          <div class="guide-comparison-card">
+            <h4>3. WU-UCT (Weighted-Update UCT / Asynchronous Pipeline)</h4>
+            <p>Decouples <em>Expansion Workers</em> (fast lock-free tree traversal) from <em>Simulation Workers</em> (slow rollouts) via a work queue. Uses a two-phase protocol: <strong>Update-Incomplete</strong> marks pending simulations ($O$ unobserved count) to discourage duplicate expansion; <strong>Update-Complete</strong> commits true simulation results.</p>
+          </div>
+          <div class="guide-comparison-card">
+            <h4>4. Root Parallelization</h4>
+            <p>Each worker runs its own completely independent MCTS tree. At decision time, visit counts for root actions are aggregated across all trees. Zero locks, zero synchronization overhead, perfectly embarrassingly parallel.</p>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tabFormulas">
+          <h3>Mathematical Formulations Compared</h3>
+          <div class="formula-display-block">
+            <h4>Standard UCT</h4>
+            <code>UCT = (Q / N) + c * sqrt( ln(N_parent) / N_child )</code>
+          </div>
+          <div class="formula-display-block">
+            <h4>Virtual Loss (VL-UCT)</h4>
+            <code>UCT = (Q - L) / (N + V) + c * sqrt( ln(N_parent) / (N_child + V) )</code>
+            <small>Where $L$ is total virtual loss and $V$ is number of threads actively exploring the node.</small>
+          </div>
+          <div class="formula-display-block">
+            <h4>WU-UCT</h4>
+            <code>UCT = (Q / N) + c * sqrt( ln(N_parent + O_parent) / (N_child + O_child) )</code>
+            <small>Where $O$ is the count of unobserved (in-flight) simulations in the work queue.</small>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tabFindings">
+          <h3>Capstone Findings & The Orienteering Problem</h3>
+          <div class="guide-callout">
+            <strong>The Orienteering Problem (OP):</strong> An NP-hard combinatorial problem combining the Knapsack Problem and TSP. Given a graph with prize rewards at each vertex and a travel budget $T_{\max}$, find a path starting at node 1 and ending at node 2 that maximizes total collected prize within $T_{\max}$.
+          </div>
+          <h4>Crucial Takeaways from this Repository:</h4>
+          <ul>
+            <li><strong>Root Parallelization was the Empirical Winner in Python (2.8x - 10.6x faster than WU-UCT):</strong> Because Python's Global Interpreter Lock (GIL) and lock convoys at the root node during backpropagation penalize shared-tree locking heavily.</li>
+            <li><strong>Fine-Grained Locking Failed:</strong> An attempt to optimize WU-UCT by adding fine-grained per-node locks degraded multi-worker performance because backpropagating threads created lock convoys through root ancestors.</li>
+            <li><strong>Why VL-UCT and WU-UCT Matter:</strong> In languages without a GIL (C++, Go, Rust) or when rollouts involve heavy deep learning evaluations (AlphaGo/AlphaZero), shared-tree search sharing is essential to prevent redundant compute.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

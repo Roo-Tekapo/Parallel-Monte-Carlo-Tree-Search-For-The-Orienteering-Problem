@@ -1,6 +1,6 @@
 import unittest
-from MCTS.mcts_single_thread import single_thread_mcts
-from orienteering.orienteering import Node, OrienteeringProblem, OrienteeringState
+from UCT.uct_single_thread import UCTSingleThread, UCTNode
+from orienteering.orienteering_traditional import Node, OrienteeringProblem, OrienteeringState
 
 class TestSingleThreadMCTS(unittest.TestCase):
     def setUp(self):
@@ -13,33 +13,38 @@ class TestSingleThreadMCTS(unittest.TestCase):
             Node(4, 1.0, 1.0, 25)
         ]
         self.budget = 5.0
-        self.problem = OrienteeringProblem(self.nodes, self.budget)
-        self.mcts = single_thread_mcts(self.problem)
+        self.problem = OrienteeringProblem(self.nodes, self.budget, max_edge_distance=None)
+        self.mcts = UCTSingleThread(self.problem, iterations=10)
 
     def test_init(self):
-        self.assertIsInstance(self.mcts.root, OrienteeringState)
+        root = self.mcts.initialize_root()
+        self.assertIsInstance(root, UCTNode)
+        self.assertIsInstance(root.state, OrienteeringState)
 
-    def test_select(self):
-        path = self.mcts._select(self.mcts.root)
-        self.assertIsInstance(path, list)
-        self.assertTrue(all(isinstance(n, OrienteeringState) for n in path))
-
-    def test_expand(self):
-        # Should not raise
-        self.mcts._expand(self.mcts.root)
+    def test_select_and_expand(self):
+        root = self.mcts.initialize_root()
+        leaf = self.mcts.selection(root)
+        self.assertIsInstance(leaf, UCTNode)
+        child = self.mcts.expansion(leaf)
+        self.assertIsInstance(child, UCTNode)
 
     def test_simulate(self):
-        reward = self.mcts._simulate(self.mcts.root)
+        root = self.mcts.initialize_root()
+        reward = self.mcts.simulation(root.state)
         self.assertIsInstance(reward, (int, float))
 
     def test_backpropagate(self):
-        path = [self.mcts.root, self.mcts.root.copy()]
-        # Should not raise
-        self.mcts._backpropagate(path, 1)
+        root = self.mcts.initialize_root()
+        child = self.mcts.expansion(root)
+        self.mcts.backpropagation(child, 1.0)
+        self.assertEqual(child.visits, 1)
+        self.assertEqual(root.visits, 1)
 
-    def test_print_results(self):
-        # Should not raise
-        self.mcts.print_results()
+    def test_run_iteration(self):
+        info = self.mcts.run_iteration()
+        self.assertIn('iteration', info)
+        self.assertIn('reward', info)
+        self.assertEqual(info['iteration'], 1)
 
 if __name__ == "__main__":
     unittest.main()
